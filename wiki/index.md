@@ -2,9 +2,9 @@
 okf_version: "0.1"
 ---
 
-# Pascal RE knowledge base -- prototype bundle
+# Pascal RE knowledge base
 
-One observation, written as the pattern for [issue #10](https://github.com/sweetlilmre/PsychoNeurosis/issues/10). See `README.md` for what this is and what is deliberately missing.
+A field manual for reverse engineering 16-bit DOS binaries built with Borland Pascal. One observation today; it grows every time somebody reads a binary. See `README.md` for how to check it, and `CONTEXT.md` for the vocabulary.
 
 ## Observations
 
