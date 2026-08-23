@@ -6,7 +6,7 @@ It is deliberately short. A document read at the start of every session is one w
 
 ## 1. Where this project keeps things
 
-`kit.toml` at the host's root answers that -- where the sources are, where the wiki is, what the register is called, where a build leaves its output. `kit.local.toml` beside it holds the machine paths and is never committed. **Neither is hand-written**: the kit's setup wizard writes them.
+`kit.toml` at the host's root answers that -- where the sources are, where the wiki is, what the register is called, where a build leaves its output. `kit.local.toml` beside it holds the machine paths and is never committed. **Neither is hand-written**: `kit/tools/setup.py` writes them, and [`SETUP.md`](SETUP.md) says how -- including what it refuses to guess.
 
 You do not need to read either. Every program here asks them, and prints which answer it used and where it came from:
 
