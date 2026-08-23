@@ -299,6 +299,92 @@ def linked(varbase, delta=None, top=0x10000):
     return rule
 
 
+def regions(orig, mine, at=0, mask=frozenset(), over=64):
+    """EVERY place two byte strings disagree, not just the first.
+
+    The third comparison shape in this module, and the one a FAILING artefact
+    needs. `walk()` answers how far agreement reaches and stops; `compare()`
+    answers how many bytes of two equal-length blocks differ. Neither helps
+    once a unit has genuinely diverged: a single two-byte codegen difference
+    early on displaces everything after it, so a first-divergence figure says
+    nothing about the remaining 2,600 bytes.
+
+    Aligning with difflib recovers the structure -- the matching runs come back
+    as blocks and the gaps between them are the real work list. Returns
+    `(offset in orig, orig length, our length)` per gap.
+
+    WHAT IS NOT A GAP, and each clause was earned:
+
+      * a run where OUR side is all zero and short enough to be one reference
+        (four bytes, a far pointer): an unresolved fixup.
+      * a run where our side is all zero and EXACTLY as long as the original's
+        side. That is what a TABLE of unresolved offsets looks like -- sixteen
+        consecutive `DW OFFSET` entries are a 32-byte run of zeros against 32
+        bytes of real addresses. The four-byte cap alone reported all of it as
+        real, and one project's notes carried "132 differences" on that basis
+        for several sessions. They were all zero. The cap still matters for the
+        case it was added for: a unit that simply STOPS leaves zeros against
+        the original's remaining code, and there the lengths do NOT match,
+        because difflib pairs the original's bytes against nothing.
+      * a run lying entirely inside positions the caller passed in `mask` --
+        the same rule with better evidence, because an object module says which
+        bytes are pending instead of the value zero standing in for it.
+      * a TRAILING gap the original side does not reach into. The window
+        over-reads by `over` bytes on purpose, so a unit that compiles LONGER
+        than the original still has something to align against; the cost is
+        that leftover slack always appears as a final gap, and because a `.TPU`
+        stores its typed constants straight after the code that gap fills with
+        table data and reads like a divergence. A unit whose code really is
+        longer still shows it -- the excess appears as gaps INSIDE the aligned
+        region.
+    """
+    import difflib
+    win = mine[at:at + len(orig) + over]
+    sm = difflib.SequenceMatcher(None, orig, win, autojunk=False)
+    out, oi, ti = [], 0, 0
+    for a, b, n in sm.get_matching_blocks():
+        if a > oi or b > ti:
+            ours = win[ti:b]
+            allzero = len(ours) > 0 and all(c == 0 for c in ours)
+            relocated = (len(ours) == a - oi and len(ours) > 0
+                         and all(ti + k in mask for k in range(len(ours))))
+            fixup = relocated or (allzero and
+                                  (len(ours) <= MAX_FIXUP or len(ours) == a - oi))
+            if not fixup and oi < len(orig):
+                out.append((oi, a - oi, b - ti))
+        oi, ti = a + n, b + n
+    return out
+
+
+def hexpair(orig, mine, at, first, lo_pad=24, hi_pad=40):
+    """The bytes either side of a divergence, original above ours.
+
+    A rendering rather than a measurement, and it lives here because the two
+    byte strings and the offset are all it needs. The mark line is the point:
+    `..` same, `--` our side is zero so the linker still owes it, `^^` a real
+    difference. Reading a pair of hex dumps without that line is how a pending
+    fixup gets chased as a defect.
+    """
+    n = len(orig)
+    lo, hi = max(0, first - lo_pad), min(n, first + hi_pad)
+    rows = []
+    for base in range(lo, hi, 16):
+        o = orig[base:base + 16]
+        m = mine[at + base:at + base + 16]
+        mark = "".join(
+            "  " if base + k >= len(orig) or k >= len(m) else
+            ".." if o[k] == m[k] else
+            "--" if m[k] == 0 else "^^"
+            for k in range(len(o)))
+        flag = "  <<<" if base <= first < base + 16 else ""
+        rows.append("  +%04x  orig %s%s" % (base, o.hex(), flag))
+        rows.append("         ours %s" % m.hex())
+        rows.append("              %s" % mark)
+    rows.append("  legend: .. same   -- pending fixup (ours zero)   "
+                "^^ REAL difference")
+    return "\n".join(rows)
+
+
 def compare(want, got, forgive=None):
     """Positional difference count between two equal-length blocks.
 

@@ -55,6 +55,11 @@ except ModuleNotFoundError:                       # pragma: no cover -- 3.11+
     import tomli as tomllib                       # type: ignore
 
 
+# How many divergent regions to PRINT per unit. The count reported is always
+# the full one; this only bounds the listing.
+REGION_CAP = 40
+
+
 def segment_bytes(blob, seg, length, first_para):
     image, _ = align.load_image(blob)
     base = (seg - first_para) * 16
@@ -151,7 +156,7 @@ def main(argv):
 
     if not args:
         sys.stdout.write("usage: units.py CONFIG.toml [--only NAME] "
-                         "[--build DIR] [--original FILE]\n")
+                         "[--build DIR] [--original FILE] [--detail] [--all]\n")
         return 2
     with io.open(args[0], "rb") as fh:
         cfg = tomllib.load(fh)
@@ -165,6 +170,11 @@ def main(argv):
     blob = pathlib.Path(original).read_bytes()
     sources = opt("sources") or cfg.get("sources")
     only = opt("only")
+    # Both only ever fire on a unit that FAILED, which is why they are flags
+    # rather than always on: the run is a table, and a table with a hex dump in
+    # the middle of it is not a table.
+    detail = "--detail" in argv or "-d" in argv
+    want_all = "--all" in argv or "-a" in argv
     rows = []
     exact = ok = failed = missing = 0
 
@@ -223,6 +233,32 @@ def main(argv):
                          "agrees to +%04x of %04x  (%d%%)"
                          % (pre, have, 100 * pre // max(1, have))))
             failed += 1
+            # A prefix figure is where to START on a unit that has diverged,
+            # never the whole story: one two-byte codegen difference early on
+            # displaces everything after it, so the percentage says nothing
+            # about the rest. These two print the rest, and they only ever fire
+            # on a unit that failed -- which is why they are flags.
+            if detail:
+                sys.stdout.write("\n=== %s  seg %04x  diverges at +%04x of "
+                                 "%04x\n%s\n"
+                                 % (name, seg, pre, have,
+                                    align.hexpair(orig, image, at, pre)))
+            if want_all:
+                rs = [r for r in align.regions(orig, image, at, mask)
+                      if r[0] >= pre]
+                sys.stdout.write("\n=== %s  %d divergent region(s) past +%04x\n"
+                                 % (name, len(rs), pre))
+                # Capped at forty per unit, and the COUNT is still the truth:
+                # one unit here has 163, and printing every one of nineteen
+                # units in full is 1,168 lines nobody reads. The tool this
+                # replaced made the same call; the number after the cap is what
+                # says whether the list you are reading is the whole list.
+                for off, olen, mlen in rs[:REGION_CAP]:
+                    sys.stdout.write("     +%04x  %d orig byte(s) against %d "
+                                     "of ours\n" % (off, olen, mlen))
+                if len(rs) > REGION_CAP:
+                    sys.stdout.write("     ... and %d more\n"
+                                     % (len(rs) - REGION_CAP))
 
     w = max([len(r[0]) for r in rows] + [8])
     sys.stdout.write("%-*s  %-6s %6s  %s\n" % (w, "unit", "seg", "bytes",
