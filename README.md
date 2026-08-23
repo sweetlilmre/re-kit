@@ -34,5 +34,15 @@ if that happens.
 `wiki/index.md` lists what has been learnt about reading these binaries, and
 `wiki/CONTEXT.md` holds the METHOD's vocabulary and travels with this folder; a host repository's own `CONTEXT.md` keeps only the words for its target. Read both before arguing about any of them.
 
-Decided in [The kit travels as one folder](https://github.com/sweetlilmre/PsychoNeurosis/issues/43),
+## Where the scripts this replaced went
+
+A consumer's own scripts are **archived**, not lost. Each project that adopts the kit tags its tree before the deletions begin, with an annotated tag called `archive/pre-kit-scripts` on the last commit that held every script:
+
+    git show archive/pre-kit-scripts:<path>          recover one
+    git log --oneline archive/pre-kit-scripts -1     what it points at
+
+A tag is a permanent named pointer that cannot drift, and it can point at any commit -- so there is no reason to carry superseded scripts through a whole migration. `census.py`'s `archived` state records where each one went, and names its successor. `WORKING.md` section 7 has the convention in full, including the check that has to pass before anything is deleted.
+
+Decided in [The kit travels as one folder](https://github.com/sweetlilmre/PsychoNeurosis/issues/43)
+and [Tag the archive, then delete what the toolkit superseded](https://github.com/sweetlilmre/PsychoNeurosis/issues/36),
 on the map [The toolkit and wiki become the RE drivers](https://github.com/sweetlilmre/PsychoNeurosis/issues/29).
