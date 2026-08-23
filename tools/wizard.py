@@ -68,7 +68,6 @@ ROLE_NAMES = {
     "layout.build": ("BUILD", "BUILDDIR", "OUT"),
     "layout.built": ("RUN", "BUILT", "INSTALL", "INSTALLDIR"),
     "layout.exempt": ("EXEMPT", "EXEMPTIONS"),
-    "census.table": ("TABLE", "CENSUS"),
 }
 
 # Paths a project's own scripts mention. Deliberately loose: this only has to
@@ -319,12 +318,12 @@ def propose(root):
                     CONVENTION, "its name says exempt")
             break
 
-    # --- the census table ------------------------------------------------
-    if (root / "docs").is_dir():
-        p.offer("census.table", "docs/census.toml", CONVENTION,
-                "beside the project's other documents")
-    else:
-        p.offer("census.table", "census.toml", CONVENTION, "at the root")
+    # THE RETIREMENT CENSUS IS GONE and its two proposals went with it. Worth
+    # noting how they survived it: this file DERIVES its question list from the
+    # kit's own source, so a key no tool reads can never be asked about -- but
+    # the PROPOSALS are hand-written, and those outlived the tool they were for
+    # by exactly as long as it took somebody to run --check. A derived list and a
+    # hand-maintained hint table have different half-lives.
 
     # --- one original, or several? ---------------------------------------
     parts = {}
@@ -348,27 +347,13 @@ def propose(root):
               "MAP keyed by part, not one image.%s" % (len(parts), note),
               None)
 
-    # --- script folders --------------------------------------------------
-    roots = sorted({d.relative_to(root).as_posix()
-                    for d in dirs_with(root, {".PY"})} - {""})
-    # The kit's own programs are in the census too -- the discovery skips kit/
-    # when looking for a PROJECT's facts, which is right, and wrong here.
-    if (root / "kit" / "tools").is_dir():
-        roots = sorted(set(roots) | {"kit/tools"})
-    # The census recurses, so a directory inside another listed one is counted
-    # twice and reported as a name in more than one place.
-    roots = sorted(r for r in roots
-                   if not any(r != o and r.startswith(o + "/") for o in roots))
-    if roots:
-        p.offer("census.roots", roots, SHAPE, "directories holding .py files")
-
     # --- what no listing can imply ---------------------------------------
     p.ask("target.first_para",
           "what paragraph does your disassembly call the start of the load "
           "image?", "0x1000")
     for key in p.keys():
         got = p.candidates(key)
-        if key == "census.roots" or not got:
+        if not got:
             continue
         top = got[0]
         tied = [c for c in got[1:]

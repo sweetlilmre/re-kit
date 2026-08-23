@@ -93,7 +93,6 @@ If the plan is empty, the next work is whatever the register's stalest observati
 | is the wiki valid? | `wikitools/okfcheck.py`, `wikitools/kbprofile.py`, `wikitools/glossary.py` |
 | does any tool leave an encoding to the locale? | `encaudit.py` |
 | a document's line breaks got multiplied | `repairdoc.py` |
-| where did each of this project's own scripts go? | `census.py` |
 | install the kit into a new project | `wizard.py` -- see `SETUP.md` |
 
 ### The two that are not instruments
@@ -116,7 +115,6 @@ If the plan is empty, the next work is whatever the register's stalest observati
     $V kit/tools/pascal/observe.py --report
     $V kit/tools/pascal/artefact.py --check
     $V kit/tools/pascal/plan.py --report
-    $V kit/tools/census.py
     $V kit/tools/pascal/shared_asm.py --gate
     $V kit/tools/pascal/routines.py
     $V kit/tools/pascal/paslint.py
@@ -178,7 +176,7 @@ The last flag refuses if the commit this project pins is not on a remote another
 
 1. **Tag once, up front** -- an annotated `archive/pre-kit-scripts` on the last commit holding every script. A tag is a permanent named pointer that cannot drift, and it can point at any commit, so there is no reason to carry superseded scripts through the whole migration. Recover one with `git show archive/pre-kit-scripts:<path>`.
 2. **Then delete family by family, as each move lands.** Before deleting anything, check that the kit does the WHOLE of its job -- not the headline measurement, the whole job. A successor that reproduces every row and quietly drops a `--detail` flag has not superseded anything; it has moved the useful part and left the diagnostic behind. Three scripts survived this check for exactly that reason.
-3. **`census.py`'s `archived` state is the record**, and it names the successor. The tidy alternative -- deleting the row -- discards the only note of where the script went.
+3. **Record where each script went, and the MEASUREMENT that made deleting it safe** -- a successor's name on its own does not say anybody checked. This project kept that in a retirement census while the migration ran, and turned it into one generated document when it finished: a census exists to catch drift between a table and a tree, and there is no drift left to catch once nothing moves again.
 
 **Nothing in `kit/` may name a target.** If a tool needs a project's fact, the fact is passed in -- as an argument, or out of `kit.toml`. That line is a path test, which is why the kit is one folder: a fact that leaks into it travels to every other project and is wrong there. One did, and it took a second consumer's first minute to find it.
 
