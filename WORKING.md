@@ -2,7 +2,7 @@
 
 **Read this first, at the start of every session.** It is the method; it holds no fact about any particular target. What is true of the target you are working on is in the host repository's own agent file and in `kit.toml`.
 
-**It is 223 lines, and that is longer than it should be.** It was 134 when it was written and section 3 has since grown to name forty-seven programs. Said plainly rather than pretended, because a document read at the start of every session is one whose length is a defect -- and because the honest response is not to trim the list but to notice that sections 3 and 8 are REFERENCE, consulted when you have a question, while 1, 2 and 4 are the part you actually read every time. Read those three. The rest is a lookup.
+**It is longer than it should be, and the honest response is to say which part you read.** Sections 1, 2, 2a and 4 are the session: where things are, what to work on, the loop, and the checks. Sections 3 and 8 are REFERENCE -- forty-seven instruments and what to distrust -- consulted when you have a question, not read through. Sections 5, 6, 7 and 9 are the rules and the traps, and they repay one careful reading each. A document read at the start of every session is one whose length is a defect, so it is worth knowing that the first four sections are about a page.
 
 ## 1. Where this project keeps things
 
@@ -25,6 +25,45 @@ An investigation is one finding a person saw, written as prose, citing the obser
 **If the next investigation needs a run somebody has to WATCH**, that is an observation and not a measurement: nobody may record it on their behalf. Say so, take the next investigation meanwhile, and record the run through `observe.py` once it has actually happened -- refusing to record a run nobody made is the one thing that tool exists for.
 
 If the plan is empty, the next work is whatever the register's stalest observation points at: `observe.py --report`.
+
+## 2a. The loop, once you have picked something up
+
+Sections 2, 4, 5 and 7 each describe a piece of a session. This is how they join, because knowing each piece is not the same as knowing the order.
+
+    plan.py --report                     what to work on -- the first open one
+    spans.py SPANS.toml PART             where the rebuild does NOT line up
+    survey.py / rtl.py entries / x87.py  read the segment before writing Pascal
+                     ... edit the sources ...
+    build.py CONFIG.toml TARGET          rebuild -- one target and its deps
+    routines.py                          did the DECLARED routines still hold?
+    spans.py SPANS.toml PART             did the span actually SHRINK?
+    run it, and WATCH it                 <- only a person can do this
+    observe.py                           record what they saw
+
+**Two instruments, two different questions, and you want both.** `routines.py` answers *did I break something that was already right* -- it is the regression check, and it is driven by declarations. `spans.py` answers *did the transcription land* -- it walks every byte, so it is the only one that can see a routine nobody declared. A green `routines.py` with an unchanged span means the edit compiled and achieved nothing.
+
+**Rebuild one target, not everything.** `build.py CONFIG.toml TPART5` stages that target and whatever it depends on, read out of the staged sources' own `uses` clauses. A whole-project rebuild is cheap enough to be worth doing before you believe a final number -- seconds, on this corpus -- but it is not the inner loop.
+
+**The run is the part nothing here can do.** A part's rung moves on somebody watching it, and `observe.py` exists to refuse a run nobody made. If the next investigation needs one and you cannot do it now, say so, take the next one, and come back -- see section 2.
+
+### Where a kit change fits in that loop
+
+You will find kit work while doing target work, and it comes in three shapes. Tell them apart before writing anything:
+
+| what you found | where it goes |
+|---|---|
+| this binary does X | the host's notes, and a plan row |
+| ANY binary built this way does X | a wiki observation -- section 5 |
+| an instrument cannot see X, or said something false | the instrument, AND a wiki observation for its blind spot |
+| you did the same thing by hand twice | a tool -- and it is BORN in `kit/tools`, never in the host |
+
+**A kit change and this project's accepting it are two acts** -- section 7 has the commands. Do not batch them: the gitlink is what records which kit a measurement was made with, so a change pushed without the bump means a number in the host's notes that nothing can reproduce.
+
+**Improve the instrument before the measurement it produced.** If a tool tells you something surprising, section 8's first line applies -- distrust the verifier first. The cost of being wrong here is asymmetric: a bad transcription is caught by the next comparison, and a bad instrument silently blesses every transcription after it.
+
+### What tells you the loop is working
+
+The plan shrinks, the coverage walk's spans shrink, and the ratchet does not fall. Nothing else is evidence, and in particular a green check list is not: it is the floor, not the goal.
 
 ## 3. Which instrument answers which question
 
