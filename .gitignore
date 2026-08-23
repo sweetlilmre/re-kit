@@ -1,0 +1,5 @@
+# Python leaves these beside the tools and they are nobody's deliverable.
+# They have already blocked a submodule add and a submodule checkout, because
+# git refuses to overwrite an untracked file it did not put there.
+__pycache__/
+*.pyc
