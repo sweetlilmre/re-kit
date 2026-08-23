@@ -1,9 +1,9 @@
 """Install the kit into a project: propose, confirm, write.
 
-    python kit/tools/setup.py                 propose, write nothing
-    python kit/tools/setup.py --check         propose, and DIFF against the
+    python kit/tools/wizard.py                propose, write nothing
+    python kit/tools/wizard.py --check        propose, and DIFF against the
                                               kit.toml already there
-    python kit/tools/setup.py --write         write after confirming each value
+    python kit/tools/wizard.py --write        write after confirming each value
 
 THIS PROGRAM PROPOSES. IT DOES NOT DECIDE. A prototype that decided got two
 answers wrong on the first real project it met -- it proposed a target's RELEASE
@@ -88,7 +88,7 @@ def keys_the_kit_asks_for(kit):
     pat = re.compile(r"project\.(?:get|path|paths)\(\s*['\"]([a-z_]+\.[a-z_]+)['\"]")
     found = {}
     for f in pathlib.Path(kit).rglob("*.py"):
-        if "__pycache__" in f.parts or f.name == "setup.py":
+        if "__pycache__" in f.parts or f.name == "wizard.py":
             continue
         text = io.open(f, encoding="utf-8", errors="replace").read()
         for m in pat.finditer(text):

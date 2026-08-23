@@ -54,7 +54,25 @@ py-modules = ["census", "project"]
 # with nothing installed, which is how a session that has just cloned a project
 # starts; an entry point would require an install before the first command.
 
+# NO FILE HERE MAY BE CALLED setup.py. setuptools' build backend runs a
+# setup.py in the directory it builds, as the legacy build script -- so the
+# kit's setup WIZARD, sitting here under that name, made every install fail
+# with "No distribution was found" from the day it landed. It is `wizard.py`
+# now (psycho #49). The same reservation applies to setup.cfg and conftest.py:
+# this directory is a package root, and a package root is not a free namespace.
+
 [tool.uv]
-# Install into a virtual environment, never globally:
+# THIS FILE IS A DECLARATION, NOT AN INSTRUCTION. Nothing installs the kit --
+# every tool runs by its path and puts its own directory on sys.path, which is
+# what lets a freshly cloned project run one with nothing installed. What a
+# session actually needs is the dependency:
+#
 #     uv venv .venv
+#     uv pip install --python .venv/Scripts/python.exe pyyaml
+#
+# The editable install below works, and is exercised by nothing, so it is not
+# documented as a step -- it broke for a day without a single check going red.
+# A consumer that genuinely wants `from substrate import align` in a script of
+# its own can still run it, and should add a check the same day:
+#
 #     uv pip install --python .venv/Scripts/python.exe -e kit/tools
