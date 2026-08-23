@@ -2,7 +2,7 @@
 
 **Read this first, at the start of every session.** It is the method; it holds no fact about any particular target. What is true of the target you are working on is in the host repository's own agent file and in `kit.toml`.
 
-It is deliberately short. A document read at the start of every session is one whose length is a defect.
+**It is 223 lines, and that is longer than it should be.** It was 134 when it was written and section 3 has since grown to name forty-seven programs. Said plainly rather than pretended, because a document read at the start of every session is one whose length is a defect -- and because the honest response is not to trim the list but to notice that sections 3 and 8 are REFERENCE, consulted when you have a question, while 1, 2 and 4 are the part you actually read every time. Read those three. The rest is a lookup.
 
 ## 1. Where this project keeps things
 
@@ -28,25 +28,81 @@ If the plan is empty, the next work is whatever the register's stalest observati
 
 ## 3. Which instrument answers which question
 
-One comparison engine, several instruments. Each supplies its own allowed-difference rule **and** its own location strategy, because both belong to the artefact rather than to the comparison.
+**Forty-seven programs, and you will use six of them.** The list is long because it accumulated from two real targets; it is grouped below by the question you actually have, and the questions are in the order they come up. If two instruments could answer one, prefer the stricter: a rule that forgives less is a measurement that claims less.
+
+### Getting in at all
+
+| the question | the instrument |
+|---|---|
+| is this file packed? | `substrate/fingerprint.py` -- and what wrote it |
+| unpack it | `substrate/unlzexe.py` (LZEXE 0.91) |
+| is the file bigger than its load image? | `substrate/mzinfo.py` |
+| split the image from what is appended to it | `substrate/split.py` |
+| what are the segments? | `substrate/segmap.py`, from the relocations |
+| what does the debug info say? | `substrate/tddump.py`, `substrate/symbols.py` |
+| what text is in there? | `substrate/strings.py` |
+
+### Reading a segment before writing any Pascal
+
+| the question | the instrument |
+|---|---|
+| tell me four cheap things about this segment | `pascal/survey.py` -- far returns as a routine signature, string ABSENCE as evidence, far calls out, and `CALLF [DI+nn]` sites giving the VMT layout |
+| where do routines probably start? | `pascal/rtl.py entries` |
+| where is the runtime, and what is in it? | `pascal/rtl.py match`, then `rtl.py find` |
+| this code is undecodable INT 34h noise | `pascal/x87.py survey`, then `x87.py fix` |
+| what numbers is it loading? | `pascal/x87.py const` |
+| what is this Mode-X plane really a picture of? | `substrate/modex.py` |
+
+### Building it
+
+| the question | the instrument |
+|---|---|
+| build it | `pascal/build.py CONFIG.toml` |
+| will the compiler hate my source? | `pascal/paslint.py` -- run it FIRST; a nested-comment defect is reported dozens of lines from its cause |
+| what does this unit use but never declare? | `pascal/undeclared.py` |
+| do two compilers disagree about this construct? | `pascal/codegen.py` -- put it in a probe unit and measure, rather than arguing |
+| turn compiled-in data back into typed constants | `pascal/emit.py` |
+
+### Measuring what came out
 
 | the question | the instrument |
 |---|---|
 | does this ROUTINE match, byte for byte? | `pascal/routines.py` |
-| does this compiled UNIT match the segment it rebuilds? | `pascal/units.py` |
-| does a `{$L}` object module match, judged by its own relocations? | `pascal/objcheck.py` |
-| does every LINKED segment match, and where did the variables go? | `pascal/linkcmp.py` |
+| does this compiled UNIT match its segment? | `pascal/units.py`, and `--detail` / `--all` once it does not |
+| does a `{$L}` object module match? | `pascal/objcheck.py`, on the object's OWN relocations |
 | which blocks of a half-written segment are right? | `pascal/blockcmp.py` |
-| which bytes of the original do NOT line up at all? | `substrate/align.py`, via a caller |
-| is this build output still the source it was built from? | `pascal/staged.py` |
-| is any hand-written assembler duplicated between units? | `pascal/shared_asm.py` |
-| what does the debug info say? | `substrate/tddump.py` |
-| what does an `.OBJ` record as a relocation? | `substrate/omf.py` |
-| how do I BUILD any of it? | `pascal/build.py CONFIG.toml` |
+| does every LINKED segment match? | `pascal/linkcmp.py`, `pascal/mapcmp.py` for the lengths |
+| did the linker put the units in the original's order? | `pascal/linkorder.py` |
+| does the initialised data match? | `pascal/dgroup.py` |
+| **which bytes of the original do NOT line up at all?** | `pascal/spans.py` |
+| how much of the whole thing is accounted for? | `pascal/coverage.py` |
+| is our whole build the original's bytes? | `pascal/artefact.py --check` |
+| is this build output still the source it was built from? | `pascal/staged.py`, and every instrument that can refuses a stale one |
 
-`pascal/build.py` is the odd one out: it MAKES the thing the others measure rather than measuring anything. It stages sources under 8.3 names, drives a real Turbo Pascal under DOSBox-X and reads the log back, taking the compiler, its switch line, the name map, the ordering strategy and the dialect from a config per target. Note the word: a **harness** in this vocabulary is a small program that runs one piece of the subject so a person can watch it, so the thing that builds those is not one.
+**`spans.py` is the one to reach for when a check is green and the rebuild still misbehaves.** Every other instrument above measures something somebody DECLARED, so a routine nobody declared is not a failure in its scheme -- it is not a row at all. That walk is where absence has somewhere to appear.
 
-`tools/README.md` says which tier each belongs to and why. If two instruments could answer a question, prefer the stricter one: a rule that forgives less is a measurement that claims less.
+### Keeping the record honest
+
+| the question | the instrument |
+|---|---|
+| what is the state of every artefact? | `pascal/plan.py --report`, `pascal/ratchet.py` |
+| record what I saw when I ran it | `pascal/observe.py` |
+| read the markers, measure coverage | `pascal/markers.py` (`marker.py` is its reader) |
+| is hand-written assembler duplicated between units? | `pascal/shared_asm.py` |
+| is the transcription rule met? | `pascal/asmaudit.py` |
+| is the wiki valid? | `wikitools/okfcheck.py`, `wikitools/kbprofile.py`, `wikitools/glossary.py` |
+| does any tool leave an encoding to the locale? | `encaudit.py` |
+| a document's line breaks got multiplied | `repairdoc.py` |
+| where did each of this project's own scripts go? | `census.py` |
+| install the kit into a new project | `wizard.py` -- see `SETUP.md` |
+
+### The two that are not instruments
+
+`substrate/align.py` is the ENGINE, not a tool: one comparison in three shapes -- how far agreement reaches, how many bytes of two blocks differ, and every place they disagree -- with four allowed-difference rules and two location strategies, all passed in because both belong to the artefact rather than to the comparison. Nothing runs it directly; seven instruments above are callers. `substrate/omf.py` is a reader in the same sense: it says which bytes of an `.OBJ`'s code are fixups, and `objcheck.py` is what asks. `pascal/register.py` is the register's one serializer, so no tool can drop another's section, and `project.py` is the only reader of the answers files.
+
+`pascal/build.py` MAKES the thing the others measure rather than measuring anything. Note the word: a **harness** in this vocabulary is a small program that runs one piece of the subject so a person can watch it, so the thing that builds those is not one.
+
+`tools/README.md` says which tier each belongs to and why.
 
 ## 4. The checks, and when to run them
 
@@ -129,10 +185,25 @@ The last flag refuses if the commit this project pins is not on a remote another
 ## 8. What to distrust
 
 - **A verifier more than the thing it verifies.** See rule 3. Every instrument in the table above has been wrong at least once, and each time the code it accused was innocent.
-- **A tool's own docstring.** Two here promised a config file that did not exist and a usage line nobody could run. If a docstring claims a mechanism, look for the mechanism.
+- **A tool's own docstring.** Two here promised a config file that did not exist and a usage line nobody could run; a third described an operand format its own table could not decode, so asking for it by the name the docstring used raised an error. If a docstring claims a mechanism, look for the mechanism.
 - **Prose holding a path or a number.** It goes stale silently. A path belongs in `kit.toml`, a measured number in the register.
 - **A guess that was never asked about.** A wizard proposing a project's sources by file count is confidently wrong on any reconstruction, because a release is complete and a reconstruction is not.
-- **A green check you have not read the output of.** One check here could never pass and said so in a line nobody read; another passed on nothing at all after its path moved.
+- **A green check you have not read the output of.** One check here could never pass and said so in a line nobody read; another passed on nothing at all after its path moved -- it reported *0 problem(s) in 0 file(s)* in a repository whose sources sat one directory away.
+- **A SECOND COPY OF ONE MEASUREMENT.** Two instruments each held the original's segment list, both said they came from the layout document, and nothing kept them in step. One was missing a segment -- so that unit was never compared, and because each length is computed as the NEXT segment's address minus its own, the gap also inflated its neighbour by exactly the missing segment's size. The tool reported that neighbour as *"short -- 144 byte(s) of routines nothing references"*, which reads like an observation about the runtime and was entirely an artefact. **A drifted copy does not merely go quiet; it manufactures findings.**
+- **A REGEX OVER ANOTHER TOOL'S OUTPUT.** One instrument shelled out to a second and parsed a number out of what it printed. The second was archived, so the parse matched nothing, the count fell back to zero, and 1,616 verified bytes dropped out of a coverage total in silence. **A pattern that returns nothing on a MISSING TOOL is indistinguishable from a tool that measured nothing.** It refuses now. Where one instrument must read another, it must be able to tell absence from zero.
+- **A DELETED CONFIG, as much as a deleted module.** Four surviving scripts were broken by this migration's own deletions, and two of those depended on a `.conf` file rather than on an import -- so nothing about the import graph would have caught them. One had stopped running entirely and its census row still read `carry`.
+
+### Where a moved tool's answer CHANGED
+
+Five did, and each is a repair rather than a regression. They are listed here because a changed number with no explanation is how a measurement loses its authority:
+
+| instrument | what changed | why |
+|---|---|---|
+| `mapcmp` | one more unit measured; a neighbour went from "short" to exact | its segment list was missing a row -- see above |
+| `coverage` | a program's verified bytes came back | it was reading zero from an archived tool |
+| `rtl.py entries` | 350 entry points became 346 | its length table let three scans run into the NEXT segment and attribute entry points to the wrong one |
+| `emit` | generated headers now name the binary and the offset | the provenance gate wants that before an emitter can be retired; the const bodies are byte-identical |
+| `spans` | one part aligns 24 bytes more | two density gates formulated differently. The SAME spans are reported, two of them shorter -- no span is lost, so no work is hidden |
 
 ## 9. Environment traps, each of which has cost real time
 

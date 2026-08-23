@@ -8,16 +8,20 @@ Reusable programs with no project facts in them. Three folders, decided in [Draw
 | `pascal/` | Facts true only of Borland Pascal: `.TPU` structure, DGROUP layout, RTL byte patterns. | pascal |
 | `wikitools/` | Looking after the wiki itself: OKF conformance, our stricter profile, and the generators. | neither |
 
-The map's standing rule is **copy and adjust, never refactor the originals** -- so `tools/*` keeps working, untouched, and anything generic gets *copied* here and adapted. Consolidating the rest is [Consolidate and prune the tools](https://github.com/sweetlilmre/PsychoNeurosis/issues/17); most of the 55 existing scripts still live in `tools/` and in the VangeliSTracker repo. What has been copied so far:
+The migration that filled these folders is finished. **Forty-seven programs, and the originals they came from are archived** under each consumer's `archive/pre-kit-scripts` tag; `census.py`'s `archived` state names, for each one, its successor and the measurement that made the deletion safe. Ten scripts stayed behind deliberately -- a project's own data carvers, its harness generator, a reference-path helper -- and each says why in the same table.
 
-| here | copied from | what it is for |
-|---|---|---|
-| `pascal/register.py`, `ratchet.py`, `observe.py`, `artefact.py`, `plan.py`, `markers.py` | written here | the status register and its writers |
-| `substrate/tddump.py` | `tools/` | Borland debug info, decoded whole |
-| `substrate/align.py` | `tools/asmverify.py` + `tools/shapediff.py` | which bytes of an original do NOT line up against a rebuild -- the coverage question, with the allowed-difference rule passed in |
-| `pascal/shared_asm.py` | written here | assembler duplicated between units instead of shared as one include |
+**Every move was verified against the original before the original went.** Mostly that meant identical output; where a tool produced a file it meant a byte-identical file; where it produced a build it meant all 35 executables byte-identical. Five of the moves changed their answer, and every one of those was a repair -- see `WORKING.md` section 8 on what to distrust, which is where they are recorded.
 
-Each copy carries the finding that produced it in its docstring, and the wiki carries the observation: `verifier-blind-to-absence` for `align.py`, `one-routine-two-units` for `shared_asm.py`.
+| folder | what it holds |
+|---|---|
+| `substrate/` (11) | `align` the comparison engine; `fingerprint`, `mzinfo`, `split`, `unlzexe` for getting into a file; `segmap`, `symbols`, `tddump`, `strings` for reading one; `omf` for an object module; `modex` for unchained VGA |
+| `pascal/` (29) | the instruments that measure a rebuild -- `routines`, `units`, `objcheck`, `blockcmp`, `linkcmp`, `mapcmp`, `linkorder`, `dgroup`, `spans`, `coverage`, `artefact`; the ones that read a binary before you write any Pascal -- `survey`, `rtl`, `x87`, `emit`; `build` which makes what the rest measure; the register's own -- `plan`, `ratchet`, `observe`, `markers`, `marker`, `register`, `staged`; and the source checks `paslint`, `asmaudit`, `undeclared`, `shared_asm`, `codegen` |
+| `wikitools/` (3) | `okfcheck` for conformance and nothing more, `kbprofile` for our profile and the generators, `glossary` for the avoid-lists |
+| beside them (5) | `project` reads the answers and is the only thing that does; `wizard` installs the kit; `census` tracks the retirement; `encaudit` and `repairdoc` are facts about the tools a session is driven WITH, which every project inherits on day one |
+
+`WORKING.md` section 3 groups all of them by the question you actually have, which is the useful way in. This table is the inventory.
+
+**Every copy carries the finding that produced it in its docstring**, and several carry a correction to what was believed before -- `align.py` names the two location strategies that failed, `rtl.py` names the assumption about smart-linked offsets that does not hold, `x87.py` says out loud that a trap-rewritten file is a disassembly aid and not a variant of the original. The wiki carries the general form: `verifier-blind-to-absence` for the coverage walk, `one-routine-two-units` for shared assembler, `plausible-and-wrong` for the compare rules.
 
 **A NEW generic tool is born here; only a tool that already existed is copied.** Copy-and-adjust exists to keep working originals working, and a tool written today has no original to protect. Writing one in `tools/` and copying it the same day duplicates it from birth -- which happened once, on 23 Aug 2026, and put two rows in the census for one tool before it was collapsed. The project-specific half of such a tool is DATA passed in, not a second script: `shared_asm.py` takes the psycho repository's exemptions from `src/asm/shared-exempt.txt`.
 
