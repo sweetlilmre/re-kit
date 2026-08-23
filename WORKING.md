@@ -63,6 +63,9 @@ One comparison engine, several instruments. Each supplies its own allowed-differ
     $V kit/tools/census.py
     $V kit/tools/pascal/shared_asm.py --gate
     $V kit/tools/pascal/routines.py
+    $V kit/tools/pascal/paslint.py
+    $V kit/tools/pascal/asmaudit.py
+    $V kit/tools/encaudit.py
 
     git ls-files -i -c --exclude-standard              # in the host AND in kit/
 
