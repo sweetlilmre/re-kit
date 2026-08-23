@@ -26,7 +26,12 @@ is reported. A triage entry naming a script that no longer exists is reported.
 Both fail the run. That is the mechanism issue #15 named for this defect class,
 and it is the only reason this file can be trusted where the document could not.
 
-PATHS. The sibling repo lives at a machine-specific path, so it is NEVER named
+PATHS. The TABLE's location comes from the project's answers, because a table of
+one project's scripts is project data and this file lives in the kit. It sat
+beside this tool until the second consumer existed and reported 32 problems, all
+of them the other project's rows.
+
+The sibling repo lives at a machine-specific path, so it is NEVER named
 in this committed file -- it comes from the local config, per the rule that put
 `docs/continuation.md` out of the index. Pass roots on the command line, or set
 them in the untracked local config.
@@ -48,11 +53,16 @@ try:
 except ModuleNotFoundError:  # pragma: no cover -- 3.11+ per pyproject.toml
     tomllib = None
 
-TABLE = pathlib.Path(__file__).with_name("census.toml")
+# WHERE THE TABLE IS is the project's business, not this file's. It sat beside
+# this tool until 23 Aug 2026, which meant a table of ONE project's scripts
+# travelled with the kit: the second consumer to exist reported 32 problems
+# within a minute, every one of them the other project's rows.
+def table_path(override=None):
+    return project.path("census.table", override)
 STATES = ("superseded", "carry", "decline", "unknown")
 
 
-def load_table():
+def load_table(TABLE):
     if not TABLE.exists():
         return {}
     with io.open(TABLE, "rb") as fh:
@@ -65,6 +75,11 @@ def parses(path):
         return True
     except (SyntaxError, UnicodeDecodeError):
         return False
+
+
+def opt_table(argv):
+    """--table PATH, for a caller that would rather say than be asked."""
+    return argv[argv.index("--table") + 1] if "--table" in argv else None
 
 
 def main(argv):
@@ -83,7 +98,10 @@ def main(argv):
         for path in sorted(pathlib.Path(root).rglob("*.py")):
             found.setdefault(path.name, []).append(path)
 
-    table = load_table()
+    try:
+        table = load_table(table_path(opt_table(argv)))
+    except project.Missing as exc:
+        return project.complain(exc)
     problems, rows = [], []
 
     for name in sorted(found):
