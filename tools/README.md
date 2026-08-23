@@ -32,6 +32,8 @@ Each copy carries the finding that produced it in its docstring, and the wiki ca
     uv venv .venv
     uv pip install --python .venv/Scripts/python.exe -e kit/tools
 
+**That second line currently FAILS, on a fresh machine and an installed one alike** -- setuptools reads `setup.py` at this directory as a legacy build script, but `setup.py` here is the kit's setup WIZARD and never calls `setup()`. It has been broken since the wizard landed and nobody saw it, because no documented command needs the install: every tool runs by path, which was a deliberate choice and is the reason this went a day unnoticed rather than an hour. Tracked as [The kit does not install](https://github.com/sweetlilmre/PsychoNeurosis/issues/49). Nothing below this line is affected.
+
 Then, from the repo root:
 
     .venv/Scripts/python.exe kit/tools/wikitools/okfcheck.py kit/wiki

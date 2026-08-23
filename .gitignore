@@ -3,3 +3,8 @@
 # git refuses to overwrite an untracked file it did not put there.
 __pycache__/
 *.pyc
+
+# The editable install's metadata. `uv pip install -e` rewrites it, so a
+# tracked copy dirties every consumer's submodule the moment they install --
+# and it describes one machine's install, not the kit.
+*.egg-info/

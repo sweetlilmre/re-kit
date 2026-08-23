@@ -61,6 +61,10 @@ One comparison engine, several instruments. Each supplies its own allowed-differ
     $V kit/tools/pascal/shared_asm.py --gate
     $V kit/tools/pascal/routines.py
 
+    git ls-files -i -c --exclude-standard              # in the host AND in kit/
+
+**Not a program, deliberately.** That last line names every file git tracks that the ignore rules claim to exclude, and a `.gitignore` added after the fact does nothing to a file already tracked -- so the commit that looks like the fix is the commit that hides it. It has to run in the kit as well as the host, because a submodule has its own index and the host's run cannot see inside it. Nine such files travelled in the kit for a day, and only the SECOND consumer could see them: the host they were committed from holds them in its working tree and reports clean. Wrapping one git command in Python would add a tool that measures nothing the command does not.
+
 **No paths and no numbers, and both absences are the point** -- this is the same list in every project. A host repository may have checks of its own on top; those live in its agent file.
 
 **Run the list in full at the end of any session that touches the kit.** Not at the start: at the end, when there is something to be wrong about.
