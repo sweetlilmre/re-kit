@@ -42,6 +42,9 @@ One comparison engine, several instruments. Each supplies its own allowed-differ
 | is any hand-written assembler duplicated between units? | `pascal/shared_asm.py` |
 | what does the debug info say? | `substrate/tddump.py` |
 | what does an `.OBJ` record as a relocation? | `substrate/omf.py` |
+| how do I BUILD any of it? | `pascal/build.py CONFIG.toml` |
+
+`pascal/build.py` is the odd one out: it MAKES the thing the others measure rather than measuring anything. It stages sources under 8.3 names, drives a real Turbo Pascal under DOSBox-X and reads the log back, taking the compiler, its switch line, the name map, the ordering strategy and the dialect from a config per target. Note the word: a **harness** in this vocabulary is a small program that runs one piece of the subject so a person can watch it, so the thing that builds those is not one.
 
 `tools/README.md` says which tier each belongs to and why. If two instruments could answer a question, prefer the stricter one: a rule that forgives less is a measurement that claims less.
 
