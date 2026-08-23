@@ -198,6 +198,7 @@ A conclusion that turned out to be wrong is written down as a **withdrawn conclu
 
   `ascii` on a DOS source is a **guard**, not a preference: it raises rather than quietly writing an em dash as two bytes into a file the compiler will read. This rule has cost two mojibaked documents, two false comparisons, and -- in one afternoon -- two wrong turns inside a staleness check, once by decoding a source in the wrong codepage and once by preserving line endings so a regex anchored on `$` never matched.
 - **Prose in markdown is never hard-wrapped.** One paragraph is one line.
+- **No personal references, anywhere a repository can keep them.** No name, no initials, no email -- in source, documents, commit messages, issue bodies or the register. Write the ROLE: *the author*, *a person*, *the maintainer*, *a watched run*. The register's observation rows need only that a human watched, never which human, and `observe.py`'s own example says `--observer maintainer` for that reason. This is not fastidiousness: it is PII in a repository that may not stay private, and git history is permanent, so the cost of getting it wrong cannot be edited away later -- which is why it is a rule rather than a preference.
 - **Commits carry** `Co-authored-by: Claude <noreply@anthropic.com>`.
 
 ## 7. Changing the kit from inside a project

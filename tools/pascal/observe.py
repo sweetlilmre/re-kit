@@ -37,7 +37,14 @@ in 80x25 text, "indistinguishable from a hang".
 
     python kit/tools/pascal/observe.py status.toml --report
     python kit/tools/pascal/observe.py status.toml --harness TPART5 --tier part \\
-        --outcome matches --observer pe --date 2026-08-20 --against NEUROSIS_005.exe
+        --outcome matches --observer maintainer --date 2026-08-20 \
+        --against NEUROSIS_005.exe
+
+THE OBSERVER FIELD RECORDS THAT A PERSON WATCHED, NEVER WHICH PERSON. A role --
+`maintainer`, `reviewer` -- carries everything the record needs, because the
+point of this tool is to refuse a run nobody made and a role asserts exactly
+that. A name or an email here is PII in a repository that may not stay private,
+and it cannot be edited out of history afterwards.
 """
 import hashlib
 import io
