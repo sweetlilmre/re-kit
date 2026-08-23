@@ -116,6 +116,50 @@ def locked(register):
             if isinstance(v, dict) and v.get("matched") is not None}
 
 
+def candidates(image, seg, first_para, images, limit=3):
+    """Offsets in a segment that a built image DOES line up against.
+
+    Behind `--probe`, because it is slow and because it is only ever wanted
+    after the declared address was not found in any built image. The usual
+    cause of that is the right segment with a wrong offset, so: walk the first
+    4KB of the segment in the original, anchor every offset against every
+    built image, and report the few alignments the comparison gets furthest
+    into.
+
+    Two filters, and each removes a whole class of false answer:
+
+      * an alignment that never STOPS inside the window is shared-unit or RTL
+        code, identical in both builds by construction. Real, and not the lost
+        routine -- and long enough to drown it in the ranking.
+      * an offset whose score is no better than the offset one byte before it
+        is the tail of a better alignment, not a start of its own. Without
+        this the report is a smear of every suffix of one hit.
+
+    The scan stops at 4KB because it cannot know the unit's real extent, and
+    past the end sit the shared units and the RTL. A probe into a unit larger
+    than that reports less than it could, which is the safe direction.
+    """
+    base = (seg - first_para) * 16
+    scored = {}
+    for ofs in range(0, 0x1000):
+        chunk = image[base + ofs:base + ofs + WINDOW]
+        if len(chunk) <= align.ANCHOR:
+            break
+        anchor = bytes(chunk[:align.ANCHOR])
+        for _, img in images:
+            at = img.find(anchor)
+            if at < 0:
+                continue
+            got, _, _ = align.walk(chunk, img[at:at + len(chunk)],
+                                   align.holes, None)
+            if got < len(chunk) and got > scored.get(ofs, 0):
+                scored[ofs] = got
+    starts = [(o, g) for o, g in scored.items()
+              if g >= align.MINIMUM and g > scored.get(o - 1, 0)]
+    starts.sort(key=lambda t: (-t[1], t[0]))
+    return starts[:limit]
+
+
 def main(argv):
     args = project.positionals(argv[1:], ("--emit",))
     probe = "--probe" in argv
@@ -177,6 +221,10 @@ def main(argv):
                                 mk.where, note))
             unconfirmed += 1 if mk.unsure else 0
             bad += 0 if mk.unsure else 1
+            if probe:
+                for cand, got in candidates(image, mk.seg, first, images):
+                    sys.stdout.write("        try %04x:%04x -- %d bytes "
+                                     "line up\n" % (mk.seg, cand, got))
             continue
 
         img = dict(images)[image_name]
@@ -228,9 +276,6 @@ def main(argv):
             "\n".join(text) + "\n")
         sys.stdout.write("  measured %d routine(s) -> %s\n"
                          % (len(measured), out))
-    if probe:
-        sys.stdout.write("  --probe is not implemented here yet; the frozen "
-                         "asmverify.py has it\n")
     return 1 if bad else 0
 
 

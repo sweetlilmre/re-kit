@@ -8,7 +8,12 @@ is coverage rather than a sample. See the wiki observation `Every declared
 routine matches, and the rebuild still behaves differently`.
 
 Copied and adapted from `tools/asmverify.py` and `tools/shapediff.py` in the
-psycho repository, per the map's rule: the originals keep working, untouched.
+psycho repository. `asmverify.py` is now ARCHIVED under the
+`archive/pre-kit-scripts` tag; `shapediff.py` is NOT, and deliberately -- this
+module holds its `spans()` but the kit has no runnable command for it and no
+equivalent of its `--same` at all, so it is still the instrument somebody
+reaches for. Naming that here rather than only on a ticket, because this
+docstring is where a reader looks for what was carried across.
 What changed in the copy is the toolkit's own rule from `kit/tools/README.md` --
 **the allowed-difference rule is passed in, never built in**, because baking it
 in hides how strict a measurement was. `holes()` is the default rule those two

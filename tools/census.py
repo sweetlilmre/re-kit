@@ -14,16 +14,29 @@ adjust; and once a toolkit tool supersedes an original, the original is archived
 "Copy and adjust, never refactor the originals" is therefore TRANSITIONAL, not
 permanent, and the states below are that transition:
 
-    superseded   a toolkit tool has replaced it. Names its successor.
+    superseded   a toolkit tool has replaced it. Names its successor. Still on
+                 disk, because a successor landing and an original leaving are
+                 two acts.
+    archived     DELETED, and recoverable from the archive tag. The terminal
+                 state, and the ONLY one that expects no file on disk. Names
+                 its successor, so the record of where a script went outlives
+                 the script.
     carry        should be copied across, not done yet.
     decline      will not be carried, with a reason. Dead scripts, spent
                  one-shots, and project-specific drivers.
     unknown      not yet triaged. Reported loudly, because an untriaged script
                  is the thing a stale document hides.
 
+`archived` was missing until the first deletions needed it, though the sentence
+above always described it. Its absence had a real cost waiting: with no state
+meaning gone, every deletion reports a stale table entry, and the tidy response
+-- delete the row -- discards the one record of which tool replaced it.
+
 NOTHING UNEXPLAINED, IN EITHER DIRECTION. A script on disk with no triage entry
-is reported. A triage entry naming a script that no longer exists is reported.
-Both fail the run. That is the mechanism issue #15 named for this defect class,
+is reported. A triage entry naming a script that no longer exists is reported,
+UNLESS it is archived, which is exactly that claim made deliberately. An
+archived row whose file is still there is reported too: the deletion did not
+happen. Both fail the run. That is the mechanism issue #15 named for this defect class,
 and it is the only reason this file can be trusted where the document could not.
 
 PATHS. The TABLE's location comes from the project's answers, because a table of
@@ -59,7 +72,7 @@ except ModuleNotFoundError:  # pragma: no cover -- 3.11+ per pyproject.toml
 # within a minute, every one of them the other project's rows.
 def table_path(override=None):
     return project.path("census.table", override)
-STATES = ("superseded", "carry", "decline", "unknown")
+STATES = ("superseded", "archived", "carry", "decline", "unknown")
 
 
 def load_table(TABLE):
@@ -113,8 +126,20 @@ def main(argv):
         if state == "unknown":
             problems.append("%s: untriaged. Every script needs a state -- an "
                             "untriaged one is what a stale document hides." % name)
-        if state == "superseded" and not entry.get("successor"):
-            problems.append("%s: marked superseded but names no successor" % name)
+        if state in ("superseded", "archived") and not entry.get("successor"):
+            problems.append("%s: marked %s but names no successor" % (name, state))
+        if state == "archived":
+            # A successor is allowed to CARRY THE ORIGINAL'S NAME -- linkcmp.py
+            # and build.py both do -- and this table is keyed by basename, so
+            # "archived but still on disk" has to mean "an ORIGINAL is still on
+            # disk", not "a file of that name exists". Without the distinction
+            # the two tools that kept their name can never be archived at all.
+            outside = [str(q) for q in found[name] if "kit" not in q.parts]
+            if outside:
+                problems.append("%s: marked archived but an original is still "
+                                "on disk: %s. Archived means deleted and "
+                                "recoverable from the tag."
+                                % (name, ", ".join(outside)))
         if state == "decline" and not entry.get("reason"):
             problems.append("%s: marked decline but gives no reason" % name)
         broken = [str(p) for p in found[name] if not parses(p)]
@@ -124,10 +149,22 @@ def main(argv):
                      entry.get("successor") or entry.get("reason") or ""))
 
     for name in sorted(table):
-        if name not in found:
-            problems.append("%s: in the census table but not on disk. A triage "
-                            "entry outliving its script is how the last "
-                            "inventory went stale." % name)
+        if name in found:
+            continue
+        # ARCHIVED is the one state that EXPECTS no file. It is the terminal
+        # state this file's own header always described -- "once a toolkit tool
+        # supersedes an original, the original is archived" -- and it was
+        # missing from STATES until the first deletions needed it. A row that
+        # merely names a successor is not enough: without a state meaning gone,
+        # every deletion turns into a report of a stale table entry, and the
+        # honest response would have been to delete the row and lose the record
+        # of where the script went.
+        if table[name].get("state") == "archived":
+            rows.append((name, "archived", 0, table[name].get("successor", "")))
+            continue
+        problems.append("%s: in the census table but not on disk. A triage "
+                        "entry outliving its script is how the last "
+                        "inventory went stale." % name)
 
     counts = {}
     for _, state, _, _ in rows:

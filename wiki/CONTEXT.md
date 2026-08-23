@@ -101,7 +101,7 @@ Hand-written assembler inside a compiled Pascal routine. It has no routine bound
 _Avoid_: inline block, snippet, chunk
 
 **Ratchet**:
-A measure that cannot go backwards without failing the build. `asmverify.py` locks routine lengths, so a change that shortens a match is a regression.
+A measure that cannot go backwards without failing the build. The register locks each routine's matched length, so a change that shortens a match is a regression rather than a smaller number. `ratchet.py` fails the run; `routines.py --emit` measures what it compares against, because a length typed into a config is a length that goes quietly stale.
 _Avoid_: gate (a gate is a different thing), guard, lock
 
 ### How the catalogue is organised

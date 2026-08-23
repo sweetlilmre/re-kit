@@ -115,6 +115,12 @@ The kit is a submodule. A change to it and a project's acceptance of that change
 
 The last flag refuses if the commit this project pins is not on a remote another consumer can fetch -- which is the classic submodule failure. To take a newer kit: `git -C kit pull`, run the checks, then commit the new gitlink.
 
+**Retiring what the kit replaced.** A consumer's own scripts do not vanish when the kit gains their successor: a successor landing and an original leaving are two acts, the same as above. The convention, and it is the same in every project:
+
+1. **Tag once, up front** -- an annotated `archive/pre-kit-scripts` on the last commit holding every script. A tag is a permanent named pointer that cannot drift, and it can point at any commit, so there is no reason to carry superseded scripts through the whole migration. Recover one with `git show archive/pre-kit-scripts:<path>`.
+2. **Then delete family by family, as each move lands.** Before deleting anything, check that the kit does the WHOLE of its job -- not the headline measurement, the whole job. A successor that reproduces every row and quietly drops a `--detail` flag has not superseded anything; it has moved the useful part and left the diagnostic behind. Three scripts survived this check for exactly that reason.
+3. **`census.py`'s `archived` state is the record**, and it names the successor. The tidy alternative -- deleting the row -- discards the only note of where the script went.
+
 **Nothing in `kit/` may name a target.** If a tool needs a project's fact, the fact is passed in -- as an argument, or out of `kit.toml`. That line is a path test, which is why the kit is one folder: a fact that leaks into it travels to every other project and is wrong there. One did, and it took a second consumer's first minute to find it.
 
 ## 8. What to distrust

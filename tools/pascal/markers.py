@@ -1,7 +1,8 @@
 """Read every routine marker in a Pascal tree, and account for all of them.
 
-This is the repaired successor to `tools/ledger.py`, which stays frozen where
-it is. Nothing here is a refactor of it: the CONVENTION it reads was always
+This is the repaired successor to `tools/ledger.py`, which is now ARCHIVED --
+deleted under psycho #36 and recoverable from the `archive/pre-kit-scripts`
+tag. Nothing here is a refactor of it: the CONVENTION it reads was always
 sound, and only its reader was broken.
 
 WHAT WAS WRONG. `ledger.py` matches with a DOTALL regex whose `(.*?)` crosses
