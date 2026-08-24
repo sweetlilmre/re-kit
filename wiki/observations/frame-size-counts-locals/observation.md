@@ -1,8 +1,8 @@
 ---
 type: Observation
 title: The frame is bigger than your locals account for
-description: A Borland Pascal routine's ENTER operand is the declared locals PLUS the compiler's own temporaries, and both halves are readable -- so the frame size measures the source's variable list, and a reconstruction whose frame is the wrong size has the wrong declarations, however well its body matches.
-tags: [pascal, codegen, turbo-pascal, source-shape, locals, x87, reconstruction]
+description: A Borland Pascal routine's prologue is two measurements. The ENTER operand is the declared locals plus the code generator's temporaries, so it measures the source's variable list; whether there is an ENTER at all names the whole unit's $G switch. A reconstruction whose prologue is the wrong size has the wrong declarations, and one of the wrong FORM has the wrong switch, however well the statements match.
+tags: [pascal, codegen, turbo-pascal, source-shape, locals, x87, switches, reconstruction]
 timestamp: 2026-08-24T00:00:00Z
 ---
 
@@ -40,6 +40,19 @@ That last row is the one that changes the frame. An `Integer` reaches the x87 th
 
 One more, in the same family: a value *read from memory* where a constant could have been folded says the source named a variable or a **typed** constant. An untyped `const` is folded at compile time -- `MOV AX,1600` where the original has `MOV AX,[2]` / `MUL WORD PTR [2]` is not an optimisation difference, it is a different declaration.
 
+## The prologue's FORM is a different measurement, and a bigger lever
+
+The operand counts locals. **Whether there is an `ENTER` at all names a compiler switch**, and that is worth separating because it pays off on a completely different scale:
+
+    ENTER n,0                        the unit was compiled {$G+}
+    PUSH BP / MOV BP,SP / SUB SP,n   it was compiled {$G-}
+
+`ENTER` is a 286 instruction and Borland emits it only when 286 code generation is on. So one glance at any framed routine in a segment reads `$G` for **the whole unit** -- the switch is a unit property, not a routine property, so a single reading fixes every routine the unit contains at once. Nothing else in this bundle costs one instruction and moves that much.
+
+**Both directions are measurements, and the negative one is the valuable half.** A segment with no `ENTER` anywhere says the original was `$G-`, and adding the switch there would be a change away from the original dressed up as a fix. Test the candidates before touching them, not after.
+
+The same reading generalises to any switch with a visible signature -- `$N` in whether floating point is 80x87 or RTL calls, `$S` in whether a stack check precedes the frame -- and it is always per unit.
+
 ## Why it works
 
 `ENTER n,0` is emitted from the symbol table after the routine is parsed, so `n` is the compiler's own final answer about the source's storage. Unlike the body -- where several statement shapes can produce the same bytes -- the frame has one number for one declaration list, and the code generator has no freedom to spend it differently.
@@ -68,6 +81,12 @@ Twenty-eight resolved as four `Integer` (8), two `Real` (12), and two four-byte 
 
 With the declarations corrected the routine aligned in full, and the part's coverage walk moved from 66.6% to 68.4%. [1]
 
+**And the prologue's form, on the same corpus the next day, moved a part 885 bytes on one character of source.** A unit had been written without `{$G+}` while every framed routine in the original segment opened `ENTER` -- `$26,0` and `$04,0`. Adding the switch took that part's coverage walk from 80.4% to 88.1%, the largest single move the target has recorded, and the routine that had been the part's worst span fell from 426 unaligned bytes to 96. Nothing about the source's *statements* changed.
+
+Two details from that case are worth carrying. **The evidence had been quoted in the unit's own comment for days** -- as the justification for a *different* switch, `{$S-}`, whose note read "opens `ENTER $26,0` with no stack check". The instruction naming `$G` was sitting inside the argument about `$S`, and nobody read it twice. **And two other units were REFUTED by the same test**: their originals carry no `ENTER` at all, so they are correctly `$G-` and adding the switch would have moved them away from the original. A sweep that only ever adds is not a measurement. [2]
+
 # Citations
 
 [1] `src/P1S1.PAS` and `spans.toml`, part 001 segment `1012`, in the psycho repository; measured with `kit/tools/pascal/spans.py` against the shipped binary on 24 Aug 2026.
+
+[2] `src/P5S2.PAS`, part 005 segment `1096`, in the same repository; measured with `kit/tools/pascal/spans.py` on 24 Aug 2026. The refuted candidates are that target's `FIXMATH` (segments `1483` and `142a`) and its 320x400 video unit (`140c`), none of which contains an `ENTER`.
