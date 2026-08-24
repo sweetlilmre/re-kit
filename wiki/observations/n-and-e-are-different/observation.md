@@ -35,6 +35,8 @@ A trap in the file is `$E` and says nothing whatever about `$N`. Code compiled `
 
 **Timing evidence points at `$N`, not at `$E`.** A multi-second pause where the original has none is a plausible `$N-` symptom, because software floats are orders of magnitude slower. It is a very poor emulator symptom, because the original ran the emulator too.
 
+**And on a reconstruction, timing is not the reason to set the switch at all.** `$N+` is warranted the moment the original's code contains 80x87 instructions, because nothing else emits them; it would be warranted if the rebuild ran no quicker, and it would still be warranted if the rebuild ran *slower*. Justifying it by the speed change inverts that, and the inversion is what regenerates the coprocessor theory -- calling `$N+` a fix invites the next reader to ask what hardware it fixed. **Set the switch to match the emitted code. If the speed then changes, that is a finding to explain, never the argument for the switch.**
+
 ## Cost
 
 Reading the switch's own documentation once, and looking at the operands rather than the interrupt number. No tooling.
@@ -43,11 +45,11 @@ Reading the switch's own documentation once, and looking at the operands rather 
 
 Part 005 of `PSYCHO NEUROSIS`, 23 Aug 2026, on the second attempt to get this right.
 
-The reconstruction showed a multi-second black screen where the original moved straight on. The cause was `$N`: one unit had compiled under the `$N-` default, sending 3,424 trig calls through the software six-byte-`Real` RTL, where the original's table build at `1096:051a` is 80x87 code. `{$N+}` on that unit fixed it.
+The reconstruction showed a multi-second black screen where the original moved straight on. One unit had compiled under the `$N-` default, sending 3,424 trig calls through the software six-byte-`Real` RTL, where the original's table build at `1096:051a` is 80x87 code. `{$N+}` went on that unit -- **because the original was built that way**, which its own instructions prove -- and two watched runs bracket the change with nothing else in the unit moving between them: the pause was there before and gone after.
 
-The **shipped** original carries **14 emulator traps at that same address**, and the author had no coprocessor -- so in 1994 every one of those instructions was executed by the emulator. The fix therefore changed which code was emitted and nothing at all about the emulator; `$E+` stayed as it was.
+The **shipped** original carries **14 emulator traps at that same address**, and the author had no coprocessor -- so in 1994 every one of those instructions was executed by the emulator. Ours ships and runs them identically; `$E+` was never touched. **Why the pause went is not measured**, and it is certainly not that anything acquired an FPU: neither build has one.
 
-That distinction was written down correctly after a session in August built an elaborate theory on it, and a later session repeated a smaller version anyway -- describing the fix as making the calls "go through x87". The unit's own comment had said *is x87 code* and listed `FILD`, `FDIV`, `FLD`, without mentioning that those ship as traps. **Accurate and incomplete, and the incompleteness was the load-bearing part.** [1] [2]
+That distinction survived three attempts to lose it. A session in August built an elaborate theory on it; a later one repeated a smaller version, describing the change as making the calls "go through x87"; and a third wrote the corrected account into the record while still calling `{$N+}` *the fix*, which put the performance claim back at the front and invited the same question all over again. The unit's own comment had said *is x87 code* and listed `FILD`, `FDIV`, `FLD`, without mentioning that those ship as traps. **Accurate and incomplete, and the incompleteness was the load-bearing part.** [1] [2]
 
 # Citations
 
