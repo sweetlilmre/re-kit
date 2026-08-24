@@ -29,6 +29,7 @@ LOOKBACK = 50          # lines above `asm` to search for the equivalent-Pascal b
 def audit(path):
     lines = path.read_text(encoding="ascii", errors="replace").split("\n")
     in_asm = False
+    in_comment = False
     uncommented = []
     missing_equiv = []
     blocks = 0
@@ -50,13 +51,30 @@ def audit(path):
 
         if not in_asm:
             continue
+
+        # A comment may SPAN LINES inside an asm body, and its continuation
+        # lines carry no brace of their own. Counting braces rather than
+        # looking for one on the line is the difference between reading a
+        # block header and accusing it: this check reported ten lines of
+        # prose in one routine as uncommented instructions, which pushes an
+        # author towards worse comments to satisfy the gate.
+        if in_comment:
+            if "}" in s:
+                in_comment = False
+            continue
+
         if s == "end;":
             in_asm = False
+            in_comment = False
             continue
         if not s or s.startswith("{"):
+            if s.count("{") > s.count("}"):
+                in_comment = True
             continue
         if "{" not in line:
             uncommented.append((n, s))
+        elif line.count("{") > line.count("}"):
+            in_comment = True
 
     return blocks, uncommented, missing_equiv
 

@@ -85,6 +85,18 @@ def offset_of(blob, seg, off, first_para):
     return image_base(blob) + (seg - first_para) * 16 + off
 
 
+# capstone 5.0.7 prints the 32-bit mnemonic for two one-byte opcodes even in
+# CS_MODE_16: 0x98 comes back as `cwde` and 0x99 as `cdq`, where a 16-bit decode
+# is CBW and CWD. Only the mnemonic is wrong -- every operand around them decodes
+# 16-bit correctly -- which is what makes it dangerous: the listing reads as
+# plausible 386 code. Copied into a Borland BASM block, `CDQ` assembles as the
+# two bytes 66 99 and the transcription is one byte longer than the original for
+# a reason nothing else reports. Measured on capstone 5.0.7 by decoding the bare
+# bytes: b"" -> `cdq`, b"" -> `cwde`, while b"÷û" -> `idiv bx`
+# and b"Áë" -> `shr bx, 2` confirm the mode itself is right.
+NARROW = {"cwde": "cbw", "cdq": "cwd"}
+
+
 def walk(md, data, start):
     """Decode `data` as instructions beginning at address `start`.
 
@@ -98,7 +110,8 @@ def walk(md, data, start):
     while pos < len(data):
         made = False
         for ins in md.disasm(bytes(data[pos:]), start + pos):
-            text = ins.mnemonic + (" " + ins.op_str if ins.op_str else "")
+            text = NARROW.get(ins.mnemonic, ins.mnemonic)
+            text = text + (" " + ins.op_str if ins.op_str else "")
             yield ins.address, bytes(ins.bytes), text
             pos = ins.address - start + ins.size
             made = True
