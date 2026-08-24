@@ -2,7 +2,7 @@
 
 **Read this first, at the start of every session.** It is the method; it holds no fact about any particular target. What is true of the target you are working on is in the host repository's own agent file and in `kit.toml`.
 
-**It is longer than it should be, and the honest response is to say which part you read.** Sections 1, 2, 2a and 4 are the session: where things are, what to work on, the loop, and the checks. Sections 3 and 8 are REFERENCE -- forty-seven instruments and what to distrust -- consulted when you have a question, not read through. Sections 5, 6, 7 and 9 are the rules and the traps, and they repay one careful reading each. A document read at the start of every session is one whose length is a defect, so it is worth knowing that the first four sections are about a page.
+**It is longer than it should be, and the honest response is to say which part you read.** Sections 1, 2, 2a and 4 are the session: where things are, what to work on, the loop, and the checks. Sections 3 and 8 are REFERENCE -- forty-eight instruments and what to distrust -- consulted when you have a question, not read through. Sections 5, 6, 7 and 9 are the rules and the traps, and they repay one careful reading each. A document read at the start of every session is one whose length is a defect, so it is worth knowing that the first four sections are about a page.
 
 ## 1. Where this project keeps things
 
@@ -67,7 +67,7 @@ The plan shrinks, the coverage walk's spans shrink, and the ratchet does not fal
 
 ## 3. Which instrument answers which question
 
-**Forty-seven programs, and you will use six of them.** The list is long because it accumulated from two real targets; it is grouped below by the question you actually have, and the questions are in the order they come up. If two instruments could answer one, prefer the stricter: a rule that forgives less is a measurement that claims less.
+**Forty-eight programs, and you will use six of them.** The list is long because it accumulated from two real targets; it is grouped below by the question you actually have, and the questions are in the order they come up. If two instruments could answer one, prefer the stricter: a rule that forgives less is a measurement that claims less.
 
 ### Getting in at all
 
@@ -88,7 +88,8 @@ The plan shrinks, the coverage walk's spans shrink, and the ratchet does not fal
 | tell me four cheap things about this segment | `pascal/survey.py` -- far returns as a routine signature, string ABSENCE as evidence, far calls out, and `CALLF [DI+nn]` sites giving the VMT layout |
 | where do routines probably start? | `pascal/rtl.py entries` |
 | where is the runtime, and what is in it? | `pascal/rtl.py match`, then `rtl.py find` |
-| this code is undecodable INT 34h noise | `pascal/x87.py survey`, then `x87.py fix` |
+| what does this code actually DO? | `substrate/disasm.py FILE SEG:A..B` -- a linear decode, addressed the way the code is written down |
+| this code is undecodable INT 34h noise | `pascal/x87.py disasm` -- resolves the traps IN MEMORY and marks every line it resolved, so no patched copy is left on disk to be mistaken for the original later. `survey` first on a new target; `fix` only when a file on disk is genuinely wanted, and `disasm --sites` is what feeds it |
 | what numbers is it loading? | `pascal/x87.py const` |
 | what is this Mode-X plane really a picture of? | `substrate/modex.py` |
 
@@ -135,6 +136,8 @@ The plan shrinks, the coverage walk's spans shrink, and the ratchet does not fal
 | install the kit into a new project | `wizard.py` -- see `SETUP.md` |
 
 ### The two that are not instruments
+
+`substrate/disasm.py` is an engine with a CLI attached: one linear decode with the awkward parts handled -- the MZ header's own paragraph count, `SEG:OFF` addressing, and a byte that decodes to nothing reported rather than ending the walk, because capstone's own iterator STOPS there and a stop looks like the end of the range. It knows nothing about any compiler; `pascal/x87.py disasm` is the caller that knows what a Borland trap is. **A linear decode is a guess about where instructions start**, so begin at an address something had a reason to believe in, and read a run of nonsense as data rather than as an instruction mix.
 
 `substrate/align.py` is the ENGINE, not a tool: one comparison in three shapes -- how far agreement reaches, how many bytes of two blocks differ, and every place they disagree -- with four allowed-difference rules and two location strategies, all passed in because both belong to the artefact rather than to the comparison. Nothing runs it directly; seven instruments above are callers. `substrate/omf.py` is a reader in the same sense: it says which bytes of an `.OBJ`'s code are fixups, and `objcheck.py` is what asks. `pascal/register.py` is the register's one serializer, so no tool can drop another's section, and `project.py` is the only reader of the answers files.
 

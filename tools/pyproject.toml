@@ -19,8 +19,15 @@ requires-python = ">=3.11"
 # Config files are TOML and need NOTHING here: tomllib is in the standard
 # library from 3.11, and the toolkit only ever reads config, never writes it.
 # That is why requires-python is 3.11 rather than something older.
+# capstone decodes 16-bit instructions for substrate/disasm.py, and through it
+# for pascal/x87.py disasm. It is OPTIONAL in practice and required in name:
+# forty-six of the forty-eight programs here never import it, and the two that
+# do refuse with the install command rather than returning an empty decode --
+# because a missing decoder that reported nothing would be indistinguishable
+# from a range holding nothing, which is the `absence-reads-as-zero` failure.
 dependencies = [
     "pyyaml>=6.0",
+    "capstone>=5.0",
 ]
 
 # THE PACKAGES ARE DECLARED, not discovered. setuptools refuses to guess at a
@@ -68,7 +75,7 @@ py-modules = ["census", "project"]
 # session actually needs is the dependency:
 #
 #     uv venv .venv
-#     uv pip install --python .venv/Scripts/python.exe pyyaml
+#     uv pip install --python .venv/Scripts/python.exe pyyaml capstone
 #
 # The editable install below works, and is exercised by nothing, so it is not
 # documented as a step -- it broke for a day without a single check going red.

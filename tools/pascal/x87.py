@@ -47,6 +47,7 @@ from collections import Counter
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 import project                                    # noqa: E402
 from substrate.mzinfo import parse                # noqa: E402
+from substrate import disasm as _disasm           # noqa: E402
 
 LO, HI = 0x34, 0x3E
 
@@ -173,6 +174,98 @@ def fix(exe, sites_file, out, first_para):
 
 
 # ---------------------------------------------------------------------------
+# disasm
+
+
+def disasm(exe, spec, first_para, sites_out=None):
+    """Decode a range with the traps resolved AS WE REACH THEM.
+
+    THE POINT IS NOT LEGIBILITY, IT IS THAT NOBODY NEEDS A PATCHED FILE. Until
+    this existed the only way to read `$E+` floating point was to run `fix` and
+    disassemble the copy -- and a copy on disk outlives the session that made
+    it, gets found by the next reader, and gets mistaken for a variant of the
+    original. That has happened on one project three times, twice as an
+    elaborate theory and once inside a correction of the first two. A decode
+    that resolves traps in memory and MARKS every line it resolved leaves
+    nothing behind to be mistaken for anything.
+
+    IT ALSO CLOSES THE LOOP `fix` WAS MISSING. `fix` refuses to patch on a byte
+    match, and rightly -- `CD 34` occurs inside data and inside longer
+    instructions -- so it wants sites "a disassembler has confirmed are
+    instruction starts". The kit had no disassembler, so that input could not be
+    produced with the kit alone. A linear decode reaches an instruction start by
+    construction, so the traps it walks into are exactly the confirmed set:
+    `--sites` writes them out in the form `fix` reads.
+
+    A trap this does not RECOGNISE is left as the `INT` it is and counted. That
+    includes `INT 3Eh`, which is the RTL's own dispatch entry and not an x87
+    instruction at all, so leaving it alone is correct rather than a shortfall.
+    """
+    h = parse(pathlib.Path(exe))
+    raw = bytearray(h["raw"])
+
+    seg, off, length = disasm_range(spec)
+    if seg is None:
+        raise SystemExit("this wants a SEG:START..END range -- the traps are "
+                         "recorded that way and so is everything that cites "
+                         "them")
+    at = file_offset(h, seg, off, first_para)
+    if length is None:
+        length = 0x80
+
+    md = _disasm.decoder()
+    marked, unknown, sites = set(), [], []
+    pos = at
+    end = at + length
+    # Walk one instruction at a time: a trap has to be RESOLVED before the
+    # decoder is asked for the instruction, and the decoder is what says where
+    # the next one begins. Patching the whole range up front would patch data.
+    while pos < end:
+        res = patch(raw, pos) if raw[pos] == 0xCD else None
+        addr = off + (pos - at)
+        if raw[pos] == 0xCD and LO <= raw[pos + 1] <= HI and res is None:
+            unknown.append((addr, raw[pos + 1]))
+        if res is not None:
+            new, _ = res
+            raw[pos:pos + len(new)] = new
+            # EVERY address the patch covers, not just its first. A two-byte
+            # trap becomes `9B Dx`, which decodes as WAIT at +0 and the x87
+            # instruction at +1 -- so marking only the trap's own address flags
+            # the WAIT and leaves `FILD` looking like something the file
+            # contains. That is the one line a reader would misread, so it is
+            # the one line the mark has to reach.
+            marked.update(range(addr, addr + len(new)))
+            sites.append("%04x:%04x" % (seg, addr))
+        step = None
+        for ins in md.disasm(bytes(raw[pos:end]), addr):
+            step = ins.size
+            break
+        pos += step or 1
+
+    data = raw[at:at + length]
+    holes = _disasm.render(md, data, off, seg, marked)
+    # `sites`, not `marked`: marked holds every BYTE a patch covers, so using it
+    # here reported 14 traps for a range holding 6. A count is a measurement and
+    # the wrong set is how one silently becomes a different measurement.
+    print("  %d trap(s) resolved, %d left as INT" % (len(sites), len(unknown)))
+    for addr, n in unknown:
+        why = ("the RTL's own dispatch entry, not an x87 instruction"
+               if n == 0x3E else "not a recognised trap encoding")
+        print("    %04x:%04x  INT %02Xh -- %s" % (seg, addr, n, why))
+    if sites_out:
+        io.open(sites_out, "w", encoding="utf-8", newline="\n").write(
+            json.dumps(sites, indent=2) + "\n")
+        print("  %d confirmed site(s) -> %s  (feed it to `x87.py fix --sites`)"
+              % (len(sites), sites_out))
+    return 0 if not holes else 0
+
+
+def disasm_range(spec):
+    """SEG:START..END or SEG:START+LEN -> (seg, start, length or None)."""
+    return _disasm.parse_range(spec)
+
+
+# ---------------------------------------------------------------------------
 # const
 
 
@@ -260,6 +353,12 @@ def main(argv):
                    help="JSON list of 'seg:off' strings a disassembler confirmed")
     f.add_argument("--out", required=True)
 
+    d = sub.add_parser("disasm", help="decode a range with the traps resolved")
+    d.add_argument("exe")
+    d.add_argument("range", metavar="SEG:START..END")
+    d.add_argument("--sites", help="write the confirmed trap sites here, in the "
+                                   "form `fix --sites` reads")
+
     c = sub.add_parser("const", help="decode the constants the code loads")
     c.add_argument("part")
     c.add_argument("seg")
@@ -275,6 +374,8 @@ def main(argv):
         return survey(args.files)
     if args.cmd == "fix":
         return fix(args.exe, args.sites, args.out, first)
+    if args.cmd == "disasm":
+        return disasm(args.exe, args.range, first, args.sites)
     if args.cmd == "const":
         rest = args.rest
         if len(rest) % 2:

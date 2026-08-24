@@ -41,7 +41,11 @@ A trap in the file is `$E` and says nothing whatever about `$N`. Code compiled `
 
 ## Cost
 
-Reading the switch's own documentation once, and looking at the operands rather than the interrupt number. No tooling.
+Reading the switch's own documentation once, and looking at the operands rather than the interrupt number.
+
+If you want the operands read for you, `pascal/x87.py disasm FILE SEG:A..B` resolves the traps **in memory** and marks every line it resolved, so there is no patched copy left on disk for the next reader to mistake for the original -- which is the mechanism that replaces this page's warning about exactly that. `--sites` writes out the confirmed trap addresses, which is the input `x87.py fix` has always asked for and had no way to be given.
+
+And the two-build test needs no tooling beyond the build you already have.
 
 ## Example
 
