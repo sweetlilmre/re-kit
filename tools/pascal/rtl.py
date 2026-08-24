@@ -40,6 +40,7 @@ import pathlib
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 import project                                    # noqa: E402
+from substrate import align                       # noqa: E402
 from substrate.mzinfo import parse                # noqa: E402
 
 try:
@@ -95,8 +96,18 @@ def match(ref, ref_seg, ref_len, others, first_para):
     for p in others:
         h = parse(pathlib.Path(p))
         mask = masked_image(h)
-        idx = mask.find(probe, 0, h["imagesize"])
+        # NOT an exact find(). Relocation masking handles the far pointers, and
+        # for years this then matched a 256-byte probe byte for byte -- which
+        # CANNOT succeed across two differently-linked binaries and never once
+        # did. Measured on this corpus: the RTL head diverges at +0x07, seven
+        # bytes in, on a DGROUP *offset* the mask does not touch because it is
+        # not a relocation, and again at +0x0c on a near-call displacement the
+        # smart linker places differently in every part. The tool reported
+        # `RTL prologue NOT FOUND`, which reads as "no runtime here" rather
+        # than "my rule is too strict" -- absence indistinguishable from zero.
+        # align.locate is the engine built for exactly this tolerance.
         name = pathlib.Path(p).name
+        idx, _ = align.locate(probe, mask[:h["imagesize"]], align.holes, None)
         if idx < 0:
             print("  %-22s RTL prologue NOT FOUND" % name)
             continue
