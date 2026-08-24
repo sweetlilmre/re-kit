@@ -635,6 +635,21 @@ def main(argv):
         return 1
 
     failed = report(build, out)
+
+    # The batch file stamps ** FAILED / ** OK from the errorlevel after every
+    # invocation. That verdict cannot be missed by a pattern, so it OVERRIDES
+    # a clean parse: a compiler message without a filename -- "Error 49: Data
+    # segment too large." is one -- matches nothing above and would otherwise
+    # be reported as a successful build.
+    stamped = out.count("** FAILED")
+    if stamped and not failed:
+        print("")
+        print("The compiler reported failure but printed no FILE(LINE) error "
+              "line, so there is no source context to show. The log's tail:")
+        for line in out.rstrip().splitlines()[-12:]:
+            print("  " + line)
+        failed = stamped
+
     if failed:
         # THE VERDICT GOES LAST. `report` prints each error with a few lines of
         # source around it, so before this the final line of a failed build was
