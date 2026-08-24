@@ -258,6 +258,12 @@ inherits them on day one.
 
 - **A shell may rewrite an argument that starts with a slash into a path.** `--sw=/GS` then compiles nothing and reports success; `gh api /repos/...` fails the same way. Prefix with `MSYS_NO_PATHCONV=1`, use a different shell, or call the tool from Python's `subprocess`.
 
+- **A DOUBLE-QUOTED shell argument has `$NAME` substituted out of it, and an unset name substitutes to NOTHING.** This corpus's prose is full of compiler directives, so the sequences at risk are the ones it most needs to write down: `{$N+}` arrives as `{+}`, `{$G-}` as `{-}`, `$E` and `$S-` vanish outright. On 24 Aug 2026 it wrote `The fix that did it was {+} on P5S2` into the register, in a resolution whose whole subject was that `$N` and `$E` are different things.
+
+  **What makes it worse than the backslash trap is that the damage reads as a typo.** A mangled path fails loudly; a missing `$N` leaves a grammatical sentence that a person will read as fact, in a file nothing re-derives. Nothing downstream can catch it, because the record IS the measurement.
+
+  So: **prose with a `$` in it goes to a tool through a file, never through an argument.** Single quotes also protect it, but they are one edit away from failing and they cannot hold a single quote, so the file is the habit worth having -- and it is the same habit section 9's first entry already asks for, for the same reason.
+
 - **Something in this environment has twice multiplied every line break in a markdown file** -- 91% blank lines in one document, 58% in another. The cause was never found. `tools/repairdoc.py` in a host repo diagnoses and repairs it, and proves content preservation before writing.
 
 **Two of these have mechanisms rather than warnings, which is the only thing that has ever stopped a blind spot recurring**: an encoding auditor that PARSES rather than pattern-matches -- a line-based regex reported 32 sites of which 16 were artefacts while missing 4 real ones -- and a linter that refuses non-ASCII bytes in a DOS source.
