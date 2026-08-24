@@ -21,7 +21,7 @@ requires-python = ">=3.11"
 # That is why requires-python is 3.11 rather than something older.
 # capstone decodes 16-bit instructions for substrate/disasm.py, and through it
 # for pascal/x87.py disasm. It is OPTIONAL in practice and required in name:
-# forty-six of the forty-eight programs here never import it, and the two that
+# forty-six of the forty-nine programs here never import it, and the three that
 # do refuse with the install command rather than returning an empty decode --
 # because a missing decoder that reported nothing would be indistinguishable
 # from a range holding nothing, which is the `absence-reads-as-zero` failure.
