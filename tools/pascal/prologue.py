@@ -7,7 +7,9 @@ r"""Read a routine's prologue: what the source declared, and which switch built 
 THE PROLOGUE IS TWO MEASUREMENTS AND THIS PRINTS BOTH. `ENTER n,0` versus
 `PUSH BP / MOV BP,SP` names the unit's `$G` switch, which is a UNIT property --
 so one routine answers it for every routine beside it. The OPERAND is the
-declared locals plus the code generator's temporaries, which constrains the
+declared locals plus the code generator's temporaries -- and a temporary is
+not always below the last declaration, because a `for` limit that is not a
+constant becomes one and is read every iteration -- which constrains the
 source's `var` block before a single statement is read. See the wiki
 observation `The frame is bigger than your locals account for`.
 
@@ -238,8 +240,18 @@ def report_routine(part, seg, lo, hi, code):
         print("        [BP-$%02x]  %d reference(s)%s" % (-off, n, note))
     if frame is not None:
         declared = -lo_slot
+        # NOT "and the rest is declared". A TOUCHED slot can be the code
+        # generator's too: a `for` loop whose limit is not a constant is
+        # evaluated once into a temporary, and that temporary is then read on
+        # every iteration -- so it looks exactly like a declared local, and
+        # transcribing it AS one produces both it and the compiler's, putting
+        # the frame over. Three routines in one segment were built that way
+        # before this line was rewritten. The bytes beyond the lowest touched
+        # slot are a LOWER BOUND on the temporaries, never the whole of them.
         print("     %d byte(s) of frame; the lowest slot touched is [BP-$%02x], "
-              "so %d byte(s) beyond it are the code generator's temporaries"
+              "so AT LEAST %d byte(s) are the code generator's -- and a "
+              "TOUCHED slot may be its temporary too, so the declarations may "
+              "stop higher than this"
               % (frame, declared, frame - declared))
     if outside:
         print("     %d apparent slot(s) below the frame discarded as noise -- "
