@@ -634,7 +634,17 @@ def main(argv):
         print("FAILED:", err)
         return 1
 
-    if report(build, out):
+    failed = report(build, out)
+    if failed:
+        # THE VERDICT GOES LAST. `report` prints each error with a few lines of
+        # source around it, so before this the final line of a failed build was
+        # a fragment of somebody's `uses` clause -- and a failed build looks
+        # exactly like a successful one to anyone reading the tail. Four
+        # commits went by with a broken unit, a cascade into three more
+        # targets, and stale executables being measured as if they were fresh.
+        print("BUILD FAILED -- %d error(s) above. NOTHING WAS INSTALLED, so "
+              "anything in the output directory is STALE and any measurement "
+              "of it is meaningless." % failed)
         return 1
     ok = re.findall(r"^(\d+) lines,", out, re.M)
     if ok:
