@@ -31,12 +31,30 @@ HOW TO USE THE OUTPUT. Two numbers and one address:
     missing or extra block of that size and nothing else is wrong; if it does
     not, the CONTENT differs and it is a carve or a value problem.
 
-A REMAINING DIFFERENCE OF TWO BYTES IS PROBABLY THE HARNESS. A test harness that
-does a `WriteLn` puts its line terminator in the data segment; on this target it
-lands past everything else and displaces nothing. Anything a harness declares
-BEFORE that, though, sits at the FRONT of the uninitialised region and moves
-every variable in the part under test -- see the note on EXIT_PROC in the
-harness generator.
+A REMAINING DIFFERENCE OF TWO BYTES IS PROBABLY THE HARNESS. A test harness
+that writes text puts a two-byte constant at the END of the initialised region
+-- `0D 0A` where the original, which writes nothing, has `00 00`.
+
+**IT DOES NOT "DISPLACE NOTHING", WHICH IS WHAT THIS SAID FOR WEEKS.** The
+uninitialised region begins where the initialised one ENDS, not where its
+paragraph padding ends, so those two bytes move EVERY VARIABLE IN THE PART BY
+TWO. Measured on one target: a part whose only reported data shift was `+2`,
+across every variable from the first one onward, and the two bytes were the
+only difference in its initialised image. On a second part of the same target
+the same two bytes netted against four bytes of variables that were genuinely
+missing, producing a `-2` that read like a declaration defect and was half
+apparatus. **That is the shape to distrust: a small uniform shift is as likely
+to be the harness as the source.**
+
+It is not `WriteLn` specifically, and it is not avoidable by writing
+differently: replacing every `WriteLn(s)` with `Write(s, #13, #10)` leaves the
+same two bytes at the same address. Any harness that reports anything pays
+them. So subtract two before reading a variable shift, or measure against a
+build that writes nothing.
+
+Anything a harness DECLARES, by contrast, sits at the FRONT of the
+uninitialised region and moves every variable as well -- a different mechanism
+with the same symptom. See the note on EXIT_PROC in the harness generator.
 """
 import pathlib
 import re
