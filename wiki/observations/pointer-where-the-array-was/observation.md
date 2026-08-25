@@ -41,6 +41,8 @@ This is worth reaching for before a linker map, and not only because it is cheap
 
 **The comments are not a measurement, they are a record of past measurements, and they go stale.** In the case below the same array had two addresses recorded in one file, 2,049 bytes apart, and the one beside its declaration was the wrong one. Prefer an address recorded beside the *code that uses it* -- that comment was written while somebody was reading the arithmetic -- and use tiling to arbitrate. Where two disagree, one of them is a fossil.
 
+**A size read as a DIFFERENCE of two addresses carries both their errors.** Estimating a missing variable at 2,008 bytes by subtracting one recorded address from another was 40 bytes out; the true figure was 2,048, and it came from a stride times a count -- `$100` eight times, which is exact. Prefer a size that factorises. When a gap does not factorise into anything the unit plausibly declares, suspect one of the two addresses before inventing a variable to fill it.
+
 **A single-site shift is not a location.** A pairing supported by one reference can be a coincidence, and the arithmetic built on it will be confidently wrong. In the case below, two shifts implied that 13,000 bytes had gone missing from a region that is 1,032 bytes long in the original -- which is not a finding, it is a mispairing. Anchor on multi-site shifts before doing any arithmetic.
 
 **And the direction of the fix is not automatic.** The original may genuinely have used the heap; plenty of 1994 code does, and the surrounding units in this very case `GetMem` four buffers deliberately. What settles it is DGROUP volume, not taste. Do not sweep pointers into arrays because one turned out to be one.
@@ -65,7 +67,9 @@ The linker-map route failed immediately -- the switch that would emit one broke 
 
 Two things worth carrying. **The right address was in the file all along, and so was the wrong one.** The declaration's comment said `$7233`; the drawing routine's comment, beside the subscript arithmetic that uses it, said `$6A2A`. `$6A2A` is the one under which the unit tiles -- `Star`'s ninety nine-byte records then end at `$A105`, one byte below where the next unit's block begins. A stale note beside a declaration had outlived a correct note beside the code.
 
-**And the same table priced what is still missing.** With `Font` inline the unit totals about 15,895 bytes against the original's 17,972, and the deficit sits in one identifiable place: `Font` ends at `$78EA`, `Blob` begins at `$80C2`, and nothing is declared in the 2,008 bytes between. Two independent arithmetics -- the unit's total and the gap -- agree to within seventy bytes, which is what makes it worth chasing rather than guessing at. [1]
+**And the same table priced what is still missing.** With `Font` inline the unit totals about 15,895 bytes against the original's 17,972, and the deficit sits in one identifiable place: `Font` ends at `$78EA`, `Blob` begins at `$80C2`, and nothing is declared in the 2,008 bytes between. Two independent arithmetics -- the unit's total and the gap -- agreed to within seventy bytes, which is what made it worth chasing rather than guessing at.
+
+**It resolved to 2,048 rather than 2,008**, and to a defect of a different kind: eight row buffers that the original holds at unit level and the reconstruction declared as locals inside a procedure. The shift moved to `-17710`, exactly 2,048 further. So the gap was real and its estimated size was 40 bytes out, for the reason in the blind spot above -- a difference of two addresses is not a size. **And the unit still does not tile**: the same font's two candidate addresses turn out to be exactly 2,048 apart, which is the row buffers' size, so either they share storage with the font or one of the two readings is wrong. That is left open rather than guessed, because it changes no measurement until the order inside the unit is worth fixing. [1]
 
 # Citations
 
