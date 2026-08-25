@@ -56,6 +56,17 @@ Three spellings of "one LongInt local" were tried against a routine like that be
 
 The fourth attempt -- no locals, `MOV WORD PTR @Result, BX` and `MOV WORD PTR @Result+2, DX` -- came out `$04` and matched. **The lesson is not about `absolute`: it is that a slot the routine reads is not necessarily a slot the routine declares.**
 
+## A `with` COSTS FOUR BYTES, AND THE BODY SAYS SO TWICE
+
+`with R do` over anything that has to be computed -- an array element, a pointer dereference, a subscript through both -- puts the record's ADDRESS in a four-byte frame slot and then reads every field through it. Two consequences, and they are separate measurements of the same source line:
+
+    the frame is four bytes bigger than the declarations account for
+    the address is computed ONCE, at the top of the with
+
+So a routine whose original recomputes the element's address for EVERY field it touches -- the same `IMUL index,size` / `LES` / `ADD` sequence three times over for one statement and its guard -- has no `with` in it, and the fields are named in full at each reference. That is verbose Pascal and it looks like something a reconstruction would tidy; tidying it costs four bytes of frame and collapses three address computations into one.
+
+Read together they are cheap to tell apart, because the frame is the fast check and the repetition confirms it. A reconstruction four bytes over on a routine that reads one record repeatedly is worth trying without the `with` before anything else is touched.
+
 ## The prologue's FORM is a different measurement, and a bigger lever
 
 The operand counts locals. **Whether there is an `ENTER` at all names a compiler switch**, and that is worth separating because it pays off on a completely different scale:
