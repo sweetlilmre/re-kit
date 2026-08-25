@@ -34,13 +34,34 @@ The lesson worth keeping is the shape of the error: a ratio was used to exclude 
 
 The Pascal code generator emits a register move as a side effect of allocation -- it has a value in one register and wants it in another, and which opcode form expresses that depends on which operand its tree walk treats as the destination. An assembler has one operand order in the source and one rule for encoding it, so it is consistent by construction.
 
+## The same bit, used backwards: the residual of a failed transcription
+
+The table above is a RATIO and needs eight qualifying operations before it will speak. There is a second use of the same fact that works with **two**, and it answers a different question -- not *is this routine assembler* but *where does the assembler BEGIN*.
+
+Transcribe the routine as an `assembler` procedure, rebuild, and compare. If the whole routine was hand-written, it comes out identical. If only part of it was, **the bytes that stay wrong are direction bits, and they mark the half that was compiled.**
+
+Measured, 25 August 2026, on a 72-byte routine that programs a VGA CRTC. Written as one `assembler` procedure it came back 70 of 72 bytes right, and the two survivors were:
+
+| the original | our transcription | the instruction |
+|---|---|---|
+| `8B C8` | `89 C1` | `MOV CX,AX` |
+| `03 C1` | `01 C8` | `ADD AX,CX` |
+
+Two bytes, same mnemonics, opposite direction bits -- and both in the routine's opening arithmetic, none in its port-writing tail. That is the boundary, stated to the byte: the arithmetic came from the code generator and the tail was hand-written. Splitting the source into a Pascal statement followed by an `asm` block at exactly that point made all 72 bytes identical.
+
+**Two qualifying operations decided it, where the ratio would have refused to speak.** The reason is that the rebuild supplies the comparison group the ratio has to find for itself: each byte is being judged against the same instruction from the same source, so one disagreement is already a measurement.
+
+**And it catches the mistake in the direction people actually make.** The ratio guards against reading hand assembler as Pascal. This guards against the opposite -- transcribing compiled code as assembler because the routine *contains* an asm block -- which is the easier error to commit, because the rule *never re-express hand assembler as higher-level code* pushes hard one way and says nothing about how far the block extends.
+
 ## Blind spot
 
 **It needs a decent count.** A 40-byte routine may have no qualifying ops at all: the companion routine to the one above, 88 bytes, scored 0 and 0, so this test said nothing about it and its assembler nature had to be established another way -- it passed arguments to the suspect in registers, which no Pascal caller can do.
 
 **It cannot see which assembler**, as the withdrawn conclusion above shows. And it says nothing about `{$L}`-linked objects as a class: one TASM object measured 30%, which is a single sample and near enough the code generator's band to be useless as a discriminator.
 
-**It is a ratio, so it needs the comparison group from the SAME binary.** Absolute shares are not the finding; the gap between the suspect and its neighbours is.
+**It is a ratio, so it needs the comparison group from the SAME binary.** Absolute shares are not the finding; the gap between the suspect and its neighbours is. The residual technique above is exempt from this one, and only that one: its comparison group is the rebuild.
+
+**The residual technique needs the rest of the transcription to be right.** Two wrong bytes are legible because everything around them matched. A transcription that is wrong about an operand or a jump target produces differences that are not direction bits, and reading those as a block boundary would put it in the wrong place.
 
 ## Cost
 
