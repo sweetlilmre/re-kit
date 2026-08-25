@@ -61,6 +61,29 @@ When the low bounds are constant the compiler folds them into the displacement, 
 
 Read in the useful direction, this is a bound-finder rather than a hazard: **if you know the array's true address and the displacement, their difference IS the fold, and the fold factorises into the low bounds.** That is often the cheapest way to recover a non-zero low bound, because it needs no `DEC` and no runtime arithmetic to be present at all.
 
+## A DIFFERENCE BLAMED ON THE REGISTER ALLOCATOR WAS A DIFFERENCE IN THE TYPE
+
+This is the failure mode worth guarding against, because it closes an investigation rather than merely delaying one.
+
+A span had been read, understood and written off:
+
+> *a register-allocation difference, deliberately left -- the original builds the index in DI, ours in AX and then transfers; Pascal does not name the register.*
+
+Every clause of that is a true observation and the conclusion is wrong. The original built the index in DI because it was building a TWO-DIMENSIONAL subscript, where the second index is a constant that folds into the displacement; the reconstruction built it in AX because it was building a flat one and had a run-time `+1` to add. **The register followed from the type.** Declaring the array with its second dimension closed the span to zero.
+
+The general shape: *the code generator has freedom, therefore this difference is beneath the source* is an inference, not a measurement, and it is the one that stops people looking. Before accepting it, check whether the ADDRESSING differs as well as the register -- a folded displacement against a run-time addition is a type difference every time, and it is visible in the same two instructions.
+
+## The 768-byte palette is the recurring case
+
+One corpus produced the same defect in three different parts on one day, in three units that had nothing else in common:
+
+    ours       Pal : array[0..767] of Byte;      Pal[C * 3 + 1]
+    original   Pal : array[0..255, 0..2] of Byte;  Pal[C, 1]
+
+Both are 768 bytes and both index the same byte. The flat one computes `C * 3` and then ADDS the channel at run time -- an `INC AX` for green, two for blue -- and builds the index in the accumulator. The two-dimensional one computes `C * 3` once into an index register and reaches the three channels at three consecutive displacements.
+
+A DAC palette buffer, a font, a colour table: **anything whose natural description is "N entries of M things" is worth declaring that way first**, and a flat array only when the binary shows the multiply and the add done separately at run time. Depth is not limited to two -- the same corpus's font is `array[FirstCh..FirstCh+58, 1..16, 1..16]`, reached as `ES:[DI-$2011]` with `DI` built from three shifted terms, and `$2011` is `32*256 + 1*16 + 1`: three low bounds in one displacement.
+
 ## Blind spot
 
 **It says the bounds were shifted, not by how much or in which direction.** `A[I - 1]` on `array[0..N]` and `A[I + 1]` on `array[2..N]` both leave an adjustment in a register. Read the *sense* of the instruction -- `DEC` against `INC` -- and the displacement against the array's real address, and only then claim a bound.
