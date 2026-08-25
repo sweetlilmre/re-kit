@@ -35,6 +35,7 @@ Sections 2, 4, 5 and 7 each describe a piece of a session. This is how they join
     spanwhy.py SPANS.toml PART           and WHERE THE DEFECT ACTUALLY IS
     dsmap.py SPANS.toml PART             is the DATA in the right place?
     fpusites.py SPANS.toml               which units are $N- and should be $N+?
+    dgimage.py SPANS.toml                is the initialised DATA identical?
     survey.py / rtl.py entries / x87.py  read the segment before writing Pascal
                      ... edit the sources ...
     build.py CONFIG.toml TARGET          rebuild -- one target and its deps
@@ -122,6 +123,7 @@ The plan shrinks, the coverage walk's spans shrink, and the ratchet does not fal
 | **and where is the defect that opened the span?** | `pascal/spanwhy.py` -- the walk forgives short differences, so a span OPENS downstream of the instruction whose length changed; this traces back to it, and on one part twelve spans came from three causes |
 | **is a global where the original put it?** | `pascal/dsmap.py` -- pairs every absolute data reference with ours and reports the SHIFT; a run of one non-zero shift means the declaration before it is the wrong size, and the boundary names the unit |
 | **which unit has the wrong $N?** | `pascal/fpusites.py` -- under $E+ an 80x87 instruction ships as INT $34..$3E, and $N- emits none at all, so a trap COUNT lower than the original's names a unit compiled $N- that should be $N+; the original's per-segment column says which |
+| **is the initialised data identical?** | `pascal/dgimage.py` -- compares the two DGROUP images byte for byte. The other two instruments are blind to the same thing: the coverage walk reads CODE, and dsmap pairs REFERENCES, so data nothing references is invisible to both -- which is exactly what tends to go missing |
 | how much of the whole thing is accounted for? | `pascal/coverage.py` |
 | is our whole build the original's bytes? | `pascal/artefact.py --check` |
 | is this build output still the source it was built from? | `pascal/staged.py`, and every instrument that can refuses a stale one |
