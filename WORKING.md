@@ -92,6 +92,7 @@ The plan shrinks, the coverage walk's spans shrink, and the ratchet does not fal
 | tell me four cheap things about this segment | `pascal/survey.py` -- far returns as a routine signature, string ABSENCE as evidence, far calls out, and `CALLF [DI+nn]` sites giving the VMT layout |
 | where do routines probably start? | `pascal/rtl.py entries` |
 | what did the source DECLARE, and which `$G` built it? | `pascal/prologue.py` -- the frame form names the unit's switch, the operand constrains the `var` block, and a range prints every BP slot the routine touches, including the ones it never reads |
+| did the frame I just fixed come out right, when `prologue.py` says `not located`? | `pascal/framehist.py` -- it compares the MULTISET of `ENTER` operands and needs no pairing, so it still answers when bodies differ too much to pair. A missing row is a declaration list too small, a surplus one too big, and equal-and-opposite rows are usually ONE routine rather than two defects |
 | where is the runtime, and what is in it? | `pascal/rtl.py match`, then `rtl.py find` |
 | what does this code actually DO? | `substrate/disasm.py FILE SEG:A..B` -- a linear decode, addressed the way the code is written down |
 | this code is undecodable INT 34h noise | `pascal/x87.py disasm` -- resolves the traps IN MEMORY and marks every line it resolved, so no patched copy is left on disk to be mistaken for the original later. `survey` first on a new target; `fix` only when a file on disk is genuinely wanted, and `disasm --sites` is what feeds it |
