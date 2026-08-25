@@ -32,6 +32,7 @@ Sections 2, 4, 5 and 7 each describe a piece of a session. This is how they join
 
     plan.py --report                     what to work on -- the first open one
     spans.py SPANS.toml PART             where the rebuild does NOT line up
+    spanwhy.py SPANS.toml PART           and WHERE THE DEFECT ACTUALLY IS
     survey.py / rtl.py entries / x87.py  read the segment before writing Pascal
                      ... edit the sources ...
     build.py CONFIG.toml TARGET          rebuild -- one target and its deps
@@ -116,6 +117,7 @@ The plan shrinks, the coverage walk's spans shrink, and the ratchet does not fal
 | did the linker put the units in the original's order? | `pascal/linkorder.py` |
 | does the initialised data match? | `pascal/dgroup.py` |
 | **which bytes of the original do NOT line up at all?** | `pascal/spans.py` |
+| **and where is the defect that opened the span?** | `pascal/spanwhy.py` -- the walk forgives short differences, so a span OPENS downstream of the instruction whose length changed; this traces back to it, and on one part twelve spans came from three causes |
 | how much of the whole thing is accounted for? | `pascal/coverage.py` |
 | is our whole build the original's bytes? | `pascal/artefact.py --check` |
 | is this build output still the source it was built from? | `pascal/staged.py`, and every instrument that can refuses a stale one |
