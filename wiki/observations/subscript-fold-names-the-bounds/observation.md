@@ -48,6 +48,19 @@ The second column's displacement is checkable independently: it should equal the
 
 The fold is a constant-propagation the code generator performs while building the address expression, and it can only run when every term but one is constant. A bare variable subscript leaves the low bound as the only non-constant-adjacent term, so it merges into the displacement. An explicit `I - 1` puts a subtraction in the expression tree before the code generator gets there, and the tree is evaluated as written.
 
+## The folded displacement is NOT the array's address
+
+This is the trap the technique sets for you, and it is worth stating on its own because it costs a session when you fall into it.
+
+When the low bounds are constant the compiler folds them into the displacement, so the instruction carries **the array's address minus the fold** -- a number that looks exactly like an address, appears in exactly the place an address appears, and is not one. For `array[32..90, 1..8, 1..8] of Byte` indexed as `A[c, r, s]`, the fold is `32*64 + 1*8 + 1` = 2,057 bytes, and a disassembly showing `CMP BYTE PTR [DI+$6A2A]` is naming an array that actually begins at `$7233`.
+
+**So a displacement is only an address when the array is zero-based in every dimension.** Two habits follow:
+
+- When a displacement in an instruction disagrees with an address recorded elsewhere for the same variable, do NOT assume the instruction wins. Compute the fold from the declared bounds and see whether the difference *is* the fold. If it is, both numbers were right and they were answering different questions.
+- The difference being a suspiciously round or structured number -- `$800`, or a multiple of a record size, or bias times stride -- is the tell. An arbitrary difference is a real disagreement; a structured one is a fold.
+
+Read in the useful direction, this is a bound-finder rather than a hazard: **if you know the array's true address and the displacement, their difference IS the fold, and the fold factorises into the low bounds.** That is often the cheapest way to recover a non-zero low bound, because it needs no `DEC` and no runtime arithmetic to be present at all.
+
 ## Blind spot
 
 **It says the bounds were shifted, not by how much or in which direction.** `A[I - 1]` on `array[0..N]` and `A[I + 1]` on `array[2..N]` both leave an adjustment in a register. Read the *sense* of the instruction -- `DEC` against `INC` -- and the displacement against the array's real address, and only then claim a bound.
@@ -72,6 +85,18 @@ Two hypotheses were tested and refuted first, and both are worth recording becau
 
 Declaring the tables `array[0..N-1, 0..2]` and reading `Vert[I - 1, 0]` moved the part from 98.9% to 99.1% and shrank every one of those runs. [1]
 
+## A second example: no subtraction at all, which named the bound
+
+A banner routine in a 1994 VGA demo indexed a font as `Font[Ord(S[Ch]), Row, Step]`. The reconstruction had written it as `Font[Ord(S[Ch]) - 32, Row, Step]` against an `array[0..58, ...]`, with a range guard around it -- a perfectly sensible reading, and six bytes of frame and one `SUB` wider than the original.
+
+The disassembly settled it by what was *missing*. `MOV AL,[BP+DI-$100] / XOR AH,AH / SHL DI,6 / ADD DI,DX / ADD DI,CX / CMP BYTE PTR [DI+$6A2A]` multiplies the **raw** `Ord` by 64 with no subtraction anywhere. A zero-based array needs that subtraction; an array declared `array[32..90, 1..8, 1..8]` does not, because the compiler folds the bias into the displacement instead.
+
+And the arithmetic confirmed it: the array's real address was `$7233`, the displacement was `$6A2A`, and the difference is `$809` = 2,057 = `32*64 + 9` -- the character bias times the row stride, plus the nine that the two one-based dimensions contribute. **The absence of one instruction named the bound, and the fold's factorisation checked it.**
+
+The same case supplied the trap above. `$6A2A` had been written into the source as the array's *address*, replacing a correct note that said `$7233`, on the reasoning that the instruction must know better than the comment. The part's coverage walk moved 81.7% to 82.9% once the bound, the local types and the local order were all corrected together. [2]
+
 # Citations
 
 [1] `src/gen/P2OBJ.INC`, `src/P2S2.PAS` and `spans.toml`, part 002 segment `108b`, in the psycho repository; the original's shape read from Ghidra's decompilation of `108b:1cf2`, measured with `kit/tools/pascal/spans.py` on 24 Aug 2026.
+
+[2] `src/P1S4.PAS`, part 001 segment `1107`, in the psycho repository; measured with `kit/tools/pascal/prologue.py` and `spans.py` on 25 Aug 2026.
