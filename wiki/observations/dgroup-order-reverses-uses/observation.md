@@ -54,6 +54,8 @@ DGROUP is built by allocating each unit's data as the linker walks its list of u
 
 **Order is not size.** Getting the order right leaves every offset still wrong if the total volume of constants differs, because the variables begin after all of them. Order and size are two findings and the first does not imply the second.
 
+**THE COVERAGE WALK IS NOT CORROBORATION, AND ON ONE PART IT SAID NOTHING AT ALL.** The first example below saw the walk rise when the clause was reversed, which reads as confirmation. The second, bracketed deliberately, reports **10980 of 11440 aligned under both orders -- the same number to the byte** -- for a build whose three scene units sat in reverse order and whose initialised data was wrong in 5182 places. The reason is mechanical: a walk that locates each segment by CONTENT finds a unit at the wrong segment number just as well as at the right one, and the two-byte displacement errors inside it fall under the short-difference tolerance. So a rise is a bonus and its absence is not evidence. **Read the segment SIZES against the original's, and the initialised image; those are the two instruments that can see this.**
+
 ## Cost
 
 Three byte-searches and a sort. No disassembly.
@@ -72,6 +74,23 @@ Reversing the scene list in the main unit's uses clause put the tunnel palette b
 
 Within twelve bytes across a 25,000-byte span, against thousands before. The code segments still landed in the original's order and the coverage walk rose. [1]
 
+## A second example, bracketed, where the walk stayed silent
+
+Part 005 of the same demo, the same day. Its initialised region is 11,648 bytes on both sides and 5,182 of them differed, first at `$0002`, with the rebuild resynchronising at a shift of `+4` -- which reads as one small block in the wrong place and is not what it was.
+
+The `+4` was two typed `Word` constants, a view width and height, that the rebuild put at the FRONT of the region and the original puts at the very END of it, immediately after the previous unit's clip bounds. Everything between was one 11,532-byte generated mesh table, in the right place in both, shifted by those four bytes and therefore differing in 5,182 places for no reason of its own.
+
+Two candidate explanations, and a build settled them:
+
+* **the constants belong to the earlier unit.** Refuted in one build, and instructively: the object module that reads them is linked with `{$L}` from the later unit, and its `EXTRN` resolves by PASCAL SCOPE in the unit that links it. Declaring them anywhere else gives `Undefined external`. So their owner is not in question, and the ORDER OF THE UNITS is the only thing left.
+* **the clause is reversed.** Naming the three scene units backwards took the initialised data from 5,182 bytes differing to **2 -- the test harness's own line terminator, and nothing else.**
+
+The segment sizes are the independent check, and they agree without being asked: under the reversed clause the first scene unit comes out at `0x88` paragraphs where the original has `0x88`, and the four units after the scenes match the original's `0x08`, `0x14`, `0x62` and `0x11` exactly. Under scene order the three were laid down back to front.
+
+**And the coverage walk reported 10980 of 11440 both times.** [2]
+
 # Citations
 
 [1] `src/P3MAIN.PAS`, `src/gen/P3PAL.INC` and `spans.toml`, part 003 in the psycho repository; the original's layout read from Ghidra's decompilation of `1139:03b4` and from byte searches over `work/split/NEUROSIS_003_fpu.exe`, measured with `kit/tools/pascal/spans.py` on 25 Aug 2026.
+
+[2] `src/P5MAIN.PAS` and `src/P5S3.PAS`, part 005 in the same repository, 25 Aug 2026. The clause carries the measurement as a comment so nobody tidies it back into scene order. Measured with `kit/tools/pascal/dgimage.py` for the initialised image, `kit/tools/substrate/segmap.py` for the segment sizes, and `spans.py` for the number that did not move.
