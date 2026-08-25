@@ -51,8 +51,40 @@ def load(path):
         return tomllib.load(fh)
 
 
+# Every character a TOML basic string may not carry raw, and what it becomes.
+# Backslash first: it is the escape for the rest.
+_ESCAPES = [
+    ("\\", "\\\\"),
+    ('"', '\\"'),
+    ("\n", "\\n"),
+    ("\r", "\\r"),
+    ("\t", "\\t"),
+    ("\f", "\\f"),
+    ("\b", "\\b"),
+]
+
+
 def toml_str(s):
-    return '"' + str(s).replace("\\", "\\\\").replace('"', '\\"') + '"'
+    """Quote a value as a TOML basic string, ESCAPING WHAT TOML FORBIDS RAW.
+
+    IT USED TO ESCAPE ONLY THE BACKSLASH AND THE QUOTE, and that made this
+    serializer able to write a register it could not read back. A resolution
+    written with an embedded newline -- an ordinary thing to do, since these are
+    paragraphs of prose -- produced `Illegal character` from the TOML parser on
+    the next read, and every tool that reads the register failed at once. The
+    record IS the measurement here, so a serializer that can corrupt it is the
+    worst defect in the set: nothing downstream can recover the text.
+
+    Control characters below 0x20 that have no short escape are written as
+    \\uXXXX rather than dropped, because silently losing a character from a
+    resolution is the failure this function exists to prevent.
+    """
+    out = str(s)
+    for raw, esc in _ESCAPES:
+        out = out.replace(raw, esc)
+    out = "".join(c if ord(c) >= 0x20 or c in "\\\"" else "\\u%04x" % ord(c)
+                  for c in out)
+    return '"' + out + '"'
 
 
 def _emit(out, field, value):
