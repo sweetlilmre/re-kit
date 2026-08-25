@@ -40,6 +40,22 @@ That last row is the one that changes the frame. An `Integer` reaches the x87 th
 
 One more, in the same family: a value *read from memory* where a constant could have been folded says the source named a variable or a **typed** constant. An untyped `const` is folded at compile time -- `MOV AX,1600` where the original has `MOV AX,[2]` / `MUL WORD PTR [2]` is not an optimisation difference, it is a different declaration.
 
+## A FUNCTION's RESULT IS IN THE FRAME, and the operand counts it
+
+The sum is declared locals plus temporaries **plus the result slot**, and forgetting the third term makes a function look as though it has locals it does not.
+
+Measured: a `function : LongInt` is allocated **four bytes of frame for its result**. So a LongInt function with no locals at all opens `ENTER $04`, and one with a single LongInt local opens `ENTER $08`.
+
+That matters because it inverts the reading. Faced with `ENTER $04` on a LongInt function whose only touched slots are `[BP-4]` and `[BP-2]`, the natural conclusion is *two Words, or one LongInt*. The right one is **no locals**: those four bytes ARE the result, the assembler writes both halves of them directly, and the compiler's epilogue loads them into `DX:AX`. In Borland's inline assembler the result is named **`@Result`**.
+
+Three spellings of "one LongInt local" were tried against a routine like that before the frame was read properly, and all three came out `ENTER $08`:
+
+    two Words + (LongInt(Hi) shl 16) or Lo     $08   -- looks like a shift temporary
+    two Words + a `LongInt absolute` alias     $08   -- the alias got its own four bytes
+    one LongInt local + `Result := T`          $08
+
+The fourth attempt -- no locals, `MOV WORD PTR @Result, BX` and `MOV WORD PTR @Result+2, DX` -- came out `$04` and matched. **The lesson is not about `absolute`: it is that a slot the routine reads is not necessarily a slot the routine declares.**
+
 ## The prologue's FORM is a different measurement, and a bigger lever
 
 The operand counts locals. **Whether there is an `ENTER` at all names a compiler switch**, and that is worth separating because it pays off on a completely different scale:
@@ -61,7 +77,7 @@ The same reading generalises to any switch with a visible signature -- `$N` in w
 
 **It is a SUM, so it constrains the declarations without determining them.** Several `var` blocks total 28 bytes. The frame tells you that you are wrong and roughly by how much; it never tells you what to write. Use it to reject a reconstruction, then read the offsets to place what is missing.
 
-**A routine with no locals gets no `ENTER` at all**, so the technique has nothing to read on exactly the small routines where a missing variable is easiest to overlook. And `{$G-}` changes register allocation rather than the frame, so a frame that matches is not evidence the *body* will.
+**A PROCEDURE with no locals gets no `ENTER` at all**, so the technique has nothing to read on exactly the small routines where a missing variable is easiest to overlook. A FUNCTION is different, per the result-slot section above: it gets a frame for its result even with no locals, so `ENTER $04` on a LongInt function is the no-locals case rather than the nothing-to-read one. And `{$G-}` changes register allocation rather than the frame, so a frame that matches is not evidence the *body* will.
 
 **A nested routine's static link is at `[BP+4]`, not in the frame** -- it is a hidden argument and is not counted in `n`. Do not try to make the arithmetic absorb it; see [Every element read costs fourteen bytes and goes through the frame twice](../nested-static-link/observation.md).
 
