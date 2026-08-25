@@ -46,6 +46,16 @@ walk's tolerance does not forgive, so such a span exists -- but an upstream
 length change is found first in every span measured so far. Treat a run of
 zeroes in that column as untested rather than as evidence.
 
+AND A VERDICT IS TRIAGE, NOT PROOF. The anchor can fail two ways that both end
+in a wrong verdict rather than an error. A short probe is not distinctive -- a
+sixteen-byte window matched a different routine with the same prologue and frame
+size, and 189 bytes of one part's spans were called real when hand-pairing
+showed every difference was an absolute address -- so a probe that matches more
+than once is now refused. But a LONG probe over a routine that opens with a run
+of absolute addresses may not locate at all, and then this falls back to an
+earlier prologue and reports that routine's drift instead. Before acting on a
+large verdict, pair the two routines by hand from the addresses printed.
+
 WHAT IT CANNOT TELL YOU. A run of two differing bytes at the end of an
 instruction is an address here and could be a changed constant -- `ADD AX,$28`
 against `ADD AX,$2A` passes this rule and is a real defect. So a span reported
@@ -107,15 +117,31 @@ def entries_before(orig, base, lo):
 
 
 def anchor(orig, base, lo, image):
-    """Our copy of the routine containing `lo`, found by its prologue."""
+    """Our copy of the routine containing `lo`, found by its prologue.
+
+    THE PROBE MUST BE LONG, AND THE REASON IS A MEASUREMENT. `align.locate`
+    returns the FIRST match, and a short window of a routine's opening bytes is
+    not distinctive: a sixteen-byte probe matched a different routine with the
+    same prologue and frame size, and 189 bytes of one part's spans were
+    reported as real differences when pairing them by hand showed every one was
+    an absolute address. So the longest window that still fits before the span
+    is tried first, and a probe that matches in MORE THAN ONE place is refused
+    outright rather than resolved by taking the first.
+    """
     for start in entries_before(orig, base, lo):
         if lo - start > 0x800:
             break
-        for win in (0x18, 0x10, 0x0c):
+        for win in (0x40, 0x30, 0x20, 0x18):
+            if win > lo - start + 4:
+                continue
             probe = orig[base + start: base + start + win]
             off, _ = align.locate(probe, image)
-            if off >= 0:
-                return off, start
+            if off < 0:
+                continue
+            second, _ = align.locate(probe, image[off + 1:])
+            if second >= 0:
+                continue                      # not distinctive: try a longer one
+            return off, start
     return -1, 0
 
 
