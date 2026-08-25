@@ -214,12 +214,21 @@ def main(argv):
         spec = cfg["part"][part]
         orig, _ = align.load_image((root / rel[part]).read_bytes())
         mine, _ = align.load_image((built / spec["exe"]).read_bytes())
-        out = subprocess.run([sys.executable, str(here.parent / "spans.py"),
-                              cfgpath, part], capture_output=True, text=True).stdout
-        rows = SPAN.findall(out)
+        # THE ENCODING IS STATED because this is our own script's stdout, and
+        # the RETURN CODE IS CHECKED because the regex below cannot tell a
+        # crashed spans.py from a part with no spans -- both give it nothing.
+        got = subprocess.run([sys.executable, str(here.parent / "spans.py"),
+                              cfgpath, part], capture_output=True, text=True,
+                             encoding="utf-8")
+        if got.returncode != 0:
+            print("part %-7s spans.py FAILED (exit %d) -- this is not a "
+                  "measurement:\n%s" % (part, got.returncode,
+                                        got.stderr.strip()))
+            continue
+        rows = SPAN.findall(got.stdout)
         if not rows:
-            print("part %-7s spans.py reported no span -- and that is not the same "
-                  "as none: check its output by hand" % part)
+            print("part %-7s spans.py ran and reported no span -- and that is not "
+                  "the same as none: check its output by hand" % part)
             continue
         real, addr, up, other = [], [], [], []
         nreal, naddr = 0, 0
