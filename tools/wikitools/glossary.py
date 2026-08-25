@@ -120,14 +120,20 @@ def main(argv):
         except project.Missing as exc:
             return project.complain(exc)
         glossaries = [str(host)] if host.is_file() else []
-        if not glossaries and len(argv) < 2:
-            sys.stdout.write("usage: glossary.py <wiki-root> <glossary.md> "
-                             "[more.md]\n")
-            return 2
-    # the wiki's own glossary counts too, if it has one
+    # The wiki's own glossary counts too, and it is found BEFORE deciding there
+    # is nothing to check against. A HOST NEED NOT HAVE A GLOSSARY OF ITS OWN:
+    # the split between the method's words and a target's is the point, and a
+    # target that has not needed its own vocabulary yet still has the method's.
+    # This refused outright in the second consumer -- printing a usage line, as
+    # though it had been called wrongly -- with the wiki's 116 avoid-terms
+    # sitting one directory away.
     local = pathlib.Path(root) / "CONTEXT.md"
     if local.exists() and str(local) not in glossaries:
         glossaries = glossaries + [str(local)]
+    if not glossaries:
+        sys.stdout.write("no glossary: neither the host's CONTEXT.md nor the "
+                         "wiki's exists, so there is nothing to check against\n")
+        return 2
 
     avoid = parse_glossary(glossaries)
     gated, reported, overridden = scan(root, avoid)
