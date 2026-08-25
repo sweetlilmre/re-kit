@@ -42,6 +42,21 @@ Three units is enough to tell a reversal from a shuffle, and one is never enough
 
 **Not a licence to reverse every clause.** Swept across seven parts of one program, reversing measured *better* in two, *worse* in one, and *unchanged* in the rest. The units in the others were already in the original's order. Reverse a clause when the data says that program's data segment is reversed, and not otherwise -- and check each one separately, because a program's units were written by someone who had a reason for the order.
 
+## Telling an ORDER defect from a SIZE defect, before touching either
+
+A data-reference map pairs the original's variable offsets with ours and prints the shift between them. **The shape of those shifts says which of two independent defects you are looking at, and they want opposite treatments:**
+
+| what the shifts do | what it is |
+|---|---|
+| one shift, held across a whole run of variables | a **size or placement** defect -- the block is intact and starts in the wrong place, because something declared before it is the wrong size |
+| shifts that **differ between variables a few bytes apart** | an **ORDER** defect -- the variables are laid out in the wrong sequence *within* the block |
+
+The second row is the one that gets misread, because a big shift looks like a big displacement and invites the conclusion that the whole block has moved. It is the reverse: **a block that has merely moved carries one shift everywhere.** Two variables ten bytes apart in the original whose shifts differ by eighteen cannot both be in a block that moved rigidly -- the space between them has changed, so the sequence has.
+
+Read the shifts before deciding what to fix. Reordering a block whose sizes are wrong measures wrong, and resizing a block whose order is wrong measures wrong; each correction is only legible once the other is right.
+
+And the *step* between two adjacent runs is quantitative. If a run at low offsets carries shift `sA` and the next carries `sB`, then our version has `sB - sA` more bytes in the gap between them than the original does. A positive step localises a surplus to that gap and gives its exact size, which is a far cheaper starting point than auditing declarations.
+
 ## Why it works
 
 DGROUP is built by allocating each unit's data as the linker walks its list of units, and that walk runs opposite to the initialisation order the code segments are emitted in. Nothing about it is discretionary, which is what makes it readable in both directions: a data segment in the original's order is evidence the clause is right, exactly as a reversed one is evidence it is wrong.
@@ -89,8 +104,20 @@ The segment sizes are the independent check, and they agree without being asked:
 
 **And the coverage walk reported 10980 of 11440 both times.** [2]
 
+## A third example: the same map, read the wrong way round first
+
+On part 001 of the same program, a data map paired the original's `$AAC6` with ours at a shift of `-26018` and its `$AAD0` at `-26036`. Those two are ten bytes apart in the original and twenty-eight in the reconstruction. It was recorded as a unit-PLACEMENT problem -- 26KB is an enormous number and the block plainly was not where it should be -- and the note said so in as many words.
+
+That was the wrong reading of its own evidence. The unequal shifts were the argument *against* a rigid move. The real defect was inside the unit: the maths module's variables had been declared in a block of their own at the end of the source, and five more variables sat in front of the model array, so eleven consecutive addresses were wrong.
+
+The order turned out to be fully determined, and the check on it is that **it closes without a gap** -- each address plus its size is the next address, all the way from `$A106` to `$AAD4`. The piece that settled the shape was an array whose 1200 bytes ended exactly where the maths block began, which is what said the maths declarations sat *between* two others rather than after everything.
+
+Reordering collapsed three different shifts into one shift of `-23530` held across all three variables. **The coverage walk moved three bytes.** That is the honest result and it is not a disappointment: every address was still wrong, now wrong by the same amount, and the remaining defect -- a genuine size shortfall in the units below -- was only visible once the order stopped hiding it. [3]
+
 # Citations
 
 [1] `src/P3MAIN.PAS`, `src/gen/P3PAL.INC` and `spans.toml`, part 003 in the psycho repository; the original's layout read from Ghidra's decompilation of `1139:03b4` and from byte searches over `work/split/NEUROSIS_003_fpu.exe`, measured with `kit/tools/pascal/spans.py` on 25 Aug 2026.
 
 [2] `src/P5MAIN.PAS` and `src/P5S3.PAS`, part 005 in the same repository, 25 Aug 2026. The clause carries the measurement as a comment so nobody tidies it back into scene order. Measured with `kit/tools/pascal/dgimage.py` for the initialised image, `kit/tools/substrate/segmap.py` for the segment sizes, and `spans.py` for the number that did not move.
+
+[3] `src/P1S5.PAS`, part 001, in the psycho repository; measured with `kit/tools/pascal/dsmap.py` and `spans.py` on 25 Aug 2026. Recorded as `part1-dgroup-placement`, whose resolution keeps the misdiagnosis rather than editing it away.
