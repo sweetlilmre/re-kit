@@ -70,6 +70,16 @@ TIERS = ("substrate", "pascal")
 # discriminator into a rule; they are only a defect OUTSIDE the generated
 # table and outside a sentence that names an artefact.
 RULE_VERBS = ("forgive", "excuse", "ignore", "skip", "mask", "accept")
+# The verbs are matched in their BARE form only, as whole words. A rule being
+# STATED is imperative or normative -- "forgive zeros", "the tool must ignore
+# them" -- and both are bare. A verb carrying an -s is third person, so it has
+# a subject and is DESCRIBING what some tool or program does: "a walk that
+# forgives short runs hides this", "parameters the routine ignores". Matching
+# the stem as a substring caught both of those and they are not rules; it is
+# the same class of false positive as a rule verb inside quotation marks, and
+# the same kind of fix. Two documents were failing this check on descriptive
+# prose before the distinction was drawn.
+RULE_VERB_RE = re.compile(r"\b(?:%s)\b" % "|".join(RULE_VERBS))
 ARTEFACT_WORDS = ("`.tpu`", "`.obj`", "linked image", "artefact", "which",
                   "depend", "invert", "tasm", "turbo pascal")
 
@@ -126,7 +136,7 @@ def check_doc(path, rel):
         # one place rules ended up was the one place exempt from the check.
         for key in ("identify", "description"):
             val = str(fm.get(key, "")).lower()
-            if any(v in val for v in RULE_VERBS):
+            if RULE_VERB_RE.search(val) is not None:
                 problems.append(
                     "%s: `%s` feeds the hub's table and states a rule -- it must "
                     "say how to RECOGNISE this artefact, not what to do about it"
@@ -156,7 +166,7 @@ def check_hub_states_no_rule(rel, body):
         # stated -- '"forgive zeros" silently assumes the first case' is the
         # hub doing its job. Strip quoted spans before looking.
         unquoted = re.sub(r'"[^"]*"', " ", low)
-        if not any(v in unquoted for v in RULE_VERBS):
+        if RULE_VERB_RE.search(unquoted) is None:
             continue
         if any(w in low for w in ARTEFACT_WORDS):
             continue
