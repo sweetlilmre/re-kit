@@ -174,10 +174,36 @@ def main(argv):
     if "--report" in argv:
         return report(status)
 
+    # EACH VERB OWNS ITS FLAGS, AND A FLAG FROM ANOTHER VERB IS AN ERROR RATHER
+    # THAN A NO-OP. `--investigation NAME --note TEXT` used to be accepted in
+    # silence: `--note` belongs to `--row`, so the note was dropped and an
+    # investigation was created with an EMPTY finding. Two long findings were
+    # written that way and neither was in the file afterwards -- the command
+    # printed "written status.toml" both times. A register that records nothing\n# while reporting success is worse than one that refuses.
+    OWNED = {"investigation": ("finding", "seen-in"),
+             "row": ("for", "label", "target", "cost", "note"),
+             "resolve": ("resolution",)}
+    verb = next((v for v in OWNED if opt(v)), None)
+    if verb:
+        strays = [f for other, flags in OWNED.items() if other != verb
+                  for f in flags if opt(f) is not None]
+        if strays:
+            sys.stdout.write(
+                "  REFUSED: --%s does not take %s -- that belongs to --%s\n"
+                % (verb, ", ".join("--" + f for f in strays),
+                   next(o for o, fs in OWNED.items() if strays[0] in fs)))
+            return 1
+
     err = None
     if opt("investigation"):
+        # AN INVESTIGATION WITH NO FINDING IS NOT A RECORD. It was defaulted to
+        # the empty string, which made the one mistake above silent.
+        if not (opt("finding") or "").strip():
+            sys.stdout.write("  REFUSED: --investigation needs --finding TEXT; "
+                             "an investigation with no finding records nothing\n")
+            return 1
         err = add_investigation(status, opt("investigation"),
-                                opt("finding", ""), opt("seen-in"))
+                                opt("finding"), opt("seen-in"))
     elif opt("row"):
         err = add_row(status, opt("row"), opt("label"), opt("for"),
                       opt("target"), opt("cost"), opt("note"))
