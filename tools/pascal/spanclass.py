@@ -55,17 +55,28 @@ for part in sys.argv[2:] or list(cfg["part"]):
         if far:
             per["far-call operand"] += n
         else:
+            # A HINT, NOT A FACT, and it is labelled so. This decodes from 24
+            # bytes back, which is not an instruction boundary, so it can drift
+            # and name an instruction that is not there. It reported
+            # `mov word ptr [0x65a9], 0x40` at 108b:1ec8 on one target; Ghidra
+            # put that instruction at 1ec6 and our copy at 1eca, so the span was
+            # the tail of a four-byte code-size difference and not a store at
+            # all. Confirm any reading here against a disassembler that knows
+            # where the function starts.
             hit = None
             for ins in md.disasm(data[max(0, lo - 24):lo + 8], max(0, lo - 24)):
                 if ins.address <= lo < ins.address + ins.size:
                     hit = ins
             per["OTHER"] += n
-            other.append("%04x:%04x %d  %s" % (seg, lo, n,
+            other.append("%04x:%04x %d  ~%s" % (seg, lo, n,
                          ("%s %s" % (hit.mnemonic, hit.op_str)) if hit else "(no decode)"))
     print("part %s" % part)
     for k, v in per.most_common():
         print("   %-24s %3d byte(s)" % (k, v))
         tot[k] += v
+    if other:
+        print("       (a leading ~ is a decode from a GUESSED boundary: a hint,"
+              " not a fact)")
     for o in other:
         print("       %s" % o)
 print("\nALL PARTS")
