@@ -81,20 +81,42 @@ def main(argv):
                   " score-based match.")
             rc = 1
             continue
-        d, at = hit
-        print("\n=== %04x:%04x (anchored on %d identical byte(s) before it) ==="
-              % (seg, off, d))
+        d, at, n = hit
+        note = ""
+        if n > 1:
+            note = ("  -- AMBIGUOUS, %s places in our image carry these same"
+                    " bytes" % ("9+" if n > 8 else str(n)))
+            rc = 1
+        print("\n=== %04x:%04x (anchored on %d identical byte(s) before it)%s ==="
+              % (seg, off, d, note))
+        if n > 1:
+            print("    The right column may be a DIFFERENT occurrence of the"
+                  " same pattern.")
+            print("    Widen the anchor with --back, or confirm any reading"
+                  " here by measurement.")
         dump(md, orig[b + off - d:b + off + show],
              mine[at:at + d + show], off - d)
     return rc
 
 
 def anchor(orig, mine, base, off, back):
-    """Find our copy of `off` by an EXACT match of the bytes preceding it.
+    """Find our copy of `off` by a UNIQUE exact match of the bytes preceding it.
 
-    Returns (length, index into `mine` of the anchor's first byte), longest
-    first -- a longer identical run is stronger evidence. The window alignment
-    only proposes a candidate; the byte comparison is what accepts it.
+    Returns (length, index into `mine`, occurrences). Longest run wins -- a
+    longer identical run is stronger evidence -- and the count is carried out
+    so the caller can say when it is more than one.
+
+    EXACTNESS IS NOT UNIQUENESS, and that distinction cost a wrong conclusion.
+    An earlier version of this function accepted any exact match and reported
+    it without qualification. In a `case` dispatch whose seven arms each begin
+
+        LEA DI,[BP-x] / PUSH SS / PUSH DI / LES DI,[BP-y] / PUSH ES / PUSH DI
+
+    an eight-byte anchor matches all seven, the aligner returns whichever it
+    prefers, and the dump then compares one arm against another. It read as
+    the original calling a handler directly where we called through a
+    procedure variable; naming the routines directly measured 6 bytes WORSE,
+    which is how the ambiguity was found rather than by the tool saying so.
     """
     best = None
     for d in range(MIN_ANCHOR, back, 8):
@@ -106,8 +128,16 @@ def anchor(orig, mine, base, off, back):
         at, _score = align.locate(w, mine)
         if at < 0:
             continue
-        if orig[base + off - d:base + off] == mine[at:at + d]:
-            best = (d, at)                      # keep going: prefer a longer run
+        pat = orig[base + off - d:base + off]
+        if pat != mine[at:at + d]:
+            continue
+        n, i = 0, mine.find(pat)
+        while i >= 0 and n < 9:
+            n += 1
+            i = mine.find(pat, i + 1)
+        best = (d, at, n)                       # keep going: prefer a longer run
+        if n == 1:                              # unique already; longer adds nothing
+            return best
     return best
 
 
