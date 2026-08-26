@@ -93,10 +93,35 @@ def part_report(part, spec, blob, ours, images, min_span, same):
         size = (bounds[k + 1] - seg) * 16
         data = blob[base:base + size]
         total += size
-        pos, gap_start = 0, None
+        pos, gap_start, after = 0, None, -1
         while pos < len(data):
             chunk = data[pos:pos + align.WINDOW]
             if len(chunk) < align.ANCHOR:
+                # THE TAIL, AND IT USED TO BE THROWN AWAY. A run shorter than
+                # ANCHOR cannot be searched for -- there is nothing to anchor on
+                # -- and this loop used to `break` here, so the last nine bytes
+                # of EVERY segment were neither counted as matched nor reported
+                # as a gap. That is exactly where a unit's initialisation section
+                # sits, and four parts of the first target were hiding real
+                # defects there while the walk read 100.0%: a missing five-byte
+                # init section, a redundant store inside another one, and two
+                # units whose code ran past where the original's stopped.
+                #
+                # It does not need searching. The previous window aligned, so we
+                # already know where in the rebuild the next byte belongs --
+                # compare from there, with the same allowances.
+                got = 0
+                if after >= 0:
+                    got, _, _ = align.walk(chunk, ours[after:after + len(chunk)],
+                                           align.holes, None)
+                if got:
+                    if gap_start is not None:
+                        found.append((seg, gap_start, pos))
+                        gap_start = None
+                    matched_total += got
+                if got < len(chunk) and gap_start is None:
+                    gap_start = pos + got
+                pos = len(data)
                 break
             at, got = align.locate(chunk, ours, align.holes, None)
             if got >= align.MINIMUM and at >= 0:
@@ -105,11 +130,13 @@ def part_report(part, spec, blob, ours, images, min_span, same):
                     gap_start = None
                 matched_total += got
                 pos += got
+                after = at + got
             else:
                 if gap_start is None:
                     gap_start = pos
                 pos += 1
-        if gap_start is not None and len(data) - gap_start >= min_span:
+                after = -1
+        if gap_start is not None:
             found.append((seg, gap_start, len(data)))
 
     print("part %s vs %s: %d of %d segment byte(s) aligned (%.1f%%)"
