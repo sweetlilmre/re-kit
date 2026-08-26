@@ -217,8 +217,18 @@ def rename_source(text, name83, names):
     _, unit_old, unit_new = row
     text = re.sub(r"(?im)^(\s*unit\s+)%s(\s*;)" % re.escape(unit_old),
                   r"\g<1>%s\g<2>" % unit_new, text)
-    for _, old, new in names.values():
-        text = re.sub(r"(?i)\b%s\b" % re.escape(old), new, text)
+    # NOT INSIDE A STRING LITERAL. This is a case-insensitive \bword\b sweep
+    # over the whole file, so a map row like PSYCHO.PAS -> Psycho rewrote the
+    # literal in ShowString(' MEGADEMO, PSYCHO NEUROSIS!!! ') to `Psycho` and
+    # changed the demo's own banner text -- a 3-byte coverage span that reading
+    # the source could never explain, because the source was right and the
+    # staged copy was not. Comments are skipped for the same reason in reverse:
+    # rewriting them makes the staged file lie about where it came from.
+    parts = re.split(r"('(?:''|[^'])*'|\{[^}]*\}|\(\*.*?\*\))", text, flags=re.S)
+    for i in range(0, len(parts), 2):           # even indices are code
+        for _, old, new in names.values():
+            parts[i] = re.sub(r"(?i)\b%s\b" % re.escape(old), new, parts[i])
+    text = "".join(parts)
     # {$I gen/P3PAL.INC} -> {$I GEN\P3PAL.INC}
     text = re.sub(r"(?i)\{\$I\s+([a-z0-9_]+)/([A-Z0-9_]+\.INC)\s*\}",
                   lambda m: "{$I %s\\%s}" % (m.group(1).upper(), m.group(2)),
