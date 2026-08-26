@@ -201,6 +201,15 @@ def main(argv):
     cfgpath = argv[0]
     want = [a for a in argv[1:] if not a.startswith("--")]
     show = "--show" in argv
+    # THE MINIMUM SPAN IS PASSED THROUGH, because it defaulted to spans.py's own
+    # and that hid the answer this tool exists to give. A part whose largest span
+    # is fifteen bytes got "spans.py ran and reported no span" while carrying a
+    # hundred bytes of difference -- and on one target the SMALL spans were where
+    # the address-only class lived almost entirely: twenty one-byte spans, all
+    # twenty the same far call to a runtime routine at a different offset. Asking
+    # "is the work real?" over the big spans only answers it for the big spans.
+    minarg = [a for a in argv[1:] if a.startswith("--min=")]
+    passthru = minarg[-1:] 
     cfg = tomllib.load(open(cfgpath, "rb"))
     root = project.find()
     built = root / project.get("layout.built", quiet=True)
@@ -218,8 +227,8 @@ def main(argv):
         # the RETURN CODE IS CHECKED because the regex below cannot tell a
         # crashed spans.py from a part with no spans -- both give it nothing.
         got = subprocess.run([sys.executable, str(here.parent / "spans.py"),
-                              cfgpath, part], capture_output=True, text=True,
-                             encoding="utf-8")
+                              cfgpath, part] + passthru, capture_output=True,
+                             text=True, encoding="utf-8")
         if got.returncode != 0:
             print("part %-7s spans.py FAILED (exit %d) -- this is not a "
                   "measurement:\n%s" % (part, got.returncode,
