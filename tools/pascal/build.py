@@ -135,6 +135,32 @@ def read_config(path):
     return cfg
 
 
+def tool_missing(dos_path):
+    """A DOS path that does not exist on the mounted drive, or None.
+
+    WHY THIS IS NOT PARANOIA. DOS does not set ERRORLEVEL when it cannot find a
+    command -- it prints "Bad command or filename" and carries on with errorlevel
+    zero. So the batch file's `if errorlevel 1` can never catch a missing
+    compiler, and it did not: on one project whose config still named an old
+    install path, every unit was stamped ** OK, the build printed
+    "all N target(s) compiled" and exited 0 while TPC.EXE was never invoked once.
+    A build that cannot find its compiler reported success.
+
+    The drive letter is resolved through dosbox.hdd, which is the same mapping
+    the generated config mounts, so this checks the path DOS will actually use.
+    """
+    if not dos_path or len(dos_path) < 3 or dos_path[1] != ":":
+        return None                       # not a drive-qualified path; leave it
+    try:
+        hdd = pathlib.Path(machine("dosbox.hdd"))
+    except Exception:
+        return None                       # no mapping to check against
+    if dos_path[0].upper() != "C":
+        return None                       # only C: is the mounted image
+    rel = dos_path[3:].replace("\\", "/")
+    return dos_path if not (hdd / rel).exists() else None
+
+
 def machine(key, fallback=None):
     """A machine path, from kit.local.toml. Never from a committed file."""
     try:
@@ -655,6 +681,22 @@ def main(argv):
         print("FAILED:", err)
         return 1
 
+    # A MISSING COMPILER IS A FAILED BUILD, and nothing downstream can tell.
+    # See tool_missing: DOS leaves errorlevel at zero for a command it cannot
+    # find, so the batch stamps ** OK and every other signal below agrees.
+    missing_tool = tool_missing(
+        machine("toolchain." + compiler, cfg["compiler"][compiler].get("exe")))
+    if missing_tool:
+        print("")
+        print("BUILD FAILED -- the compiler is not there. %s does not exist on"
+              % missing_tool)
+        print("the mounted drive (dosbox.hdd). DOS does not set errorlevel for a")
+        print("command it cannot find, so every unit would have been stamped")
+        print("** OK and this build would have reported success without")
+        print("compiling anything. Fix toolchain.%s in kit.local.toml."
+              % compiler)
+        return 1
+
     failed = report(build, out)
 
     # The batch file stamps ** FAILED / ** OK from the errorlevel after every
@@ -662,6 +704,18 @@ def main(argv):
     # a clean parse: a compiler message without a filename -- "Error 49: Data
     # segment too large." is one -- matches nothing above and would otherwise
     # be reported as a successful build.
+    # The DOS message, as a backstop for anything tool_missing cannot reach --
+    # a tool on a drive that is not the mounted image, or a PATH lookup.
+    if "Bad command or filename" in out:
+        print("")
+        print("BUILD FAILED -- DOS could not run a command. The log says so and")
+        print("errorlevel does not, which is why this is checked by text:")
+        for line in out.rstrip().splitlines():
+            if "Bad command or filename" in line:
+                print("  " + line.strip())
+                break
+        return 1
+
     stamped = out.count("** FAILED")
     if stamped and not failed:
         print("")
