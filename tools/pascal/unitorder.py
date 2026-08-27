@@ -34,6 +34,9 @@ nothing, which is worth knowing before trying it.
 """
 import sys, tomllib, re, pathlib
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+import project                                    # noqa: E402
+
 
 def lengths_from_map(path):
     """(name, padded length) per CODE segment, in address order."""
@@ -64,10 +67,27 @@ def main(argv):
             continue
         segs = list(spec["segs"]) + [spec["rtl"]]
         want = [(segs[i + 1] - segs[i]) * 16 for i in range(len(segs) - 1)]
-        stem = spec["exe"].replace(".EXE", "")
+
+        # THE PROGRAM'S OWN SEGMENT IS NOT A UNIT, and it has to come off BOTH
+        # sides or the counts cannot be compared. This used to be done on our
+        # side alone, by dropping any map entry whose name matched the
+        # executable's stem -- which worked only while the program IDENTIFIER
+        # differed from the file name. Three parts depended on that luck, and
+        # renaming two of them so the identifier finally matched the stem broke
+        # the comparison for both: 2 units against the original's 3, on a target
+        # where every byte of both was identical.
+        #
+        # Positionally it is unambiguous. The map lists code segments in address
+        # order and the program is always first, so it is ours[0]; and it is in
+        # `want` only when the config's segment list starts at the load image's
+        # first paragraph.
+        first = project.get("target.first_para", quiet=True) or 0x1000
+        if spec["segs"][0] == first:
+            want = want[1:]
         ours = [(n, s) for n, s in lengths_from_map(mp)
-                if n != "System" and n.upper() != stem
+                if n != "System"
                 and not (n.endswith("Main") or n.endswith("Intro"))]
+        ours = ours[1:]
         if len(ours) != len(want):
             print("part %-7s MISMATCH -- %d unit(s) against the original's %d"
                   % (part, len(ours), len(want)))
