@@ -57,6 +57,28 @@ The program segment says a unit is wrong and by how much; it does not say where.
 
 **The program segment cannot see a unit's internals** when two errors cancel exactly, and it cannot see anything about a part whose main body you have not reconstructed -- which is the case for as long as a test harness supplies the program. That is one more reason to retire the harness early: it is not only two segments the original does not have, it is the loss of the instrument that reads all the others.
 
+## And the localiser finds what even this cannot
+
+The program segment checks ENTRY POINTS. A routine that moves but is not itself
+an entry point, in a unit whose total size is still right, is invisible to it as
+well -- and on one target exactly that happened twice over. A routine had been
+moved into what looked like the correct position; the program segment went
+byte-identical, the walk read 100%, and the routine was still 92 bytes out of
+place, because the two errors it created cancelled BEFORE the entry point the
+program calls.
+
+**The per-routine prologue drift is what caught it**, and only after the
+candidate list was filtered to prologues that something in the segment actually
+CALLS. Unfiltered, the two sides are paired by index, so one false positive in a
+different place on each side shifts every row below it and invents a large
+cancelling pair that is not there. That false alarm appeared on a segment whose
+entry points were byte-identical, which is how it was noticed; the filter removed
+it and the same run then reported the real 18-byte pair.
+
+Rows at or past the unit's initialisation section are a separate matter: that
+section is the compiler's last output, so anything after it arrived from an
+`.OBJ`, and a one-byte row there is a scan artefact rather than a finding.
+
 ## Cost
 
 One byte comparison of a segment that is typically 80 to 350 bytes. It should run after every build, on every part.
