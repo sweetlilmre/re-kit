@@ -88,7 +88,9 @@ def main():
     except project.Missing as exc:
         return project.complain(exc)
 
-    for path in sorted(src.glob("*.PAS")):
+    # rglob, so a source moved into a subdirectory is still audited. See the
+    # note in paslint.py: a shrinking scope reports clean.
+    for path in sorted(src.rglob("*.PAS")):
         if want and want not in path.name.upper():
             continue
         blocks, uncommented, missing = audit(path)

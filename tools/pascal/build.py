@@ -265,12 +265,21 @@ def stage(cfg, root, build, compiler, selftest=False, keep=False):
     # are emitted with conforming names, so listing each one here would be a
     # second copy of a fact their generator already guarantees, and it would go
     # stale the first time somebody added one.
+    # THE KEY IS THE PATH RELATIVE TO src, NOT THE BASENAME, because `order`
+    # entries are resolved as `src / name` further down. Keying on the basename
+    # worked only while every source sat directly in src/: the moment a project
+    # moved its test harnesses into a subdirectory, the glob still found them,
+    # still mapped them, and then `src / "TP1S1.PAS"` did not exist -- and the
+    # loop below skips a missing file QUIETLY, by design, so 22 targets would
+    # have stopped being built with nothing said. The 8.3 DOS name stays the
+    # basename: DOS has no subdirectory in the staged build.
     identity = []
     for pat in st.get("identity", []):
         for f in sorted(src.glob(pat)):
-            if f.name not in names:
-                names[f.name] = (f.name, f.stem, f.stem)
-                identity.append(f.name)
+            rel = f.relative_to(src).as_posix()
+            if rel not in names:
+                names[rel] = (f.name, f.stem, f.stem)
+                identity.append(rel)
     dialect = DIALECTS[cfg["compiler"][compiler].get("dialect", "")]
 
     # Include directories staged as subdirectories of the mounted drive, so a
@@ -295,7 +304,7 @@ def stage(cfg, root, build, compiler, selftest=False, keep=False):
     staged = []
     order = list(cfg["order"].get("list") or [])
     if not order:
-        order = sorted(names) or sorted(p.name for p in src.glob("*.PAS"))
+        order = sorted(names) or sorted(p.relative_to(src).as_posix() for p in src.rglob("*.PAS"))
     # Identity-mapped sources are appended AFTER the declared list, the way the
     # script this replaces appended them to its name map. They are leaves that
     # nothing else uses, so where they sit only matters in that they must be
@@ -344,9 +353,11 @@ def lint_sources(root, cfg):
     src = root / cfg.get("src", "src")
     wanted = list(cfg["order"].get("list") or [])
     for pat in cfg["stage"].get("identity", []):
-        wanted += [f.name for f in sorted(src.glob(pat)) if f.name not in wanted]
+        wanted += [f.relative_to(src).as_posix()
+                   for f in sorted(src.glob(pat))
+                   if f.relative_to(src).as_posix() not in wanted]
     if not wanted:
-        wanted = sorted(p.name for p in src.glob("*.PAS"))
+        wanted = sorted(p.relative_to(src).as_posix() for p in src.rglob("*.PAS"))
     total = 0
     for name in wanted:
         f = src / name

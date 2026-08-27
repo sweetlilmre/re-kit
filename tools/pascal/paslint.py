@@ -96,21 +96,59 @@ def check(path):
     src = raw.decode("ascii", errors="replace")
 
     # ---- comment nesting
+    #
+    # A BRACE INSIDE A STRING LITERAL IS NOT A COMMENT, and this check used to
+    # think it was. The first source in either project to write one -- a DOS
+    # tool that GENERATES Pascal, so its strings are full of `{` and `}` --
+    # produced two confident false positives, and the tempting fix was to
+    # reshape the source until the linter went quiet. That is the wrong way
+    # round: a checker that cannot read the language it checks has to learn,
+    # because the alternative is source written to suit tooling.
+    #
+    # Turbo Pascal's rule is small enough to implement exactly: `{ }` and
+    # `(* *)` are comments, `'...'` is a string with `''` as an embedded quote,
+    # and each construct is inert inside the others.
     depth, line = 0, 1
-    for ch in src:
+    in_str = False
+    i, n = 0, len(src)
+    while i < n:
+        ch = src[i]
         if ch == "\n":
             line += 1
-        elif ch == "{":
-            if depth == 0:
-                depth = 1
-            else:
+            # An unterminated string cannot span a line in TP7, so a newline
+            # ends one. Saying so here keeps one bad quote from swallowing the
+            # rest of the file and reporting nothing at all.
+            in_str = False
+        elif in_str:
+            if ch == "'":
+                in_str = False
+        elif depth:
+            if ch == "}":
+                depth = 0
+            elif ch == "{":
+                # The check this whole scanner exists for, and it has caught a
+                # real defect twice: TP7 does not nest, so the comment ended at
+                # the FIRST close and everything after it is code.
                 problems.append((line, "nested '{' inside a { } comment -- "
                                        "TP7 does not nest, the comment ended early"))
+        elif ch == "'":
+            in_str = True
+        elif ch == "{":
+            depth = 1
         elif ch == "}":
-            if depth == 1:
-                depth = 0
-            else:
-                problems.append((line, "stray '}' -- more closes than opens"))
+            problems.append((line, "stray '}' -- more closes than opens"))
+        elif ch == "(" and src[i + 1:i + 2] == "*":
+            # (* *) is the other comment form. Skipped rather than nested-
+            # checked: TP7 does not nest these either, but nothing in either
+            # project uses them and a check nobody exercises is a check nobody
+            # trusts.
+            j = src.find("*)", i + 2)
+            if j < 0:
+                problems.append((line, "unterminated (* *) comment"))
+                break
+            line += src.count("\n", i, j)
+            i = j + 1
+        i += 1
     if depth:
         problems.append((line, "unterminated { } comment at end of file"))
 
@@ -146,7 +184,11 @@ def main(argv):
         src = project.path("layout.src")
     except project.Missing as exc:
         return project.complain(exc)
-    files = [src / a for a in argv] if argv else sorted(src.glob("*.PAS"))
+    # RECURSIVE. A non-recursive glob here checked 63 files, then a project
+    # moved 23 test harnesses into src/test/ and it checked 40 -- reporting
+    # "0 problems" both times. A check whose SCOPE can shrink without saying
+    # so is worse than no check, because the clean report is what gets read.
+    files = [src / a for a in argv] if argv else sorted(src.rglob("*.PAS"))
     total = 0
     for f in files:
         probs = check(f)
