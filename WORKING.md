@@ -26,6 +26,8 @@ An investigation is one finding a person saw, written as prose, citing the obser
 
 If the plan is empty, the next work is whatever the register's stalest observation points at: `observe.py --report`.
 
+**A harness that no longer EXISTS reports stale for ever, and that is what `--supersede` is for.** Retire the row with `observe.py --supersede OLD --by NEW --date YYYY-MM-DD`: it changes no measured field, moves the row out of the stale count, and refuses unless the old harness is really gone AND the successor already has an observation of its own. Do not delete such rows -- on one target two of them had recorded a `differs` that led to a real fix. And do not retire one whose successor is unobserved: that is precisely the gap the report is for, and the tool will say so.
+
 ## 2a. The loop, once you have picked something up
 
 Sections 2, 4, 5 and 7 each describe a piece of a session. This is how they join, because knowing each piece is not the same as knowing the order.

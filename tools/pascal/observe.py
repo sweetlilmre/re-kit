@@ -31,6 +31,17 @@ THREE RULES THIS TOOL ENFORCES, each from a measured failure:
   unverified without the ratchet failing on an edit -- which is the wedge issue
   #13 had to avoid.
 
+  A RETIRED HARNESS IS SUPERSEDED, NOT DELETED AND NOT STALE FOR EVER. When a
+  harness stops existing -- most often because the thing it wrapped became a
+  program of its own -- its row can never be refreshed, so it reports STALE at
+  every run from then on. Seven such rows on one target were enough to train a
+  reader to skim the report, which is the failure this whole tool exists to
+  prevent. `--supersede` records the successor and the date, changes NO measured
+  field, and moves the row out of the stale count. It refuses unless the old
+  harness is really gone AND the successor already has an observation of its own,
+  because retiring a row whose knowledge nothing replaced hides exactly the gap
+  the register is for.
+
 `invisible` is a first-class outcome, not a synonym for `ran`. A harness that
 omits a setup call can run a scene CORRECTLY AND INVISIBLY -- one ran entirely
 in 80x25 text, "indistinguishable from a hang".
@@ -39,6 +50,8 @@ in 80x25 text, "indistinguishable from a hang".
     python kit/tools/pascal/observe.py status.toml --harness TPART5 --tier part \\
         --outcome matches --observer maintainer --date 2026-08-20 \
         --against NEUROSIS_005.exe
+    python kit/tools/pascal/observe.py status.toml --supersede TPART5 \
+        --by NEUR5 --date 2026-08-27 --write
 
 THE OBSERVER FIELD RECORDS THAT A PERSON WATCHED, NEVER WHICH PERSON. A role --
 `maintainer`, `reviewer` -- carries everything the record needs, because the
@@ -163,34 +176,80 @@ def record(status, args):
     return None
 
 
+def supersede(status, old, new, date):
+    """Retire a row whose harness no longer exists. Measured fields UNTOUCHED.
+
+    Every refusal below is the point of the flag rather than an obstacle to it:
+    a tool that let anything be retired would be a way of making the report look
+    finished.
+    """
+    rows = status.get("observation", {})
+    if old not in rows:
+        return "%s has no observation to supersede" % old
+    if rows[old].get("superseded_by"):
+        return ("%s is already superseded by %s on %s"
+                % (old, rows[old]["superseded_by"], rows[old].get("superseded_on", "?")))
+    if harness_sources(old):
+        return ("%s still has source in src/, so its row is STALE rather than "
+                "retired -- refresh it with a run instead. Superseding a harness "
+                "that still exists hides a gap that can be closed." % old)
+    if not harness_sources(new):
+        return "no source found for %s in src/, so it cannot be the successor" % new
+    if new not in rows:
+        return ("%s has no observation of its own, so superseding %s would leave "
+                "the register showing no gap where there is one. Observe %s "
+                "first." % (new, old, new))
+    rows[old]["superseded_by"] = new
+    rows[old]["superseded_on"] = date
+    return None
+
+
 def report(status):
     rows = status.get("observation", {})
     if not rows:
         sys.stdout.write("  no observations recorded. Every harness is at R0, "
                          "stated rather than implied.\n")
         return 0
-    stale = 0
+    stale = retired = 0
     for key in sorted(rows):
         row = rows[key]
         now = fingerprint(harness_sources(row.get("harness", key)))
         fresh = now and now == row.get("fingerprint")
-        if not fresh:
+        if row.get("superseded_by"):
+            # Retired deliberately, so it is neither fresh nor a gap. Counted
+            # apart from stale on purpose: a number that mixes the two cannot be
+            # read, and the stale count is the one somebody has to act on.
+            retired += 1
+            suffix = ("   SUPERSEDED by %s on %s"
+                      % (row["superseded_by"], row.get("superseded_on", "?")))
+        elif fresh:
+            suffix = ""
+        else:
             stale += 1
+            suffix = ("   STALE, source changed since "
+                      + str(row.get("confirmed_at", "?")))
         sys.stdout.write("  %-8s %-5s %-9s %-4s %s %s%s\n"
                          % (row.get("harness", key), row.get("tier", "?"),
                             row.get("outcome", "?"), row.get("achieved", "?"),
                             row.get("date", "?"), row.get("observer", "?"),
-                            "" if fresh else "   STALE, source changed since "
-                            + str(row.get("confirmed_at", "?"))))
-    sys.stdout.write("  %d observation(s), %d stale. Stale is a gap in "
+                            suffix))
+    sys.stdout.write("  %d observation(s), %d stale%s. Stale is a gap in "
                      "KNOWLEDGE, not a regression -- reported, never failed.\n"
-                     % (len(rows), stale))
+                     % (len(rows), stale,
+                        ", %d superseded" % retired if retired else ""))
     return 0
 
 
 def main(argv):
     # A flag's VALUE is not a positional -- see project.positionals.
-    args = project.positionals(argv[1:], ('--harness', '--tier', '--outcome', '--observer', '--date', '--note', '--evidence'))
+    # Every flag that TAKES A VALUE has to be listed, or that value is
+    # read as the register path. --against was missing and worked only
+    # because it is conventionally written after the path.
+    args = project.positionals(argv[1:], ('--harness', '--tier',
+                                          '--outcome', '--observer',
+                                          '--date', '--note',
+                                          '--evidence', '--against',
+                                          '--supersede', '--by'))
     if not args and any(a.startswith("--") for a in argv[1:]):
         # A flag but no register: ask the project where its register is.
         try:
@@ -200,7 +259,9 @@ def main(argv):
     if not args:
         sys.stdout.write("usage: observe.py <status.toml> --report\n"
                          "       observe.py <status.toml> --harness X --tier "
-                         "scene|part --outcome ... --observer who --date YYYY-MM-DD\n")
+                         "scene|part --outcome ... --observer who --date YYYY-MM-DD\n"
+                         "       observe.py <status.toml> --supersede OLD --by "
+                         "NEW --date YYYY-MM-DD\n")
         return 2
     path = args[0]
     status = load(path)
@@ -211,6 +272,26 @@ def main(argv):
 
     if "--report" in argv:
         return report(status)
+
+    if opt("supersede"):
+        old_h, new_h, date = opt("supersede"), opt("by"), opt("date")
+        missing = [n for n, v in (("--by", new_h), ("--date", date)) if not v]
+        if missing:
+            sys.stdout.write("  missing: %s -- retiring a row is a dated claim "
+                             "about what replaced it\n" % ", ".join(missing))
+            return 2
+        err = supersede(status, old_h, new_h, date)
+        if err:
+            sys.stdout.write("  REFUSED: %s\n" % err)
+            return 1
+        if "--write" in argv:
+            io.open(path, "w", encoding="utf-8", newline="\n").write(dump(status))
+            sys.stdout.write("  %s superseded by %s in %s\n"
+                             % (old_h, new_h, path))
+        else:
+            sys.stdout.write("  would supersede %s by %s -- pass --write\n"
+                             % (old_h, new_h))
+        return 0
 
     if not opt("harness"):
         return report(status)

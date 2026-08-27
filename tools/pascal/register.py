@@ -35,7 +35,14 @@ HEADER = [
 
 ROUTINE_FIELDS = ("matched", "target", "achieved", "reason")
 OBSERVATION_FIELDS = ("harness", "tier", "outcome", "achieved", "observer",
-                      "date", "confirmed_at", "fingerprint", "against", "note")
+                      "date", "confirmed_at", "fingerprint", "against", "note",
+                      # A retired harness's row keeps every measured field and
+                      # gains these two, so the report can say SUPERSEDED where
+                      # it would otherwise say STALE for ever. Adding a field to
+                      # observe.py without adding it HERE drops it on the next
+                      # dump by any tool -- which is the whole reason this
+                      # whitelist is in one place.
+                      "superseded_by", "superseded_on")
 INVESTIGATION_FIELDS = ("name", "finding", "seen_in", "state", "resolution")
 ROW_FIELDS = ("label", "investigation", "target", "cost", "note")
 ARTEFACT_FIELDS = ("ours", "original", "compare", "sha256", "achieved",
