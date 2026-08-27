@@ -31,6 +31,22 @@ THREE RULES THIS TOOL ENFORCES, each from a measured failure:
   unverified without the ratchet failing on an edit -- which is the wedge issue
   #13 had to avoid.
 
+  A RENAME IS NOT A CHANGE, AND THE BINARY IS WHAT SAYS SO. The staleness rule
+  above hashes the SOURCES an observation depends on, which is the right question
+  -- "might this have changed?" -- and the wrong answer when the change was a
+  rename. Renaming fifteen units and their identifiers marked six R3 rows stale
+  on one target while every built executable stayed byte-identical, so six
+  watched runs read as unverified for a change that provably could not alter
+  what anybody saw.
+
+  `--reaffirm` closes that without fabricating a run. It requires a passing
+  `[artefact.KEY]` row -- whole-binary identity against the original, RECOMPUTED
+  rather than read back -- and updates the source fingerprint while leaving the
+  DATE and the OBSERVER alone. What it records is exactly what is true: a person
+  watched this, and the binary has not changed since. An observation now also
+  stores that binary's hash, so the second re-affirmation is a comparison rather
+  than an argument.
+
   A RETIRED HARNESS IS SUPERSEDED, NOT DELETED AND NOT STALE FOR EVER. When a
   harness stops existing -- most often because the thing it wrapped became a
   program of its own -- its row can never be refreshed, so it reports STALE at
@@ -52,6 +68,7 @@ in 80x25 text, "indistinguishable from a hang".
         --against NEUROSIS_005.exe
     python kit/tools/pascal/observe.py status.toml --supersede TPART5 \
         --by NEUR5 --date 2026-08-27 --write
+    python kit/tools/pascal/observe.py status.toml --reaffirm NEUR5 --date 2026-08-27 --write
 
 THE OBSERVER FIELD RECORDS THAT A PERSON WATCHED, NEVER WHICH PERSON. A role --
 `maintainer`, `reviewer` -- carries everything the record needs, because the
@@ -167,13 +184,67 @@ def record(status, args):
     files = harness_sources(harness)
     if not files:
         return "no source found for harness %s in src/" % harness
-    status.setdefault("observation", {})[harness] = {
+    row = {
         "harness": harness, "tier": tier, "outcome": outcome, "achieved": rung,
         "observer": args["observer"], "date": args["date"],
         "confirmed_at": head_commit(), "fingerprint": fingerprint(files),
         "against": args.get("against", ""), "note": args.get("note", ""),
     }
+    # The hash of the binary that was watched, where the register knows it. This
+    # is what makes a later --reaffirm a comparison instead of an argument, and
+    # recording it now costs nothing.
+    art = status.get("artefact", {}).get(harness, {})
+    if art.get("sha256"):
+        row["binary"] = art["sha256"]
+    status.setdefault("observation", {})[harness] = row
     return None
+
+
+def reaffirm(status, key, date, root="."):
+    """Re-affirm an observation whose SOURCES moved but whose BINARY did not.
+
+    Every refusal below is the point of the flag: this must never become a way of
+    making a stale row look fresh.
+    """
+    import hashlib
+
+    rows = status.get("observation", {})
+    if key not in rows:
+        return "%s has no observation to re-affirm" % key
+    row = rows[key]
+    art = status.get("artefact", {}).get(key)
+    if not art:
+        return ("%s has no [artefact.%s] row, so nothing here says the binary is "
+                "unchanged. Re-affirming would be a guess -- re-run it instead."
+                % (key, key))
+
+    ours = pathlib.Path(root) / art.get("ours", "")
+    orig = pathlib.Path(root) / art.get("original", "")
+    if not ours.exists() or not orig.exists():
+        return "cannot read %s or %s" % (art.get("ours"), art.get("original"))
+    a, b = ours.read_bytes(), orig.read_bytes()
+    now = hashlib.sha256(a).hexdigest()
+    if a != b or now != art.get("sha256"):
+        return ("the artefact for %s does not hold right now -- the build differs "
+                "from the original, or from what was recorded. Fix that first: a "
+                "re-affirmation on a failing artefact asserts the opposite of the "
+                "truth." % key)
+
+    was = row.get("binary")
+    if was and was != now:
+        return ("%s was observed against a DIFFERENT binary (%s, now %s). The "
+                "executable changed since somebody watched it, which is exactly "
+                "what staleness is for. Re-run it." % (key, was[:12], now[:12]))
+
+    files = harness_sources(row.get("harness", key))
+    if not files:
+        return ("no source found for %s, so its fingerprint cannot be brought up "
+                "to date" % key)
+    row["binary"] = now
+    row["reaffirmed_on"] = date
+    row["fingerprint"] = fingerprint(files)
+    row["confirmed_at"] = head_commit(root)
+    return None if was else "FIRST"
 
 
 def supersede(status, old, new, date):
@@ -249,7 +320,8 @@ def main(argv):
                                           '--outcome', '--observer',
                                           '--date', '--note',
                                           '--evidence', '--against',
-                                          '--supersede', '--by'))
+                                          '--supersede', '--by',
+                                          '--reaffirm'))
     if not args and any(a.startswith("--") for a in argv[1:]):
         # A flag but no register: ask the project where its register is.
         try:
@@ -261,7 +333,9 @@ def main(argv):
                          "       observe.py <status.toml> --harness X --tier "
                          "scene|part --outcome ... --observer who --date YYYY-MM-DD\n"
                          "       observe.py <status.toml> --supersede OLD --by "
-                         "NEW --date YYYY-MM-DD\n")
+                         "NEW --date YYYY-MM-DD\n"
+                         "       observe.py <status.toml> --reaffirm KEY --date "
+                         "YYYY-MM-DD\n")
         return 2
     path = args[0]
     status = load(path)
@@ -272,6 +346,30 @@ def main(argv):
 
     if "--report" in argv:
         return report(status)
+
+    if opt("reaffirm"):
+        key, date = opt("reaffirm"), opt("date")
+        if not date:
+            sys.stdout.write("  missing: --date -- a re-affirmation is a dated "
+                             "claim that the binary has not changed\n")
+            return 2
+        err = reaffirm(status, key, date)
+        first = err == "FIRST"
+        if err and not first:
+            sys.stdout.write("  REFUSED: %s\n" % err)
+            return 1
+        if first:
+            sys.stdout.write("  %s had no recorded binary hash: it was observed "
+                             "before that was stored, so this rests on the "
+                             "artefact row alone. The hash is recorded now.\n"
+                             % key)
+        if "--write" in argv:
+            io.open(path, "w", encoding="utf-8", newline="\n").write(dump(status))
+            sys.stdout.write("  %s re-affirmed -- binary unchanged, date and "
+                             "observer untouched\n" % key)
+        else:
+            sys.stdout.write("  would re-affirm %s -- pass --write\n" % key)
+        return 0
 
     if opt("supersede"):
         old_h, new_h, date = opt("supersede"), opt("by"), opt("date")

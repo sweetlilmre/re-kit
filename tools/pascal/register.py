@@ -42,7 +42,11 @@ OBSERVATION_FIELDS = ("harness", "tier", "outcome", "achieved", "observer",
                       # observe.py without adding it HERE drops it on the next
                       # dump by any tool -- which is the whole reason this
                       # whitelist is in one place.
-                      "superseded_by", "superseded_on")
+                      "superseded_by", "superseded_on",
+                      # An observation can record the HASH of the binary
+                      # that was watched, which is what lets a rename be
+                      # told from a change. See observe.py --reaffirm.
+                      "binary", "reaffirmed_on")
 INVESTIGATION_FIELDS = ("name", "finding", "seen_in", "state", "resolution")
 ROW_FIELDS = ("label", "investigation", "target", "cost", "note")
 ARTEFACT_FIELDS = ("ours", "original", "compare", "sha256", "achieved",
