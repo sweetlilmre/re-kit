@@ -103,7 +103,24 @@ def built(quiet=False):
     """
     root = project.path("layout.built", quiet=quiet)
     pattern = project.get("layout.built_pattern", quiet=quiet)
-    return [(p.name, p.read_bytes()) for p in sorted(root.glob(pattern))]
+    # ONE PATTERN WAS NOT ENOUGH, and the way that showed is worth keeping. A
+    # target whose scene harnesses were all named TP*.EXE grew real per-part
+    # programs called NEUR*.EXE, the pattern went on matching only the
+    # harnesses, and ten routines were still located -- in STALE harness
+    # executables left in the output directory by builds that no longer run.
+    # Deleting those stale files turned ten locks into ten failures instantly,
+    # which is what a lock held up by an unbuilt binary looks like when you
+    # finally look. A list of patterns keeps the docstring's rule -- the project
+    # names its OWN images and never the originals -- without forcing them all
+    # to share one prefix.
+    pats = pattern if isinstance(pattern, (list, tuple)) else [pattern]
+    seen, out = set(), []
+    for pat in pats:
+        for f in sorted(root.glob(pat)):
+            if f.name not in seen:
+                seen.add(f.name)
+                out.append((f.name, f.read_bytes()))
+    return sorted(out)
 
 
 def locked(register):
