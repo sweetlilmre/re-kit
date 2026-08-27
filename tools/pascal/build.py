@@ -263,12 +263,23 @@ def rename_source(text, name83, names):
 
 
 def wipe(d, keep=False):
+    """Empty the staging directory. FILES AND DIRECTORIES BOTH.
+
+    It used to unlink files only, so a subdirectory left by a retired step
+    survived every build for ever -- two of them had been sitting in one
+    project's staging directory for ten days, empty, outliving the tools that
+    made them. Include directories are created by `stage` immediately after this
+    runs, so removing them here is safe and is what makes the staging directory
+    mean "what this build needs" rather than "what every build ever needed".
+    """
     d.mkdir(parents=True, exist_ok=True)
     if keep:
         return
     for f in d.glob("*"):
         if f.is_file():
             f.unlink()
+        else:
+            shutil.rmtree(f, ignore_errors=True)
 
 
 def stage(cfg, root, build, compiler, selftest=False, keep=False):
