@@ -60,6 +60,38 @@ COMMENT = re.compile(r"\{[^{}]*\}", re.S)
 TRIVIAL = 8
 
 
+def strip_comments(text):
+    """Blank out `{ }` and `(* *)` comments, KEEPING every newline.
+
+    Line numbers have to survive: `bodies` finds an include or a header by
+    looking a few lines below a marker, so a strip that shortened the file
+    would move every marker away from what it points at.
+
+    This exists because the scan is otherwise fooled by its own subject
+    matter. `HEADER` matches a leading-whitespace `procedure`, and these
+    sources are full of indented equivalent-Pascal inside comment blocks --
+    P2VIEW.PAS has a commented `procedure SetRGB(Col, R, G, B : Byte);` eight
+    lines above the real one. Those blocks happened not to contain an `asm`
+    line, which is the only reason the old scan got the right answer.
+    """
+    out = []
+    i, n = 0, len(text)
+    while i < n:
+        if text[i] == "{":
+            j = text.find("}", i)
+            j = n if j < 0 else j + 1
+        elif text.startswith("(*", i):
+            j = text.find("*)", i)
+            j = n if j < 0 else j + 2
+        else:
+            out.append(text[i])
+            i += 1
+            continue
+        out.append("".join(c if c == "\n" else " " for c in text[i:j]))
+        i = j
+    return "".join(out)
+
+
 def normalise(text):
     """The instructions, with the commentary and the layout taken out.
 
@@ -113,8 +145,15 @@ def bodies(src, pattern="*.PAS"):
     """
     out = {}
     for path in sorted(pathlib.Path(src).glob(pattern)):
-        lines = io.open(path, encoding="ascii", newline="").read().split("\n")
-        impl = implementations(lines)
+        raw = io.open(path, encoding="ascii", newline="").read()
+        # RAW for the marker scan, STRIPPED for body detection. An
+        # `@asm` marker lives inside a `{ }` comment and a `{$I}` is a
+        # directive in one, so scanning stripped text finds neither --
+        # it reported 0 routines out of 59. Bodies want the opposite,
+        # because a comment can hold an indented `procedure` line.
+        # strip_comments keeps the line count, so both index alike.
+        lines = raw.split("\n")
+        impl = implementations(strip_comments(raw).split("\n"))
         for i, line in enumerate(lines):
             m = MARKER.search(line)
             if not m:
@@ -133,6 +172,36 @@ def bodies(src, pattern="*.PAS"):
                 continue
             out["%s.%s" % (path.stem, name)] = (
                 "%s:%s" % (m.group(2), m.group(3)), impl[name])
+    return out
+
+
+def include_bodies(incdir):
+    """STEM.Routine -> (label, assembler) for every routine an include holds.
+
+    THE POINT OF THIS: without it the check has a hole exactly where its own
+    fix lives. A marker followed by `{$I}` is skipped as shared -- correctly,
+    or the cure would be reported as the disease -- but that means an include's
+    body is never compared against anything, so a unit that writes out its own
+    copy of a routine an include already carries pairs with nobody and passes.
+
+    In the psycho corpus P3MORPH.SetPalette768 was exactly that case: the same
+    nine instructions as SETPAL.INC, carrying its own line in the project's
+    exempt file, and deleting that line changed the reported count by nothing.
+    An exemption that cannot fail is worse than no exemption, because it reads
+    like a check.
+
+    An include has no `@asm` marker of its own -- the marker stays at the
+    including site, where the address is -- so these are collected by their
+    bodies alone and labelled with the file they came from.
+    """
+    out = {}
+    if incdir is None:
+        return out
+    for path in sorted(pathlib.Path(incdir).glob("*.INC")):
+        raw = io.open(path, encoding="ascii", newline="").read()
+        for name, body in implementations(
+                strip_comments(raw).split("\n")).items():
+            out["%s.%s" % (path.stem, name)] = (path.name, body)
     return out
 
 
@@ -175,8 +244,22 @@ def main(argv):
         return project.complain(exc)
     exempt = read_exempt(named[0]) if named else []
     found = bodies(args[0])
+    nunits = len(found)
+    try:
+        incdir = str(project.path("layout.includes"))
+    except project.Missing:
+        incdir = None
+    incs = include_bodies(incdir)
+    found.update(incs)
     dups = duplicates(found, exempt)
-    print("%d routine(s) with assembler written out in a unit" % len(found))
+    print("%d routine(s) with assembler written out in a unit" % nunits)
+    if incdir is None:
+        print("  layout.includes is NOT SET, so no include is being compared: "
+              "a unit that writes out its own copy of a routine an include "
+              "already carries will not be reported")
+    else:
+        print("%d routine(s) in %d include(s), compared against them"
+              % (len(incs), len(set(k.split(".")[0] for k in incs))))
     for a, b in dups:
         print("  DUPLICATED: %s (%s) and %s (%s) are the same %d instructions"
               % (a, found[a][0], b, found[b][0], len(found[a][1])))
