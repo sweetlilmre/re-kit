@@ -124,6 +124,31 @@ def path(key, override=None, start=None, quiet=False):
     return (pathlib.Path(root) / value) if root else pathlib.Path(value)
 
 
+def products(build=None, start=None, quiet=True):
+    """Where the build's products are: `layout.output`, or the staging dir.
+
+    A build may write its .OBJ, .TPU, .MAP and .EXE into a subdirectory of the
+    staging directory instead of leaving them among the sources it was given --
+    `[stage] output` in the build config, `layout.output` here. Every instrument
+    that reads a PRODUCT has to look there; the ones that read a staged SOURCE
+    must not, which is why this is a separate answer rather than a redefinition
+    of `layout.build`.
+
+    Unset, this returns what it was passed, so a project that has never split
+    the two is unaffected and needs no answer added.
+
+    THE FAILURE IT PREVENTS was not subtle, and that is worth recording: the
+    first tool to go unconverted read no .MAP files at all and reported ten of
+    ten parts as having the WRONG UNIT ORDER. Loud, and in the safe direction.
+    A tool that had instead found nothing and called it agreement would have
+    read as ten passes.
+    """
+    try:
+        return path("layout.output", start=start, quiet=quiet)
+    except Missing:
+        return build
+
+
 def paths(key, override=None, start=None, quiet=False):
     """An answer that is a list of paths -- census roots, for instance."""
     value = get(key, override, start, quiet)

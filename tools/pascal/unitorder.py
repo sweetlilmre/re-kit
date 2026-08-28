@@ -57,10 +57,15 @@ def main(argv):
         return 2
     cfg = tomllib.load(open(argv[0], "rb"))["part"]
     parts = argv[1:] or list(cfg)
+    products = project.products(pathlib.Path("build"))
     bad = 0
     for part in parts:
         spec = cfg[part]
-        mp = pathlib.Path("build") / spec["exe"].replace(".EXE", ".MAP")
+        # The map is a PRODUCT, so where it lands is the build's business
+        # and not this tool's. It was hardcoded to "build", which is also
+        # why this was the check that broke when products moved into a
+        # subdirectory: it found no maps and called all ten parts wrong.
+        mp = products / spec["exe"].replace(".EXE", ".MAP")
         if not mp.exists():
             print("part %-7s no map at %s -- is the map switch on?" % (part, mp))
             bad += 1

@@ -127,12 +127,17 @@ def main(argv):
     cfg = read_config(args[0])
     try:
         build = pathlib.Path(opt("build") or project.path("layout.build"))
+        # Products may sit in a subdirectory of the staging directory;
+        # staged SOURCES do not. An explicit --build overrides both, so
+        # it is passed through rather than second-guessed.
+        products = (pathlib.Path(opt("build")) if opt("build")
+                    else project.products(build))
         original = opt("original") or project.path("target.image")
         first_para = project.get("target.first_para", quiet=True)
     except project.Missing as exc:
         return project.complain(exc)
 
-    unit = build / cfg["unit"]
+    unit = products / cfg["unit"]           # a .TPU is a PRODUCT
     if not unit.exists():
         sys.stdout.write("  no %s -- build it first\n" % unit)
         return 1

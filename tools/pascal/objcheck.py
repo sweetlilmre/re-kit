@@ -65,14 +65,19 @@ def segment_bytes(original, seg, length, first_para):
     return image[base:base + length]
 
 
-def check(name, spec, build, original, first_para, out=sys.stdout):
-    """One module. Returns True when every field is explained."""
+def check(name, spec, products, original, first_para, out=sys.stdout):
+    """One module. Returns True when every field is explained.
+
+    `products` and not `build`: this reads a .TPU and an .OBJ, both of
+    which the build MADE. The staged .PAS the caller checks for staleness
+    is a different directory and stays with the caller.
+    """
     seg, size = spec["segment"], spec["length"]
     base, end = spec["from"], spec["to"]
 
     orig = segment_bytes(original, seg, size, first_para)
-    unit = build / (spec.get("unit") or (name + ".TPU"))
-    obj = build / (spec.get("object") or (name + ".OBJ"))
+    unit = products / (spec.get("unit") or (name + ".TPU"))
+    obj = products / (spec.get("object") or (name + ".OBJ"))
     if not unit.exists():
         out.write("  %-9s no %s -- build it first\n" % (name, unit.name))
         return False
@@ -154,6 +159,11 @@ def main(argv):
         cfg = tomllib.load(fh)
     try:
         build = pathlib.Path(opt("build") or project.path("layout.build"))
+        # Products may sit in a subdirectory of the staging directory;
+        # staged SOURCES do not. An explicit --build overrides both, so
+        # it is passed through rather than second-guessed.
+        products = (pathlib.Path(opt("build")) if opt("build")
+                    else project.products(build))
         original = opt("original") or project.path("target.image")
         first = project.get("target.first_para", quiet=True)
     except project.Missing as exc:
@@ -176,7 +186,7 @@ def main(argv):
                                  "build; rebuild\n" % name)
                 bad += 1
                 continue
-        if not check(name, spec, build, original, first):
+        if not check(name, spec, products, original, first):
             bad += 1
     return 1 if bad else 0
 

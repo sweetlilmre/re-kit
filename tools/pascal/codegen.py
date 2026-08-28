@@ -39,6 +39,12 @@ def compile_with(cfg, root, staging, compiler, probe, extra=""):
     comp = cfg["compiler"][compiler]
     tpc = build.machine("toolchain." + compiler, comp.get("exe"))
     build.wipe(staging)
+    # The project's switch line decides where a product goes, and if it
+    # names an output directory the .TPU is written THERE rather than
+    # beside the source. Reading it from the staging root instead made
+    # every probe report NO BUILD the moment one project split the two --
+    # a compile that had in fact succeeded, read as a compiler failure.
+    products = build.outdir(cfg, staging)
     text = io.open(probe, encoding="utf-8", errors="replace").read()
     text = build.DIALECTS[comp.get("dialect", "")](text)
     enc = cfg["stage"]["encoding"]
@@ -58,7 +64,7 @@ def compile_with(cfg, root, staging, compiler, probe, extra=""):
     logname = log.split("\\")[-1]
     out, err = build.run_dosbox(root, conf, staging / logname,
                                int(cfg.get("timeout", 180)))
-    unit = staging / (pathlib.Path(name).stem + ".TPU")
+    unit = products / (pathlib.Path(name).stem + ".TPU")
     if not unit.exists():
         return None, err or out
     return unit.read_bytes(), out

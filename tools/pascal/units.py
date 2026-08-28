@@ -162,6 +162,11 @@ def main(argv):
         cfg = tomllib.load(fh)
     try:
         build = pathlib.Path(opt("build") or project.path("layout.build"))
+        # Products may sit in a subdirectory of the staging directory;
+        # staged SOURCES do not. An explicit --build overrides both, so
+        # it is passed through rather than second-guessed.
+        products = (pathlib.Path(opt("build")) if opt("build")
+                    else project.products(build))
         original = opt("original") or project.path("target.image")
         first = project.get("target.first_para", quiet=True)
     except project.Missing as exc:
@@ -182,7 +187,7 @@ def main(argv):
         if only and only.upper() not in name.upper():
             continue
         seg, length = spec["segment"], spec["length"]
-        unit = build / (spec.get("file") or (name + ".TPU"))
+        unit = products / (spec.get("file") or (name + ".TPU"))
         if not unit.exists():
             rows.append((name, seg, length, "no %s -- build it first"
                          % unit.name))
@@ -202,7 +207,7 @@ def main(argv):
         # A unit linking an object module needs the module's own relocations
         # before any figure here means anything. objcheck.py judges those
         # fields strictly; this row says how far the unit agrees at all.
-        mask = (relocation_mask(build / spec["object"], image)
+        mask = (relocation_mask(products / spec["object"], image)
                 if spec.get("object") else frozenset())
         got = measure(orig, image, mask)
         if got is None:

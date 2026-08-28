@@ -262,6 +262,28 @@ def rename_source(text, name83, names):
     return text
 
 
+def outdir(cfg, build, keep=False):
+    """The directory the build's PRODUCTS go in, or the build root if unset.
+
+    `[stage] output = "BIN"` separates what a build MAKES from what it was
+    given: sources staged flat, includes in their own directories, and every
+    .OBJ, .TPU, .MAP and .EXE in one place. Unset, everything lands in the
+    build root, which is what every project did before this existed and what
+    the kit still does by default.
+
+    The compiler is what makes this possible rather than a copying step
+    afterwards: TP's `/E` is documented as the EXE *and TPU* output directory,
+    `/O` gives the object search path, and `/U` the unit search path -- so the
+    products can be written straight there and found there.
+    """
+    name = (cfg.get("stage", {}) or {}).get("output")
+    if not name:
+        return build
+    d = build / name.upper()
+    wipe(d, keep)
+    return d
+
+
 def wipe(d, keep=False):
     """Empty the staging directory. FILES AND DIRECTORIES BOTH.
 
@@ -290,6 +312,12 @@ def stage(cfg, root, build, compiler, selftest=False, keep=False):
     """
     wipe(build, keep)
     if selftest:
+        # THE OUTPUT DIRECTORY HAS TO EXIST HERE TOO. The selftest returns
+        # early, which skipped creating it, and TP does not create an output
+        # directory it was given -- it answers `Error 14: Invalid filename
+        # (D:\BIN\HELLO.EXE)`. So the one command whose whole job is to prove
+        # the toolchain works was the one command that could not run.
+        outdir(cfg, build, keep)
         (build / "HELLO.PAS").write_text(SELFTEST, encoding="ascii")
         return ["HELLO.PAS"]
 
@@ -337,6 +365,25 @@ def stage(cfg, root, build, compiler, selftest=False, keep=False):
         for f in sorted(root.glob(pat)):
             if f.is_file():
                 shutil.copy(f, build / f.name.upper())
+
+    # Directories copied AS DIRECTORIES, contents untouched. `alongside` above
+    # flattens into the build root and uppercases as it goes, which is right
+    # for a file the compiler must find beside a unit and wrong for a folder
+    # somebody wants to see arrive unchanged. The assembler's own INCLUDE still
+    # resolves relative to the current directory, so the batch below changes
+    # into the directory before assembling rather than passing a path -- which
+    # keeps that resolution exactly as it was when these files sat in the root.
+    for rel in st.get("verbatim", []):
+        d = root / rel
+        if not d.is_dir():
+            continue
+        out = build / d.name.upper()
+        wipe(out, keep)
+        for f in sorted(d.glob("*")):
+            if f.is_file():
+                shutil.copy(f, out / f.name)
+
+    products = outdir(cfg, build, keep)
 
     staged = []
     order = list(cfg["order"].get("list") or [])
@@ -500,13 +547,48 @@ def write_batch(cfg, build, targets, compiler, extra, keep):
     asm = cfg["assembler"]
     if asm.get("exe") or asm.get("flags"):
         tasm = machine("toolchain.tasm", asm.get("exe"))
-        for name in sorted(p.name for p in build.glob("*.ASM")):
-            lines.append("echo. >> %s" % log)
-            lines.append("echo ---- %s >> %s" % (name, log))
-            lines.append("%s %s %s >> %s"
-                         % (tasm, asm.get("flags", ""), name, log))
-            lines.append("if errorlevel 1 echo ** FAILED >> %s" % log)
-            lines.append("if not errorlevel 1 echo ** OK >> %s" % log)
+        out = (cfg.get("stage", {}) or {}).get("output")
+        # Every directory holding .ASM: the build root, plus any staged
+        # verbatim. ASSEMBLED FROM INSIDE ITS OWN DIRECTORY, because TASM
+        # resolves INCLUDE against the current directory and one of these
+        # modules includes a generated table. Passing `ASM\X.ASM` instead
+        # would look for that table in the root and not find it.
+        where = [(build, "")]
+        for rel in (cfg.get("stage", {}) or {}).get("verbatim", []):
+            d = build / pathlib.Path(rel).name.upper()
+            if d.is_dir():
+                where.append((d, d.name))
+        for d, sub in where:
+            for name in sorted(x.name for x in d.glob("*.ASM")):
+                # THE LOG PATH IS RELATIVE TO WHEREVER THE BATCH IS
+                # STANDING. Inside a subdirectory a bare `BUILD.LOG` has to
+                # become `..\\BUILD.LOG`, and a drive-qualified `D:\\BUILD.LOG`
+                # must be left exactly alone -- prefixing that one gives
+                # `..\\D:\\BUILD.LOG`, which DOS cannot open, so every redirect
+                # fails SILENTLY. That took TASM's output and the ** OK /
+                # ** FAILED markers with it, which is the half that matters:
+                # the objects were still assembled, so the only sign was a
+                # log that had stopped saying anything.
+                qualified = len(log) > 1 and log[1] == ":"
+                ref = log if (qualified or not sub) else "..\\" + log
+                lines.append("echo. >> %s" % log)
+                lines.append("echo ---- %s >> %s"
+                             % (("%s\\%s" % (sub, name)) if sub else name, log))
+                if sub:
+                    lines.append("cd %s" % sub)
+                obj = ""
+                if out:
+                    # TASM's second argument is the object file. `..\BIN\` when
+                    # assembling from a subdirectory, `BIN\` from the root.
+                    obj = ", %s%s\\%s" % ("..\\" if sub else "", out,
+                                            name.replace(".ASM", ".OBJ"))
+                lines.append("%s %s %s%s >> %s"
+                             % (tasm, asm.get("flags", ""), name, obj,
+                                ref))
+                lines.append("if errorlevel 1 echo ** FAILED >> %s" % ref)
+                lines.append("if not errorlevel 1 echo ** OK >> %s" % ref)
+                if sub:
+                    lines.append("cd ..")
 
     switches = (comp.get("switches", "") + extra).strip()
     for t in targets:
@@ -609,8 +691,9 @@ def install(cfg, root, build, targets):
     if not run.is_dir():
         print("  no %s -- nothing installed" % run)
         return
+    products = outdir(cfg, build, keep=True)
     for t in targets:
-        exe = build / (t.split(".")[0] + ".EXE")
+        exe = products / (t.split(".")[0] + ".EXE")
         if exe.exists():
             shutil.copy(exe, run / exe.name)
             print("  installed %s/%s  (%d bytes)"
