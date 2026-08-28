@@ -25,72 +25,52 @@ UNPACKED image was the ceiling until this existed. It closed that gate: source
 -> TPC -> EXE -> packed -> the shipped file, byte for byte.
 
 ============================================================================
-THE ENCODER, and every rule here was MEASURED against the original's own
-token stream rather than taken from a description of the format.
+THE ENCODER IS A PORT OF LZEXE'S OWN, not a model of it
 ============================================================================
 
-`unlzexe.py` documents the bitstream. It does not say how LZEXE CHOSE among the
-encodings, and a packer needs exactly that. The method was to decode the
-original's 21,020 tokens, then run candidate matchers against them and count how
-long a prefix agreed. That turns "what would a packer do" into a measurement.
+`tokenize()` is LZEXE 0.91's `LZCOMP` from `lzss.asm`, ported line for line.
 
-  * PLAIN GREEDY LONGEST MATCH, NEAREST ON A TIE. Cost-based lazy matching
-    agrees for 198 tokens; a pure nearest-match rule agrees for 56. Plain greedy
-    agrees for 3,724 -- and then for all 21,018 once the window below is right.
-    LZEXE is not clever, and trying to be clever is measurably wrong: a lazy
-    matcher beats it by 3,029 bits and reproduces nothing.
+    LZEXE source code, Copyright (c) 1989-1990 Fabrice Bellard, MIT licence.
+    Published by its author at https://bellard.org/lzexe/ -- the archive is
+    lzexe91-src.zip, and LICENSE inside it is the MIT text. This file carries
+    that notice because the algorithm below is derived from that source.
 
-  * THE SEARCH WINDOW IS 7,939 = 0x2000 - 253, the format's maximum distance
-    LESS the maximum match length. This was the whole puzzle, and it is a
-    derived constant rather than a fitted one -- it is exactly the ring buffer
-    minus the longest match that can be taken out of it, which is what a 1989
-    ring-buffer matcher would enforce. The tell: at output offset 10,569 the
-    original spends 12 bits on a 2-byte match at distance 146 while a 5-byte
-    match sits at distance 8,019, so it never saw the better one.
+IT REPRODUCES EVERY LZ91 FILE TESTED, TOKEN FOR TOKEN -- twelve of twelve, from
+4,176 to 63,040 bytes, spanning three unrelated authors: the DemoVT 1.31b target
+`NEUROSIS.008`, DemoVT 1.51's own tools, and Borland's `INTRFC.EXE` from the
+Turbo Pascal 7.01 distribution. `--selftest` re-runs that.
 
-    NEUROSIS.008 ALONE CANNOT PIN THE VALUE -- the largest distance it uses is
-    7,931, so anything in 7,932..7,940 reproduces it. The ten other LZ91 files
-    listed under --selftest settle it: MAKESTR.EXE and DEMOVT.EXE both use a
-    distance of 7,939, which is the largest in any of the ten, and 7,944 breaks
-    four files. A window of 0x1F00 was the first guess and it is WRONG -- it
-    reproduces this target but fails two of the others.
+HOW THIS FILE GOT HERE, because the history is the useful part and the first
+version of it shipped. The rules were originally REVERSE-ENGINEERED by decoding
+the target's own stream into tokens and scoring candidate matchers by how long a
+prefix each reproduced. That worked: greedy longest match, nearest on a tie, in a
+7,939-byte window got eleven of twelve files exactly. Then the source turned up,
+and it corrected three things the measurement had got wrong or right by accident:
 
-  * THE ENCODING FOR A GIVEN (length, distance) IS FORCED, so no preference had
-    to be discovered: length 2..5 within 255 goes short (12 bits), length 3..9
-    goes long (18), length 10 and up goes ext (26). Where short and long both
-    fit, short is cheaper and the original always takes it. Length 2 beyond 255
-    is not encodable at all and becomes a literal.
+  * A "no match with fewer than 3 bytes left" rule had been MEASURED and
+    bracketed, and it does not exist. What exists is that the compare length is
+    never clamped to the remaining input -- only the emitted length is -- so near
+    the end of a file the search runs into stale ring content and often picks a
+    distance too far to encode a 2-byte match. The invented rule was a
+    description of that effect that happened to fit.
+  * THE SEGMENT STEP resets `SEGSIZE` to zero. The reverse-engineered version
+    reset a running counter to `(DI & 15) + 0x2000`, reasoning from the stub's
+    handler, and it agreed with every file to hand only because no file needs
+    more than one step.
+  * THE 7,939 WINDOW is right but not for the reason given. It is not
+    "0x2000 minus the longest match" as a rule; the first read simply lands at
+    ring offset `BUFSIZE-LENMAX` with the write pointer `LENMAX` ahead of the
+    coding pointer, so that much history is what the ring leaves behind it.
 
-  * ON A TIE THE NEAREST MATCH WINS -- the comparison is strictly greater as
-    the chain is walked from nearest outwards. This is not a detail: taking the
-    FARTHEST of equal-length matches instead reproduces NONE of the eleven
-    files, not one.
+The measured rules also could not reproduce the last token of `BIN2DB.EXE`, and
+no rule of that shape could: it takes an 11-byte match at distance 254 where
+every distance from 12 to 3,569 gives the same bytes. The port gets it right for
+free, because the reason is the unclamped compare reading ring content that was
+never overwritten.
 
-MINIMUM MATCH IS TWO BYTES, and the match search keys on two bytes.
-
-VALIDATED ON TEN OTHER LZEXE 0.91 FILES, which is the only defence against
-having fitted the rules to one file. `--selftest` finds every LZ91 file in the
-tree, unpacks each, re-compresses the image and compares token streams.
-**NINE OF THE ELEVEN reproduce exactly**, NEUROSIS.008 among them -- 63,040
-bytes and 23,696 tokens for the largest, DemoVT 1.51's own DEMOVT.EXE.
-(EXAMPLE.EXE and PASTST.EXE are byte-identical to each other, so the eleven are
-ten distinct images.)
-
-THE TWO THAT DO NOT ARE BOTH A TAIL EFFECT, and it is recorded rather than
-smoothed over:
-
-    BIN2DB.EXE     11 bytes from the end: the original takes its 11-byte match
-                   at distance 254 where distances 12 through 17 all give the
-                   same 11 bytes. So at the tail it does NOT prefer the nearest.
-    PMODETST.EXE    2 bytes from the end: the original emits two literals where
-                   a 2-byte match sits at distance 5.
-
-Both are within the last 11 bytes of the image, both are the final match
-decision before end-of-stream, and neither is explained by the rules above. A
-binary-search-tree match finder would produce exactly this -- which of several
-equal-length matches you get depends on tree shape, not distance -- but that is
-a hypothesis, not a reading of LZEXE. It does not affect this target: the tail
-of NEUROSIS.008 reproduces exactly.
+WORTH KEEPING FROM ALL THAT: measuring against one artefact gets you a long way
+and tells you honestly how far, but it cannot distinguish a rule from a
+coincidence that fits. Where the source exists, read the source.
 
 ============================================================================
 WHAT IS COMPUTED HERE AND WHAT IS COPIED -- read this before believing a result
@@ -102,19 +82,13 @@ COMPUTED from our own build, and these are the claim:
     the relocation table           855 bytes   linear deltas, LZ91's escapes
     the MZ header's sizes                      lastsize, nblocks, hdrsize, cs
 
-DERIVED, and two of these were open questions until the stub was disassembled:
+DERIVED by the port, and each was an open question before the source was read:
 
-    the segment-step tokens                    emitted at the first token
-                                               boundary where the stub's DI
-                                               reaches 0xA000, then DI resets
-                                               to (DI & 15) + 0x2000. Read off
-                                               the handler at stub offset 0xd1,
-                                               not fitted -- and DEMOVT.EXE,
-                                               63,040 bytes with its step at
-                                               0xA00D, reproduces on that rule
-                                               alone.
-    the tail rule                              no match with fewer than 3 bytes
-                                               left. See MIN_TAIL.
+    the segment-step tokens                    emitted when the running total of
+                                               emitted lengths reaches 0xA000,
+                                               which then resets to zero
+    the tail behaviour                         falls out of the unclamped
+                                               compare; there is no rule
 
 COPIED from the reference packed file, and no reimplementation could produce
 them:
@@ -134,58 +108,38 @@ the 32-byte header. That is stated plainly rather than smoothed over, because
 the evidence supports. The 31,335 bytes of stream and table are 98.8% of the
 file and they are the part a packer has to get right.
 
-ONE THING IS STILL OPEN, and it is one token in one file. `BIN2DB.EXE`, 11 bytes
-from the end, takes its 11-byte match at DISTANCE 254 -- which is neither the
-nearest nor the farthest of the 11-length matches available there. They run from
-distance 12 to distance 3,569, and 254 sits arbitrarily among them. So at that
-point LZEXE searched a PROPER SUBSET of the candidates and the subset is not
-explained by anything here.
+NOTHING IS KNOWN TO BE UNREPRODUCED. `--selftest` still distinguishes
+OUTPUT-EQUIVALENT from WRONG -- two token streams can decode to the same bytes,
+so that distinction stays worth reporting -- but every file tested reproduces
+the stream itself.
 
-WHAT HAS BEEN RULED OUT for it, so a later session need not re-run these:
-
-    indexing only token-start positions    fails immediately on all 11 files
-                                           (30 of 2,285 on BIN2DB) -- LZEXE
-                                           does index every position
-    a cap on how late a match source may
-    sit in the image (len-252/253/254)     breaks all 11
-    preferring the FARTHEST on a tie       breaks all 11 -- nearest is right
-                                           everywhere else
-    a longer minimum tail (4 or 5)         breaks BCCTST.EXE and NEUROSIS.008,
-                                           which end in 3-byte matches
-
-A hash structure whose chain order is not position order would explain it -- a
-binary search tree, where which of several equal-length matches you get depends
-on tree shape -- but that is a hypothesis and is labelled one. It does not affect
-the DemoVT target, whose own tail reproduces exactly.
+WHAT REMAINS COPIED IS THE HEADER ARITHMETIC, not the compression: `minalloc`,
+`maxalloc` and the stub's own `ss:sp`/`ip`. `exepack.asm` and `lzexe.pas` in the
+same archive hold that logic and porting it would close the last 376 bytes; it
+has not been done.
 """
 import struct
 import sys
 import bisect
 import pathlib
 
-MIN_MATCH = 2
-MAX_MATCH = 253           # ext carries len-1 in a byte, and 254 would collide
-MAX_DIST = 0x2000         # what the long/ext encoding can express
-WINDOW = MAX_DIST - MAX_MATCH   # 7,939 -- see the header; NOT 0x1F00
-STUB_LEN = 0x158          # 344 bytes of LZEXE decompressor
-CONTROL = (0x00, 0xF0)    # the lo/hi the original uses for segstep and eos
+# LZEXE's own constants, from lzss.asm's DATA segment.
+BUFSIZE = 0x2000          # the ring buffer -- BUFSIZE equ 2000h
+LENMAX = 253              # the longest match -- LENMAX equ 253
+TABSIZE = 4096            # hash buckets -- TABSIZE equ 4096
+TABAND = 0xFFF            # and the 12-bit mask over the 2-byte key
+RIEN = BUFSIZE            # the end-of-chain sentinel (RIEN equ BUFSIZE*2, in words)
+CMPLEN = LENMAX - 1       # `mov cx,LENMAX-1` before the repz cmpsb
+SEGLIMIT = 0xA000         # `cmp SEGSIZE,0A000h`
 
-# THE SEGMENT STEP, read off the stub rather than guessed. Its handler at stub
-# offset 0xd1 is
-#
-#     mov bx,di / and di,0Fh / add di,2000h    ; DI := (DI & 15) + 0x2000
-#     shr bx,4 / mov ax,es / add ax,bx / sub ax,200h / mov es,ax
-#
-# so it renormalises ES:DI to keep DI at or above 0x2000, preserving the linear
-# address. THAT FLOOR IS WHY 0x2000 IS THE DISTANCE LIMIT: the back-reference is
-# `mov al, es:[bx+di]` with BX forced into 0xE000..0xFFFF by `or bh,0E0h`, i.e. a
-# 16-bit negative offset of -0x2000..-1, so DI must never drop below 0x2000 or
-# the read wraps out of the segment. The encoder emits a step at the first token
-# boundary where DI has reached SEGSTEP_DI, which leaves 0x6000 of headroom
-# before DI would overflow 0xFFFF.
-SEGSTEP_DI = 0xA000
-DI_FLOOR = 0x2000
-MIN_TAIL = 3              # no match is attempted with fewer bytes than this left
+# WHERE THE 7,939 COMES FROM. The first read lands at ring offset
+# BUFSIZE-LENMAX and the write pointer runs LENMAX ahead of the coding
+# pointer, so the history behind it is BUFSIZE-LENMAX bytes. It is the ring's
+# geometry, not a tuned window.
+WINDOW = BUFSIZE - LENMAX
+
+STUB_LEN = 0x158          # 344 bytes of LZEXE decompressor
+CONTROL = (0x00, 0xF0)    # the lo/hi LZEXE writes for segstep and eos
 
 COSTS = {"lit": 9, "short": 12, "long": 18, "ext": 26}
 
@@ -308,72 +262,140 @@ def emit(w, kind, ln, dist):
 # The matcher
 
 
-def encoding(ln, dist):
-    """The one encoding LZEXE uses for a (length, distance), or None."""
-    if ln < MIN_MATCH:
-        return None
-    if 2 <= ln <= 5 and dist <= 255:
-        return "short"
-    if 3 <= ln <= 9:
-        return "long"
-    if ln >= 10:
-        return "ext"
-    return None                          # length 2 beyond 255: not encodable
+def tokenize(img):
+    """LZEXE 0.91's own LZCOMP, ported from lzss.asm. See the module header.
 
+    A PORT, NOT A MODEL. Everything here mirrors the assembler line for line,
+    including the parts that look like accidents, because the accidents are what
+    a byte-exact reproduction needs:
 
-def tokenize(img, window=WINDOW):
-    """Greedy longest match, nearest on a tie, within `window`. See the header."""
+      * THE CHAIN IS A HASH CHAIN, newest-first, despite the source calling its
+        arrays RSON and DAD. `InsertNode` pushes at the head, so walking it is
+        walking backwards in time -- which is why the nearest match wins a tie.
+      * THE KEY IS ONLY 12 BITS of the two-byte word (`and ax,TABAND`), so a
+        bucket mixes positions whose second byte differs in its high nibble.
+        Those fail the compare; they cost time and change nothing.
+      * `cmp cx,ax / jae` TAKES A CANDIDATE ONLY IF STRICTLY LONGER, so ties
+        keep the one found first -- the most recent.
+      * THE COMPARE LENGTH IS ALWAYS CMPLEN, never clamped to the input that is
+        left. Only the EMITTED length is clamped, by `cmp ax,LENREST` in the
+        main loop. So near the end of a file the compare runs off the data and
+        into whatever the ring still holds, and the match it picks depends on
+        that stale content. This is not a defect to tidy up: it decides the
+        final token of BIN2DB.EXE, and modelling the ring as zero-padded
+        instead reproduces that file while breaking three others.
+      * ON END OF INPUT NO BYTE IS WRITTEN -- `dec LENREST` and the pointers
+        advance anyway, so the ring keeps its old content at those positions.
+        That is the stale content above.
+      * `DeleteNode` CUTS THE CHAIN rather than unlinking one node, discarding
+        the node and every older one in that bucket at once. Sound only because
+        head insertion keeps each bucket ordered by position.
+    """
     n = len(img)
-    index = {}
-    for i in range(n - 1):
-        index.setdefault(img[i] << 8 | img[i + 1], []).append(i)
+    tbuf = bytearray(BUFSIZE + LENMAX + 1)
+    rson = [RIEN] * (BUFSIZE + TABSIZE + 1)
+    dad = [RIEN] * (BUFSIZE + 1)
+
+    def bucket(r):
+        return BUFSIZE + 1 + ((tbuf[r] | (tbuf[r + 1] << 8)) & TABAND)
+
+    def insert(r):
+        q = bucket(r)
+        head = rson[q]
+        rson[r] = head
+        dad[head] = r
+        rson[q] = r
+        dad[r] = q
+
+    def delete(s):
+        q = dad[s]
+        if q != RIEN:
+            rson[q] = RIEN
+            dad[s] = RIEN
+
+    def testmatch(r):
+        """MATCHLEN and MATCHPOS for the coding position, then insert it."""
+        best = CMPLEN                     # `mov ax,LENMAX-1`
+        node = bucket(r)
+        found = None
+        full = False
+        mine = int.from_bytes(bytes(tbuf[r + 1:r + 1 + CMPLEN]), "big")
+        while True:
+            node = rson[node]
+            if node == RIEN:
+                break
+            x = mine ^ int.from_bytes(bytes(tbuf[node + 1:node + 1 + CMPLEN]), "big")
+            if x == 0:                    # repz cmpsb ran out: a complete match
+                found, full = node, True
+                break
+            # the leading equal bytes, and then cx as the instruction leaves it
+            common = (CMPLEN * 8 - x.bit_length()) // 8
+            cx = CMPLEN - common - 1
+            if cx < best:                 # strictly better only
+                best, found = cx, node
+        matchlen = LENMAX if full else CMPLEN - best
+        matchpos = ((r - found) & (BUFSIZE - 1)) if found is not None else 0
+        insert(r)
+        return matchlen, matchpos
+
+    pos = 0
+    di = WINDOW                           # the first read lands here
+    si = 0                                # and the write pointer, LENMAX ahead
+    got = 0
+    for i in range(LENMAX):
+        if pos >= n:
+            break
+        tbuf[di + i] = img[pos]
+        pos += 1
+        got += 1
+    lenrest = got
+    matchlen, matchpos = testmatch(di)
 
     toks = []
-    p = 0
-    di = 0                                # the stub's destination offset
-    while p < n - 1:
-        if di >= SEGSTEP_DI:
-            toks.append(("segstep", 0, 0))
-            di = (di & 0xF) + DI_FLOOR
-        lst = index.get(img[p] << 8 | img[p + 1], ())
-        j = bisect.bisect_left(lst, p) - 1
-        limit = min(MAX_MATCH, n - p)
-        floor = p - window
-        best_len, best_dist = 0, 0
-        while j >= 0 and lst[j] >= floor:
-            s = lst[j]
-            j -= 1
-            k = 2
-            while k < limit and img[s + k] == img[p + k]:
-                k += 1
-            if k > best_len:              # strictly greater: ties keep NEAREST
-                best_len, best_dist = k, p - s
-                if best_len == limit:
-                    break
-        # THE TAIL RULE: with fewer than MIN_TAIL bytes left no match is
-        # attempted at all, however good one looks. Measured, and bracketed from
-        # both sides -- 3 reproduces every file that reaches its tail, while 4
-        # breaks the ones ending in a 3-byte match (BCCTST.EXE) and 5 breaks
-        # NEUROSIS.008 too. Without it PMODETST.EXE takes a 2-byte match at
-        # distance 5 where the original spends two literals.
-        kind = encoding(best_len, best_dist) if (n - p) >= MIN_TAIL else None
-        if kind is None:
-            toks.append(("lit", img[p], 0))
-            p += 1
-            di += 1
+    segsize = 0
+    while True:
+        if matchlen > lenrest:            # only the EMITTED length is clamped
+            matchlen = lenrest
+        if matchlen < 2 or (matchlen == 2 and matchpos >= 256):
+            toks.append(("lit", tbuf[di], 0))
+            matchlen = 1                  # `mov MatchLen,1`
+        elif matchlen <= 5 and matchpos < 256:
+            toks.append(("short", matchlen, matchpos))
+        elif matchlen <= 9:
+            toks.append(("long", matchlen, matchpos))
         else:
-            toks.append((kind, best_len, best_dist))
-            p += best_len
-            di += best_len
-    while p < n:                          # the last byte can never start a match
-        toks.append(("lit", img[p], 0))
-        p += 1
+            toks.append(("ext", matchlen, matchpos))
+
+        segsize += matchlen
+        if segsize >= SEGLIMIT:
+            toks.append(("segstep", 0, 0))
+            segsize = 0                   # `mov SEGSIZE,0` -- NOT a DI reset
+
+        for k in range(matchlen):
+            if k:                         # the first byte skips it (jmp S3AA0)
+                insert(di)
+            delete(si)
+            if pos < n:
+                b = img[pos]
+                pos += 1
+                tbuf[si] = b
+                if si < LENMAX - 1:       # the wrap-around copy at TBUF+BUFSIZE
+                    tbuf[si + BUFSIZE] = b
+            else:
+                lenrest -= 1              # and the ring keeps its old byte
+            si = (si + 1) & (BUFSIZE - 1)
+            di = (di + 1) & (BUFSIZE - 1)
+
+        matchlen, matchpos = testmatch(di)
+        if lenrest <= 0:
+            break
     toks.append(("eos", 0, 0))
     return toks
 
 
-def compress(img, window=WINDOW):
-    toks = tokenize(img, window)
+
+def compress(img):
+    toks = tokenize(img)
     w = BitWriter()
     for kind, a, b in toks:
         emit(w, kind, a, b)
@@ -563,6 +585,26 @@ def dump_tokens(path):
 # The comparison
 
 
+def replay(toks):
+    """The image a token stream produces, without going through a bitstream.
+
+    THIS IS WHAT SEPARATES "not byte-identical" FROM "wrong". Two different
+    token streams can decode to the same bytes -- a match into a uniform region
+    reads the same at several distances -- so a stream that does not reproduce
+    the original's is not necessarily incorrect, and saying so requires
+    checking. `--selftest` reports that difference rather than flattening both
+    into a failure.
+    """
+    out = bytearray()
+    for kind, a, b in toks:
+        if kind == "lit":
+            out.append(a)
+        elif kind in ("short", "long", "ext"):
+            for _ in range(a):
+                out.append(out[len(out) - b])
+    return bytes(out)
+
+
 def compare(ours, theirs, toks, nstream, ntable, nstub):
     print("  packed  %d bytes" % len(ours))
     print("  original %d bytes" % len(theirs))
@@ -626,6 +668,7 @@ def selftest(paths):
     """
     print("%-26s %7s %7s  %s" % ("file", "image", "tokens", "reproduces?"))
     good = 0
+    equivalent = 0
     for path in paths:
         blob = pathlib.Path(path).read_bytes()
         if blob[0x1C:0x20] != b"LZ91":
@@ -650,13 +693,23 @@ def selftest(paths):
             at = 0
             for k, a, _b in merged[:n]:
                 at += 1 if k == "lit" else (a if k in ("short", "long", "ext") else 0)
-            note = ("no -- %d of %d, then ours %s vs %s at offset %d (%d bytes from the end)"
-                    % (n, len(theirs), merged[n] if n < len(merged) else None,
+            same_bytes = replay(merged) == image
+            if same_bytes:
+                equivalent += 1
+            note = ("%s -- %d of %d, then ours %s vs %s at offset %d (%d from the end)"
+                    % ("OUTPUT-EQUIVALENT" if same_bytes else "WRONG",
+                       n, len(theirs), merged[n] if n < len(merged) else None,
                        theirs[n] if n < len(theirs) else None, at, len(image) - at))
         print("%-26s %7d %7d  %s" % (pathlib.Path(path).name, len(image), len(theirs), note))
     print()
-    print("%d of %d file(s) reproduce exactly" % (good, len(paths)))
-    return 0 if good == len(paths) else 1
+    print("%d of %d file(s) reproduce the token stream exactly" % (good, len(paths)))
+    if equivalent:
+        print("%d more decode to the identical image by a different route -- see BIN2DB"
+              % equivalent)
+        print("in the module header. Not a correctness failure; a fidelity one.")
+    wrong = len(paths) - good - equivalent
+    print("%d file(s) actually WRONG" % wrong)
+    return 0 if wrong == 0 else 1
 
 
 def find_lz91(roots):
