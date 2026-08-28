@@ -560,35 +560,28 @@ def write_batch(cfg, build, targets, compiler, extra, keep):
                 where.append((d, d.name))
         for d, sub in where:
             for name in sorted(x.name for x in d.glob("*.ASM")):
-                # THE LOG PATH IS RELATIVE TO WHEREVER THE BATCH IS
-                # STANDING. Inside a subdirectory a bare `BUILD.LOG` has to
-                # become `..\\BUILD.LOG`, and a drive-qualified `D:\\BUILD.LOG`
-                # must be left exactly alone -- prefixing that one gives
-                # `..\\D:\\BUILD.LOG`, which DOS cannot open, so every redirect
-                # fails SILENTLY. That took TASM's output and the ** OK /
-                # ** FAILED markers with it, which is the half that matters:
-                # the objects were still assembled, so the only sign was a
-                # log that had stopped saying anything.
-                qualified = len(log) > 1 and log[1] == ":"
-                ref = log if (qualified or not sub) else "..\\" + log
+                # BY PATH, WITH AN INCLUDE FLAG -- no `cd`. This used to change
+                # into the directory and assemble a bare filename, on the
+                # assumption that an assembler resolves INCLUDE against the
+                # source file's own directory and so needed no help. MEASURED,
+                # and it does not: `TASM ASM\\DEMOMATH.ASM` answers
+                # `Can't locate file: COSTAB.INC` for an include sitting beside
+                # the file that includes it. What it wants is the include flag,
+                # and with `/IASM` the same command assembles cleanly.
+                #
+                # Worth having for what it deletes rather than what it adds: no
+                # cd, no cd back, and no log path that has to know how deep the
+                # batch currently is -- which is where a `..\\D:\\BUILD.LOG` that
+                # DOS could not open silently swallowed every assembler message.
+                src = ("%s\\%s" % (sub, name)) if sub else name
+                inc = (" %s%s" % (asm.get("include_flag", "/I"), sub)) if sub else ""
+                obj = (", %s\\%s" % (out, name.replace(".ASM", ".OBJ"))) if out else ""
                 lines.append("echo. >> %s" % log)
-                lines.append("echo ---- %s >> %s"
-                             % (("%s\\%s" % (sub, name)) if sub else name, log))
-                if sub:
-                    lines.append("cd %s" % sub)
-                obj = ""
-                if out:
-                    # TASM's second argument is the object file. `..\BIN\` when
-                    # assembling from a subdirectory, `BIN\` from the root.
-                    obj = ", %s%s\\%s" % ("..\\" if sub else "", out,
-                                            name.replace(".ASM", ".OBJ"))
-                lines.append("%s %s %s%s >> %s"
-                             % (tasm, asm.get("flags", ""), name, obj,
-                                ref))
-                lines.append("if errorlevel 1 echo ** FAILED >> %s" % ref)
-                lines.append("if not errorlevel 1 echo ** OK >> %s" % ref)
-                if sub:
-                    lines.append("cd ..")
+                lines.append("echo ---- %s >> %s" % (src, log))
+                lines.append("%s %s%s %s%s >> %s"
+                             % (tasm, asm.get("flags", ""), inc, src, obj, log))
+                lines.append("if errorlevel 1 echo ** FAILED >> %s" % log)
+                lines.append("if not errorlevel 1 echo ** OK >> %s" % log)
 
     switches = (comp.get("switches", "") + extra).strip()
     for t in targets:
