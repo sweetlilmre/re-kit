@@ -31,7 +31,7 @@ This is what makes the include the right instrument for a routine a 1990s author
 
 **A genuinely different parameter list is a real obstacle**, and this rule does not rescue it. An untyped `var P` and a `P : Pointer` compile to the same body -- both are a 4-byte address on the stack, so a `LDS SI, P` is the same encoding -- and are still two different declaration lines. That case cannot become one include, and it is the one worth writing down, because it looks identical to the case that can.
 
-**Sharing the text does not settle the bytes.** Whether the shared version is *right* is a question for the binary, not for the compiler: it will happily accept a header whose far-ness is wrong for what the original did. The only proof is a rebuild compared against the original.
+**Sharing the text does not settle the bytes.** Whether the shared version is *right* is a question for the binary, not for the compiler: the compiler accepts a header whose far-ness is wrong for what the original did. The only proof is a rebuild compared against the original.
 
 **Staged includes obey the host's filename limits.** On a DOS toolchain that means 8.3, stem included -- a nine-character stem gets `Error 15: File not found` on a file sitting in the same directory as the one that found it.
 

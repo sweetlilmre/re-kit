@@ -25,7 +25,7 @@ Concretely, the four false entries all said "the declarations differ, so no sing
 
 ## Blind spot
 
-**A green run is not evidence.** The tool reported zero problems both before and after, and both were true statements about what it had been told to look at. The measurement that mattered was not the tool's output but the diff of the two texts it had been told to skip.
+**A green run is not evidence.** The tool reported zero problems both before and after, and both were true statements about what it had been told to look at. The measurement that mattered was not the tool's output but the diff of the two texts the exemption had told it to leave alone.
 
 **Testing an exemption needs it removed.** The only cheap check for a decorative entry is to delete the line and re-run: if the count does not change, the entry is doing nothing, and either the rule or the entry is wrong. That takes seconds and nobody does it, because the file reads like documentation rather than like code.
 

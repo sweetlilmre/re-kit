@@ -150,6 +150,47 @@ def section_text(body, name):
     return None if m is None else m.group(1)
 
 
+def check_index_lists_everything(root):
+    """Every document directory must be linked from the wiki's OWN index.md.
+
+    THE ONE INDEX NOTHING GENERATED. This file already generates a hub's
+    index.md from its children, on the stated principle that a hand-written
+    summary beside a child's full rule is a second copy and will drift. The
+    wiki's top-level index.md is hand-written and was never covered by that,
+    so it drifted exactly as predicted: four observations were absent from it
+    for four days, which for a reader is the same as their not existing.
+
+    It is a CHECK and not a generator, deliberately. The top-level index is
+    ordered by argument -- related observations sit together, and that order
+    carries meaning no frontmatter field holds -- so generating it would throw
+    away editorial work to fix a coverage problem. What can be mechanical is
+    the coverage: no document may be missing.
+
+    A missing entry is reported WITH the line to add, because the reason this
+    goes unnoticed is that writing the entry means opening the document again
+    and paraphrasing it, and anything asking for that at the wrong moment gets
+    deferred.
+    """
+    idx = root / "index.md"
+    if not idx.exists():
+        return ["index.md is missing from %s" % root.as_posix()]
+    text = io.open(idx, encoding="utf-8", newline="").read()
+    problems = []
+    for d in sorted(p for p in root.glob("*/*") if p.is_dir()):
+        doc = d / "observation.md"
+        if not doc.exists():
+            continue
+        link = "%s/%s/observation.md" % (d.parent.name, d.name)
+        if link in text:
+            continue
+        fm, _ = split_doc(doc)
+        problems.append(
+            "index.md does not list %s -- add: * [%s](%s) - %s"
+            % (d.name, fm.get("title", d.name), link,
+               (fm.get("description") or "")[:80]))
+    return problems
+
+
 def check_hub_states_no_rule(rel, body):
     """Refuse a hub sentence that gives an instruction without an artefact."""
     outside = body
@@ -259,6 +300,8 @@ def main(argv):
             continue
         docs += 1
         problems.extend(check_doc(path, path.relative_to(root).as_posix()))
+
+    problems.extend(check_index_lists_everything(root))
 
     changed = generate(root, write)
 
