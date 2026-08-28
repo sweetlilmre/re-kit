@@ -77,7 +77,7 @@ CONF_TEMPLATE = """\
 # Drives:
 #     C:  {hdd}
 #     {drive}:  {build}
-
+{mountdoc}
 [sdl]
 autolock    = false
 waitonerror = false
@@ -111,7 +111,7 @@ lfn = false
 [autoexec]
 mount C {hdd}
 mount {drive} {build}
-set PATH=%PATH%;{binpath}
+{mounts}set PATH=%PATH%;{binpath}
 {drive}:
 call {drive}:\\BUILD.BAT
 exit
@@ -610,15 +610,37 @@ def write_batch(cfg, build, targets, compiler, extra, keep):
                                      encoding="ascii")
 
 
-def write_conf(cfg, build, conf, compiler):
-    """The DOSBox-X config, generated so no machine path is ever committed."""
+def write_conf(cfg, build, conf, compiler, root=None):
+    """The DOSBox-X config, generated so no machine path is ever committed.
+
+    `[dosbox.mount]` adds drives beyond the staging one: LETTER = "path",
+    resolved against the project root. It exists so a session can reach a
+    directory the build does NOT own -- a packaged demo, a folder of originals
+    to run side by side -- without a machine path being typed into a committed
+    file or a drive being mounted by hand every time.
+
+    A missing directory is skipped with a line saying so, rather than mounted:
+    DOSBox-X will mount a path that does not exist and then answer "Illegal
+    command" for everything on it, which reads as the program being broken.
+    """
     comp = cfg["compiler"][compiler]
+    lines, doc = [], []
+    for letter, rel in sorted((cfg.get("dosbox", {}).get("mount", {})).items()):
+        d = (pathlib.Path(root) / rel) if root else pathlib.Path(rel)
+        if d.is_dir():
+            lines.append("mount %s %s" % (letter.upper(), d))
+            doc.append("#     %s:  %s" % (letter.upper(), d))
+        else:
+            doc.append("#     %s:  NOT MOUNTED -- %s does not exist"
+                       % (letter.upper(), d))
     conf.write_text(CONF_TEMPLATE.format(
         hdd=machine("dosbox.hdd"),
         build=str(build),
         drive=cfg.get("drive", "D"),
         title=cfg.get("title", "build"),
         binpath=comp.get("binpath", "C:\\TP\\BIN"),
+        mounts="".join(l + "\n" for l in lines),
+        mountdoc="".join(l + "\n" for l in doc),
     ), encoding="ascii")
 
 
@@ -766,7 +788,7 @@ def main(argv):
     targets = staged if selftest else ordered(cfg, build, staged, selection)
     write_batch(cfg, build, targets, compiler, extra, keep)
     conf = build / "DOSBUILD.CFG"
-    write_conf(cfg, build, conf, compiler)
+    write_conf(cfg, build, conf, compiler, root)
 
     print("compiler: %s%s" % (compiler, "  extra: " + extra if extra else ""))
     print("staged %d file(s) into %s: %s"

@@ -60,7 +60,7 @@ def compile_with(cfg, root, staging, compiler, probe, extra=""):
         "exit",
     ]) + "\r\n", encoding="ascii")
     conf = staging / "DOSBUILD.CFG"
-    build.write_conf(cfg, staging, conf, compiler)
+    build.write_conf(cfg, staging, conf, compiler, root)
     logname = log.split("\\")[-1]
     out, err = build.run_dosbox(root, conf, staging / logname,
                                int(cfg.get("timeout", 180)))
