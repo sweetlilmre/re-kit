@@ -59,6 +59,7 @@ def main(argv):
     parts = argv[1:] or list(cfg)
     products = project.products(pathlib.Path("build"))
     bad = 0
+    unread = 0
     for part in parts:
         spec = cfg[part]
         # The map is a PRODUCT, so where it lands is the build's business
@@ -74,8 +75,9 @@ def main(argv):
         # no maps at all. `map` says the name outright.
         mp = products / (spec.get("map") or spec["exe"].replace(".EXE", ".MAP"))
         if not mp.exists():
-            print("part %-7s no map at %s -- is the map switch on?" % (part, mp))
-            bad += 1
+            print("part %-7s no map at %s -- is the map switch on, and\n         did anything wipe the build after it? codegen and probecheck\n         share the staging directory and empty it on entry."
+                  % (part, mp))
+            unread += 1
             continue
         segs = list(spec["segs"]) + [spec["rtl"]]
         want = [(segs[i + 1] - segs[i]) * 16 for i in range(len(segs) - 1)]
@@ -117,8 +119,17 @@ def main(argv):
             bad += 1
         else:
             print("part %-7s order matches, %d unit(s)" % (part, len(ours)))
-    print("\n%d part(s) checked, %d with the wrong unit order" % (len(parts), bad))
-    return 1 if bad else 0
+    # COULD NOT MEASURE IS NOT MEASURED WRONG, and this tool spent a day
+    # saying otherwise. Three times in one session it announced "10 with the
+    # wrong unit order" for a target where every unit was in the right
+    # place: twice because a path assumption sent it at the wrong
+    # directory, once because probecheck had wiped the staging directory
+    # after the build. Failing loudly on an absent input is right; calling
+    # it a defect in the SUBJECT is what wasted the time.
+    print("\n%d part(s) checked, %d with the wrong unit order%s"
+          % (len(parts) - unread, bad,
+             "" if not unread else ", %d NOT MEASURED (no map)" % unread))
+    return 1 if (bad or unread) else 0
 
 
 if __name__ == "__main__":
