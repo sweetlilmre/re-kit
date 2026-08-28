@@ -802,7 +802,7 @@ def main(argv):
     if not args:
         sys.stdout.write("usage: build.py CONFIG.toml [TARGET...] "
                          "[--selftest] [--keep] [--compiler NAME] [--sw=X]\n"
-                         "       build.py CONFIG.toml --interactive [--launch]\n")
+                         "       build.py CONFIG.toml --interactive\n")
         return 2
 
     def opt(name, default=None):
@@ -853,17 +853,14 @@ def main(argv):
             exe = machine("dosbox.exe")
         except project.Missing as exc:
             return project.complain(exc)
+        # IT PRINTS AND DOES NOT LAUNCH. An interactive session belongs to the
+        # person sitting in front of it, and their launcher is theirs to write:
+        # for a DOSBox-X that wants its own directory as the working one, a
+        # two-line batch file does that better than a flag here would.
         cmd = [str(exe), "-conf", str(root / base), "-conf", str(out)]
-        if "--launch" not in argv:
-            print("\n  run it yourself -- the overlay goes SECOND, so its "
-                  "mounts run after the base file's autoexec:\n")
-            print("  " + " ".join('"%s"' % c if " " in c else c for c in cmd))
-            return 0
-        # --launch STARTS IT AND DOES NOT WAIT. The working directory is the
-        # emulator's own, because that is where it looks for its resources --
-        # the batch file this replaces did `cd` there first for that reason.
-        print("\n  starting %s" % pathlib.Path(exe).name)
-        subprocess.Popen(cmd, cwd=str(pathlib.Path(exe).resolve().parent))
+        print("\n  run it yourself -- the overlay goes SECOND, so its mounts "
+              "run after the base file's autoexec:\n")
+        print("  " + " ".join('"%s"' % c if " " in c else c for c in cmd))
         return 0
 
     # Lint FIRST where the project has a linter. The compiler reports a
