@@ -2,6 +2,27 @@ r"""Pair OUR segments to the ORIGINAL's by content, and report the ORDER.
 
     python kit/tools/pascal/segpair.py SPANS.toml 003
     python kit/tools/pascal/segpair.py SPANS.toml            every part
+    python kit/tools/pascal/segpair.py --pair OLD.EXE NEW.EXE
+
+TWO DRIVERS, ONE ENGINE. The config form pairs a REBUILD against the original
+it is a rebuild of. `--pair` pairs any two MZ files against each other and
+needs no config, no project and no segment list: both sides' segment starts
+come from their own relocation targets, the same reading `substrate/segmap.py`
+prints. That is the form to reach for on the FIRST day of a new version --
+where the question is not "did my build land" but "which of this version's
+segments is which of the last one's, and which are new".
+
+WHAT `--pair` ADDS THAT THE CONFIG FORM CANNOT SAY. A rebuild has one segment
+per original segment by construction, so the config form only ever reports a
+pairing or a miss. Two RELEASES do not: a version can add a unit, drop one, or
+split one, so `--pair` reports the unmatched segments on BOTH sides as findings
+in their own right -- a right-hand segment nothing paired with is new code, and
+that is usually the first thing worth reading.
+
+THE SIMILARITY COLUMN IS NOT A DIFF. It is the share of K-grams the two
+segments share, so 100% means "no window of eight bytes is unique to either",
+which a recompile of unchanged source against a moved DGROUP will not reach.
+Read it as a ranking, and confirm a claim of "unchanged" with a byte walk.
 
 THE QUESTION NOTHING ELSE ANSWERS: which of our segments is which of theirs.
 Every other instrument here is handed that pairing rather than establishing it.
@@ -67,6 +88,43 @@ try:
     import tomllib
 except ModuleNotFoundError:                       # pragma: no cover -- 3.11+
     import tomli as tomllib                       # type: ignore
+
+
+def relocation_sites(raw):
+    """File offsets of every relocated WORD in an MZ file."""
+    hdr = struct.unpack_from("<14H", raw, 0)
+    nreloc, first = hdr[3], hdr[4] * 16
+    out = []
+    for i in range(nreloc):
+        off, seg = struct.unpack_from("<HH", raw, hdr[12] + i * 4)
+        fa = first + seg * 16 + off
+        if fa + 2 <= len(raw):
+            out.append(fa)
+    return out, first
+
+
+def masked(raw):
+    """The load image with every relocated word zeroed.
+
+    WITHOUT THIS, A CROSS-BINARY SIMILARITY IS NOISE. A relocated word holds a
+    load-time segment value, so every one of them differs between two links of
+    the same source -- and an eight-byte window is destroyed by a single
+    differing byte. Measured on this corpus: an unchanged unit compared across
+    two RELEASES scored 22% unmasked and 96% masked, and the unmasked figure
+    would have been read as a rewritten unit. The same reasoning is `rtl.py`'s,
+    and the same reasoning the compare engine's `.OBJ` rule rests on: where a
+    byte's value is decided later, its value is not evidence.
+
+    Its BLIND SPOT is the other half of the problem and there is no cheap fix
+    for it: a DGROUP displacement is a plain 16-bit constant, not a relocation,
+    so a unit whose data merely MOVED still scores below one whose code did.
+    Read a middling score as "look at this", never as "this changed".
+    """
+    sites, _ = relocation_sites(raw)
+    buf = bytearray(raw)
+    for fa in sites:
+        buf[fa:fa + 2] = b"\0\0"
+    return bytes(buf)
 
 
 def our_segments(raw):
@@ -211,7 +269,81 @@ def report(part, spec, orig, mine, raw_mine, first):
         print("    order matches the original's")
 
 
+def pair_files(old_path, new_path, floor=0.10):
+    """Pair two MZ files' segments against each other, by content.
+
+    Neither side is privileged: both segment lists come from the files' own
+    relocation targets, and the assignment is the same global best-first one
+    the config driver uses. Prints one row per LEFT segment, then the RIGHT
+    segments nothing claimed -- which on a version bump is the new code.
+    """
+    def segments_of(path):
+        raw = pathlib.Path(path).read_bytes()
+        starts = our_segments(raw)
+        # MASKED, and see `masked()` for why an unmasked cross-binary score is
+        # not a measurement. The segment STARTS are read from the unmasked
+        # file, because zeroing the words is exactly what would erase them.
+        image, _ = align.load_image(masked(raw))
+        out = []
+        for j, s in enumerate(starts):
+            lo = s * 16
+            hi = starts[j + 1] * 16 if j + 1 < len(starts) else len(image)
+            out.append((s, hi - lo, grams(image[lo:hi])))
+        return out
+
+    left = segments_of(old_path)
+    right = segments_of(new_path)
+
+    pairs = sorted(((score(l[2], r[2]), i, j)
+                    for i, l in enumerate(left)
+                    for j, r in enumerate(right)), reverse=True)
+    lmap, taken = {}, set()
+    for n, i, j in pairs:
+        if n < floor or i in lmap or j in taken:
+            continue
+        lmap[i] = (j, n)
+        taken.add(j)
+
+    print("%s  ->  %s" % (pathlib.Path(old_path).name,
+                          pathlib.Path(new_path).name))
+    print("    %-9s %-7s  %-9s %-7s  %s"
+          % ("left", "bytes", "right", "bytes", "same"))
+    order_ok = True
+    last = -1
+    for i, (seg, size, _fp) in enumerate(left):
+        if i not in lmap:
+            print("    %04x      %-7d  %-9s %-7s  %s"
+                  % (seg, size, "NOT FOUND", "-", "-"))
+            continue
+        j, n = lmap[i]
+        rseg, rsize, _ = right[j]
+        flag = ""
+        if j < last:
+            flag, order_ok = "   <-- OUT OF ORDER", False
+        last = j
+        print("    %04x      %-7d  %04x      %-7d  %3d%%%s"
+              % (seg, size, rseg, rsize, int(100 * n), flag))
+
+    spare = [right[j] for j in range(len(right)) if j not in taken]
+    if spare:
+        print("    %d right-hand segment(s) NOTHING PAIRED WITH -- new code:"
+              % len(spare))
+        for seg, size, _ in spare:
+            print("        %04x      %-7d" % (seg, size))
+    if not order_ok:
+        print("    the pairing is NOT monotonic: the link order changed, or a"
+              " weak row took the wrong partner. Check the low percentages"
+              " before believing a reordering.")
+    return lmap
+
+
 def main(argv):
+    if argv[0] == "--pair":
+        # NO PROJECT AND NO CONFIG on this path, deliberately: the
+        # two files are the whole input, so the tool runs in a
+        # checkout whose kit.toml still answers for another target.
+        pair_files(argv[1], argv[2])
+        return
     cfg = tomllib.load(open(argv[0], "rb"))
     want = argv[1:]
     root = project.find()
