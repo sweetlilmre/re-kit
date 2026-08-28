@@ -67,9 +67,28 @@ You will find kit work while doing target work, and it comes in three shapes. Te
 
 **Improve the instrument before the measurement it produced.** If a tool tells you something surprising, section 8's first line applies -- distrust the verifier first. The cost of being wrong here is asymmetric: a bad transcription is caught by the next comparison, and a bad instrument silently blesses every transcription after it.
 
+### Closing an iteration -- all four, every time
+
+An iteration is not over when the measurement moves. It is over when the four things below have happened, and they are listed in this order because each one is cheaper while the work is still in your head.
+
+    1. COMMIT           the source edit and the measurement it produced
+    2. WIKI + TOOLS     anything transferable, before the next iteration buries it
+    3. COMMIT the kit   and bump the gitlink -- section 7
+    4. PUSH             both repositories
+
+**Do not defer step 2 to "later".** It has been deferred across thirty iterations of one reconstruction, and what came back was not thirty observations -- it was seven, written afterwards, from commit messages, with the reasoning reconstructed rather than recorded. The findings that survived were the ones a commit message happened to argue in full; the rest were gone. A transferable rule costs ten minutes on the day and cannot be recovered on any later one.
+
+**The test for step 2 is section 5's, and it is not "is this interesting".** It is: *would this have been true of a different binary built the same way?* Most of what an iteration produces is target knowledge and belongs in the host's notes. What belongs in the wiki is the thing you would want to have known before you started -- and the reliable signal is having been WRONG in a way that a rule would have prevented. A correction is worth more than a discovery, because the discovery was going to happen anyway.
+
+**Step 4 is not optional and is not batched.** A commit that has not been pushed is one machine away from being the only copy, and a kit commit that has not been pushed makes the host's gitlink unresolvable for anybody else -- which is the same failure as not bumping it.
+
+**If an iteration produced nothing transferable, say so in the commit and move on.** Steps 2 and 3 collapsing to nothing is a normal outcome; skipping the QUESTION is not.
+
 ### What tells you the loop is working
 
 The plan shrinks, the coverage walk's spans shrink, and the ratchet does not fall. Nothing else is evidence, and in particular a green check list is not: it is the floor, not the goal.
+
+And the wiki grows. A reconstruction that advances for a week without adding an observation is either working in a very well-mapped corner or -- much more likely -- throwing away the half of the work that outlives the target.
 
 ## 3. Which instrument answers which question
 
