@@ -65,7 +65,14 @@ def main(argv):
         # and not this tool's. It was hardcoded to "build", which is also
         # why this was the check that broke when products moved into a
         # subdirectory: it found no maps and called all ten parts wrong.
-        mp = products / spec["exe"].replace(".EXE", ".MAP")
+        # THE MAP IS NAMED AFTER THE SOURCE, NOT AFTER THE INSTALLED FILE.
+        # Deriving it from `exe` held only while a product kept its built name;
+        # the moment a project installed `NEUR1.EXE` as `NEUROSIS.001` the
+        # derivation produced "NEUROSIS.001" -- no .EXE to replace -- and this
+        # check reported ten of ten parts as having the wrong unit order for the
+        # second time in one day, for the same reason both times: it was reading
+        # no maps at all. `map` says the name outright.
+        mp = products / (spec.get("map") or spec["exe"].replace(".EXE", ".MAP"))
         if not mp.exists():
             print("part %-7s no map at %s -- is the map switch on?" % (part, mp))
             bad += 1

@@ -685,12 +685,23 @@ def install(cfg, root, build, targets):
         print("  no %s -- nothing installed" % run)
         return
     products = outdir(cfg, build, keep=True)
+    # `[install.as]` renames on the way out: STEM = "installed name". A DOS
+    # compiler names its executable after the source and offers no way to say
+    # otherwise, so a project whose shipped artefacts are called something a
+    # compiler cannot produce -- NEUROSIS.001, an extension that is not even
+    # .EXE -- has to rename at exactly this point. Naming it here rather than
+    # renaming the SOURCE keeps the source called what the unit is called,
+    # which is what every other instrument reads it by.
+    as_named = cfg["install"].get("as", {})
     for t in targets:
-        exe = products / (t.split(".")[0] + ".EXE")
+        stem = t.split(".")[0]
+        exe = products / (stem + ".EXE")
         if exe.exists():
-            shutil.copy(exe, run / exe.name)
-            print("  installed %s/%s  (%d bytes)"
-                  % (run.name, exe.name, exe.stat().st_size))
+            name = as_named.get(stem, exe.name)
+            shutil.copy(exe, run / name)
+            print("  installed %s/%s  (%d bytes)%s"
+                  % (run.name, name, exe.stat().st_size,
+                     "" if name == exe.name else "   <- %s" % exe.name))
     for pat in spec.get("alongside", []):
         for f in sorted(build.glob(pat)):
             shutil.copy(f, run / f.name)
