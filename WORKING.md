@@ -67,22 +67,29 @@ You will find kit work while doing target work, and it comes in three shapes. Te
 
 **Improve the instrument before the measurement it produced.** If a tool tells you something surprising, section 8's first line applies -- distrust the verifier first. The cost of being wrong here is asymmetric: a bad transcription is caught by the next comparison, and a bad instrument silently blesses every transcription after it.
 
-### Closing an iteration -- all four, every time
+### Closing an iteration
 
-An iteration is not over when the measurement moves. It is over when the four things below have happened, and they are listed in this order because each one is cheaper while the work is still in your head.
+Two things happen every iteration, and a third happens on a trigger.
 
-    1. COMMIT           the source edit and the measurement it produced
-    2. WIKI + TOOLS     anything transferable, before the next iteration buries it
-    3. COMMIT the kit   and bump the gitlink -- section 7
-    4. PUSH             both repositories
+    ALWAYS   commit the source edit and the measurement it produced, and PUSH
 
-**Do not defer step 2 to "later".** It has been deferred across thirty iterations of one reconstruction, and what came back was not thirty observations -- it was seven, written afterwards, from commit messages, with the reasoning reconstructed rather than recorded. The findings that survived were the ones a commit message happened to argue in full; the rest were gone. A transferable rule costs ten minutes on the day and cannot be recovered on any later one.
+    ON A TRIGGER   the kit pass: write it, commit the kit, bump the gitlink, push
 
-**The test for step 2 is section 5's, and it is not "is this interesting".** It is: *would this have been true of a different binary built the same way?* Most of what an iteration produces is target knowledge and belongs in the host's notes. What belongs in the wiki is the thing you would want to have known before you started -- and the reliable signal is having been WRONG in a way that a rule would have prevented. A correction is worth more than a discovery, because the discovery was going to happen anyway.
+**The kit pass fires when one of three things is true, and not otherwise:**
 
-**Step 4 is not optional and is not batched.** A commit that has not been pushed is one machine away from being the only copy, and a kit commit that has not been pushed makes the host's gitlink unresolvable for anybody else -- which is the same failure as not bumping it.
+| trigger | what to write |
+|---|---|
+| a finding that would hold for ANY binary built this way | a wiki observation -- section 5 has the test |
+| you wrote a tool, or did the same thing by hand twice | the tool, in `kit/tools`, and a line in the log |
+| an instrument changed, or said something false | the instrument, AND an observation for its blind spot |
 
-**If an iteration produced nothing transferable, say so in the commit and move on.** Steps 2 and 3 collapsing to nothing is a normal outcome; skipping the QUESTION is not.
+Most iterations trigger none of them. That is the normal case and it is not a failure -- an iteration that transcribes a routine the previous one located has produced target knowledge, which belongs in the host's notes and nowhere else. **Do not manufacture an observation to have written one.** A wiki of thin entries is worse than a smaller one, because it makes the index unreadable and the next person stops checking it.
+
+**When a trigger DOES fire, it fires now, not later.** This is the failure that has actually happened: the pass was deferred across roughly thirty iterations of one reconstruction, and what came back was not thirty observations. It was seven, written afterwards from commit messages, with the reasoning reconstructed rather than recorded -- and the only findings that survived are the ones a commit message happened to argue in full. At least two corrections were gone entirely. A transferable rule costs ten minutes on the day and cannot be recovered on any later one.
+
+**The reliable trigger is having been WRONG in a way a rule would have prevented.** Five of those seven were corrections. A discovery was going to happen anyway; a mistake is what generalises, and it is also the thing you are least inclined to write down.
+
+**Pushing is not batched.** A commit that has not been pushed is one machine away from being the only copy, and a kit commit that has not been pushed makes the host's gitlink unresolvable for anybody else -- the same failure as not bumping it.
 
 ### What tells you the loop is working
 
