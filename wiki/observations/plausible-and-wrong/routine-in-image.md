@@ -54,4 +54,4 @@ Two images and the list of code segments. No disassembler until you read a span 
 
 [1] `kit/tools/substrate/align.py` -- `locate()`, `walk()`, and the `DENSITY_WINDOW` / `DENSITY_LIMIT` constants, whose comments carry the 37-against-64 measurement.
 
-[2] `kit/tools/pascal/routines.py`, and the resolution of [One compare tool, and every caller passes its rule](https://github.com/sweetlilmre/PsychoNeurosis/issues/33) for the differential run against `tools/asmverify.py`.
+[2] `kit/tools/pascal/routines.py`, and the resolution of [One compare tool, and every caller passes its rule](https://github.com/sweetlilmre/PsychoNeurosis/issues/33) for the differential run against `asmverify.py`, archived under the psycho repository's `archive/pre-kit-scripts` tag and succeeded by that same `routines.py`.

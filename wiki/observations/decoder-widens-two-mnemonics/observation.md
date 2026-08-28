@@ -53,4 +53,4 @@ Reading `NEUROSIS.002`'s polygon scan converter at `108b:0513`, where the origin
 
 # Citations
 
-[1] `kit/tools/substrate/disasm.py`, the `NARROW` table above `walk()`, and `src/P2S2.PAS`'s `TriFill` transcription in the psycho repository.
+[1] `kit/tools/substrate/disasm.py`, the `NARROW` table above `walk()`, and `src/P2SOLID.PAS`'s `TriFill` transcription in the psycho repository.

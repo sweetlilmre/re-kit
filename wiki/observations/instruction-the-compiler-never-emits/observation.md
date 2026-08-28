@@ -76,4 +76,4 @@ The routine had been read as compiled Pascal for the whole of the project's life
 
 # Citations
 
-[1] `probe/DECLOOP.PAS` and `src/PART3_MORPH.PAS`, part 003 segment `1139`, in the psycho repository; measured with `kit/tools/pascal/codegen.py` and `kit/tools/pascal/spans.py` on 26 Aug 2026.
+[1] `probe/DECLOOP.PAS` and `src/P3MORPH.PAS`, part 003 segment `1139`, in the psycho repository; measured with `kit/tools/pascal/codegen.py` and `kit/tools/pascal/spans.py` on 26 Aug 2026.

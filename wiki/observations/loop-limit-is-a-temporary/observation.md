@@ -57,4 +57,4 @@ Reading the loop's compare operand, then arithmetic on the frame. Settling it ne
 
 # Citations
 
-[1] `src/P2S2.PAS`, the `var` blocks of `RenderA`/`RenderB`/`RenderC` and `ObjSortFaces` and the notes in them, in the psycho repository.
+[1] `src/P2SOLID.PAS`, the `var` blocks of `RenderA`/`RenderB`/`RenderC` and `ObjSortFaces` and the notes in them, in the psycho repository.

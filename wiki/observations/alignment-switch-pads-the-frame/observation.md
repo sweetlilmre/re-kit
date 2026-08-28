@@ -68,4 +68,4 @@ Swept across the rest of the target, the same switch was kept on two further uni
 
 # Citations
 
-[1] `src/P2S2.PAS`, `src/P1S5.PAS`, `src/P5S3.PAS`, `build.toml` and `status.toml`, in the psycho repository; measured with `kit/tools/pascal/spans.py` and `kit/tools/pascal/artefact.py` on 24 Aug 2026. The byte-exact control that refuted the global switch is that target's launcher, `TPART0`.
+[1] `src/P2SOLID.PAS`, `src/P1VECTOR.PAS`, `src/P5PATCH.PAS`, `build.toml` and `status.toml`, in the psycho repository; measured with `kit/tools/pascal/spans.py` and `kit/tools/pascal/artefact.py` on 24 Aug 2026. The byte-exact control that refuted the global switch is that target's start-up part, `NEUR0` (built as `TPART0` when this was measured).

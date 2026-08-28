@@ -120,6 +120,6 @@ The same case supplied the trap above. `$6A2A` had been written into the source 
 
 # Citations
 
-[1] `src/gen/P2OBJ.INC`, `src/P2S2.PAS` and `spans.toml`, part 002 segment `108b`, in the psycho repository; the original's shape read from Ghidra's decompilation of `108b:1cf2`, measured with `kit/tools/pascal/spans.py` on 24 Aug 2026.
+[1] `src/gen/P2OBJ.INC`, `src/P2SOLID.PAS` and `spans.toml`, part 002 segment `108b`, in the psycho repository; the original's shape read from Ghidra's decompilation of `108b:1cf2`, measured with `kit/tools/pascal/spans.py` on 24 Aug 2026.
 
-[2] `src/P1S4.PAS`, part 001 segment `1107`, in the psycho repository; measured with `kit/tools/pascal/prologue.py` and `spans.py` on 25 Aug 2026.
+[2] `src/P1BALLS.PAS`, part 001 segment `1107`, in the psycho repository; measured with `kit/tools/pascal/prologue.py` and `spans.py` on 25 Aug 2026.

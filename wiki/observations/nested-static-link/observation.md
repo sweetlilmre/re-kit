@@ -51,4 +51,4 @@ Part 003's globe scene had its structure wrong for weeks. `Globe_LoadTables`, `P
 
 # Citations
 
-[1] `docs/23-deviations.md` in the psycho repository -- the depth-sort entry and the part 003 globe-scene entry, with the addresses, the 121-byte result and the `LES DI, SrcOfs` trap. The span was found by `tools/shapediff.py 001`, which lists it as `1107:0287..039a`.
+[1] `docs/23-deviations.md` in the psycho repository -- the depth-sort entry and the part 003 globe-scene entry, with the addresses, the 121-byte result and the `LES DI, SrcOfs` trap. The span was found by `shapediff.py 001`, which lists it as `1107:0287..039a`; that script is archived under the psycho repository's `archive/pre-kit-scripts` tag and its measurement is `kit/tools/pascal/spans.py`.

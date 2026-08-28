@@ -59,4 +59,4 @@ Reading the arithmetic instruction by instruction rather than evaluating it. No 
 
 # Citations
 
-[1] `src/PART4_LEMMINGS.PAS`, `Digger` and `Walker` and the notes in them, in the psycho repository.
+[1] `src/P4LEMS.PAS`, `Digger` and `Walker` and the notes in them, in the psycho repository.

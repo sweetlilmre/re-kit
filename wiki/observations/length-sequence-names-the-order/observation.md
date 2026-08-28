@@ -62,4 +62,4 @@ In the same session `P2S1` had four routines transposed -- 152, 145, 270, 127 ag
 
 # Citations
 
-[1] `src/P2S1.PAS`, `src/P2S2.PAS`, `src/PART3_STARS.PAS` and `src/PART3_GLOBE.PAS` in the psycho repository; measured with `kit/tools/pascal/spans.py`, `prologue.py`, `unitorder.py` and the compiler's own map file on 26 Aug 2026.
+[1] `src/P2GARAGE.PAS`, `src/P2SOLID.PAS`, `src/P3STARS.PAS` and `src/P3GLOBE.PAS` in the psycho repository; measured with `kit/tools/pascal/spans.py`, `prologue.py`, `unitorder.py` and the compiler's own map file on 26 Aug 2026.

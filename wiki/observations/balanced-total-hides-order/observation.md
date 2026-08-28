@@ -62,4 +62,4 @@ Correcting the first number and reading the second off its two addresses (128, a
 
 # Citations
 
-[1] `src/P5S1.PAS` and `src/P5S2.PAS`, part 005 in the psycho repository; measured with `kit/tools/pascal/dsmap.py`, `dgimage.py` and `spans.py` on 26 Aug 2026.
+[1] `src/P5MESH.PAS` and `src/P5ROTO.PAS`, part 005 in the psycho repository; measured with `kit/tools/pascal/dsmap.py`, `dgimage.py` and `spans.py` on 26 Aug 2026.

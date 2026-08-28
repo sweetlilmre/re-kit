@@ -73,4 +73,4 @@ Two things worth carrying. **The right address was in the file all along, and so
 
 # Citations
 
-[1] `src/P1S4.PAS` and `src/P1S5.PAS`, part 001, in the psycho repository; measured with `kit/tools/pascal/dsmap.py`, `spans.py`, `dgimage.py` and `fpusites.py --diff` against the shipped binary on 25 Aug 2026. Recorded as `part1-unit-sizes`, with the residual as `part1-p1s4-hole`.
+[1] `src/P1BALLS.PAS` and `src/P1VECTOR.PAS`, part 001, in the psycho repository; measured with `kit/tools/pascal/dsmap.py`, `spans.py`, `dgimage.py` and `fpusites.py --diff` against the shipped binary on 25 Aug 2026. Recorded as `part1-unit-sizes`, with the residual as `part1-p1s4-hole`.

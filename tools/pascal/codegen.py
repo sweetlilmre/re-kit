@@ -64,6 +64,16 @@ def compile_with(cfg, root, staging, compiler, probe, extra=""):
     return unit.read_bytes(), out
 
 
+# PUSH BP then MOV BP,SP, in BOTH DIRECTIONS. `MOV BP,SP` has two encodings --
+# 8B EC loads, 89 E5 stores -- and Turbo Pascal 7 emits the STORE form where
+# 6.0 emits ENTER. Only 8B EC was listed, so a TP7 unit whose routines take
+# that shape read as containing no code at all: three of one project's probes
+# reported NO CODE under both TP7 releases and full code under both TP6
+# releases, from the same source. The bytes were there at +0646, spelled
+# 55 89 E5 83 EC 04.
+PROLOGUES = (b"\x55\x8b\xec", b"\x55\x89\xe5")
+
+
 def code_of(blob):
     """The compiled code, located by the first routine's prologue.
 
@@ -72,11 +82,22 @@ def code_of(blob):
     which differs between releases, and parsing it would make this tool care
     about the very thing it is comparing -- take from that prologue onwards,
     which is what the comparison needs.
+
+    THAT ASSUMPTION IS A REAL LIMIT AND IT FAILS QUIETLY. A probe whose
+    routines are frameless -- and a probe asking a question ABOUT frameless
+    code is the likeliest kind -- has no prologue to find, and this returns
+    nothing. Four of one project's seven probes were in that state under TP7.
+    The caller must treat `at is None` as no measurement: it is not offset
+    zero, and two of them are not agreement. See probecheck.py, which reports
+    it per probe and per compiler.
+
+    Give a probe routine one local if you need it measurable and the question
+    does not turn on the frame.
     """
     for i in range(len(blob) - 4):
         if blob[i] == 0xC8 and blob[i + 3] == 0x00:
-            return i, blob[i:]
-        if blob[i:i + 3] == b"\x55\x8b\xec":
+            return i, blob[i:]                      # ENTER nn,0
+        if blob[i:i + 3] in PROLOGUES:
             return i, blob[i:]
     return None, b""
 
@@ -124,15 +145,26 @@ def main(argv):
         (out / ("PROBE_%s.TPU" % c)).write_bytes(blob)
         at, code = code_of(blob)
         codes[c] = code
-        sys.stdout.write("=== %-5s %s  %d bytes, code found at +%04x\n"
+        # `at or 0` printed "+0000" for a miss, which reads as "found it at
+        # the start" -- the one wording that hides the failure completely.
+        where = "NO CODE FOUND (no frame prologue in the unit)" \
+            if at is None else "code found at +%04x" % at
+        sys.stdout.write("=== %-5s %s  %d bytes, %s\n"
                          % (c, build.machine("toolchain." + c,
                                              cfg["compiler"][c].get("exe")),
-                            len(blob), at or 0))
+                            len(blob), where))
 
     sys.stdout.write("\n")
     ref = which[0]
     for c in which[1:]:
         a, b = codes[ref], codes[c]
+        # EMPTY IS NOT AGREEMENT. Two failed extractions are equal, so this
+        # printed IDENTICAL CODE for a pair that had measured nothing at all --
+        # the same shape as a total that drops a component and stays plausible.
+        if not a or not b:
+            sys.stdout.write("%-5s vs %-5s : NO MEASUREMENT (%s empty)\n"
+                             % (ref, c, ref if not a else c))
+            continue
         same = a == b
         sys.stdout.write("%-5s vs %-5s : %s\n"
                          % (ref, c, "IDENTICAL CODE" if same else "DIFFERS"))

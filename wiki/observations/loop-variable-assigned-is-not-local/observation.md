@@ -74,4 +74,4 @@ Part 004 of a 1994 VGA demo. `Spawn` opens `ENTER $06` with its counter at `[BP-
 
 # Citations
 
-[1] `probe/FORASGN.PAS` and `src/PART4_LEMMINGS.PAS` in the psycho repository; driven with `kit/tools/pascal/codegen.py` on 26 Aug 2026.
+[1] `probe/FORASGN.PAS` and `src/P4LEMS.PAS` in the psycho repository; driven with `kit/tools/pascal/codegen.py` on 26 Aug 2026.

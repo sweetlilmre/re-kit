@@ -85,6 +85,6 @@ Two details carry. **The by-value point removed locals rather than adding them**
 
 # Citations
 
-[1] `src/P1S5.PAS`, part 001 segment `12c5`, in the psycho repository; measured with `kit/tools/pascal/spans.py`, `dgimage.py` and `fpusites.py --diff` against the shipped binary on 25 Aug 2026.
+[1] `src/P1VECTOR.PAS`, part 001 segment `12c5`, in the psycho repository; measured with `kit/tools/pascal/spans.py`, `dgimage.py` and `fpusites.py --diff` against the shipped binary on 25 Aug 2026.
 
 [2] The same call site, `12c5:0317` and `12c5:0361`. Recorded as an open investigation rather than acted on, because the array bound also sizes a second array and moving it shifts DGROUP -- a layout bundle, which that target has learned to land in one step.

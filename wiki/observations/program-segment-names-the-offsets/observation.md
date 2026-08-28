@@ -89,4 +89,4 @@ Psycho Neurosis (Asphyxia, 1994), seven parts in Borland Pascal 7. Comparing eac
 
 # Citations
 
-[1] src/NEUR1.PAS through src/NEUR7.PAS, src/PART3_MORPH.PAS and src/P1S4.PAS in the psycho repository; measured against work/split/NEUROSIS_00n.exe with the compiler's map file on 27 Aug 2026.
+[1] src/NEUR1.PAS through src/NEUR7.PAS, src/P3MORPH.PAS and src/P1BALLS.PAS in the psycho repository; measured against work/split/NEUROSIS_00n.exe with the compiler's map file on 27 Aug 2026.

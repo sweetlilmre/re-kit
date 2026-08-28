@@ -73,6 +73,6 @@ Worth noting what the pass is *not* competing with. The same day's instruments w
 
 # Citations
 
-[1] `src/P1S4.PAS` and `src/P1S5.PAS`, part 001, in the psycho repository, 25 Aug 2026; each measured with `kit/tools/pascal/spans.py` and `dsmap.py` against the shipped binary and recorded in that project's register.
+[1] `src/P1BALLS.PAS` and `src/P1VECTOR.PAS`, part 001, in the psycho repository, 25 Aug 2026; each measured with `kit/tools/pascal/spans.py` and `dsmap.py` against the shipped binary and recorded in that project's register.
 
 [2] The same day. The instruments were `dsmap.py`, `spanwhy.py` and `prologue.py`; the shortfall they quantified went from 23,530 bytes to 17,710 on the two comment-derived findings alone.

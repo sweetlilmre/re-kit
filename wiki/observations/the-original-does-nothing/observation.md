@@ -73,4 +73,4 @@ Part 001 of a 1994 VGA demo, in the same session: eighty-three bytes in a loader
 
 # Citations
 
-[1] `src/P1S4.PAS` and `src/P1S1.PAS`, part 001 segments `1107` and `1012`, in the psycho repository; measured with `kit/tools/pascal/spans.py` on 26 Aug 2026.
+[1] `src/P1BALLS.PAS` and `src/P1LOGO.PAS`, part 001 segments `1107` and `1012`, in the psycho repository; measured with `kit/tools/pascal/spans.py` on 26 Aug 2026.

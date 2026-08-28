@@ -36,6 +36,6 @@ The second-largest remainder of that span, `1107:0287..039a`, was the opposite f
 
 # Citations
 
-[1] `tools/shapediff.py`, in the psycho repository -- the coverage differ, and its docstring's account of the two classes a span belongs to.
+[1] `shapediff.py`, in the psycho repository -- the coverage differ, and its docstring's account of the two classes a span belongs to. It is archived under that repository's `archive/pre-kit-scripts` tag; `kit/tools/pascal/spans.py` carries the measurement now.
 
 [2] `docs/23-deviations.md`, the depth-sort entry, and commit `c15bd92` in the psycho repository.

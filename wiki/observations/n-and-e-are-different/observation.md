@@ -61,6 +61,6 @@ That distinction survived three attempts to lose it. A session in August built a
 
 # Citations
 
-[1] `src/P5S2.PAS` in the psycho repository -- the `{$N+}` comment, which now carries the distinction, the 12 traps measured over the loop body `1096:051a..0591`, and the two-build alignment test. An earlier version of that comment put **14** traps "at `1096:051a`"; the number is the count for the whole enclosing routine and the address was the loop's. Right number, wrong extent -- recorded here because a figure that cannot be reproduced from the extent it names is how a measurement quietly becomes a claim.
+[1] `src/P5ROTO.PAS` in the psycho repository -- the `{$N+}` comment, which now carries the distinction, the 12 traps measured over the loop body `1096:051a..0591`, and the two-build alignment test. An earlier version of that comment put **14** traps "at `1096:051a`"; the number is the count for the whole enclosing routine and the address was the loop's. Right number, wrong extent -- recorded here because a figure that cannot be reproduced from the extent it names is how a measurement quietly becomes a claim.
 
 [2] `docs/23-deviations.md`, *NOT a deviation: the x87 emulator traps, and the `_fpu` files' provenance*, in the same repository.

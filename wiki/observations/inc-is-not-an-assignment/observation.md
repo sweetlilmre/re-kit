@@ -73,6 +73,6 @@ Worth noting what the gain was *not*. The same session had just landed a much la
 
 # Citations
 
-[1] `src/P1S5.PAS`, part 001 segment `12c5`, in the psycho repository; measured with `kit/tools/pascal/spans.py` and `spanwhy.py` against the shipped binary on 25 Aug 2026.
+[1] `src/P1VECTOR.PAS`, part 001 segment `12c5`, in the psycho repository; measured with `kit/tools/pascal/spans.py` and `spanwhy.py` against the shipped binary on 25 Aug 2026.
 
 [2] The same file and date. The bundle is recorded as `part1-object-record` and the residual as `part1-dgroup-placement`, which is the unit's whole data block sitting some 26KB from the original's -- the reason the routine's remaining 24 bytes are displacements rather than instructions.

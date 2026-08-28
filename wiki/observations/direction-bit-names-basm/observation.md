@@ -77,4 +77,4 @@ One pass of a 16-bit decoder over each range, counting opcode bytes where `mod =
 
 # Citations
 
-[1] `src/P2S2.PAS`, the `TriFill` and `FillFan` transcriptions and the comment block above them, in the psycho repository.
+[1] `src/P2SOLID.PAS`, the `TriFill` and `FillFan` transcriptions and the comment block above them, in the psycho repository.

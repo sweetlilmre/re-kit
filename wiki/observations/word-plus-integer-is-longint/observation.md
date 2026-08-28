@@ -83,4 +83,4 @@ Part 005 of a 1994 VGA demo. Three sites: a texture sampler's clip-and-read, and
 
 # Citations
 
-[1] `src/P5S2.PAS`, `src/P5S3.PAS` and `probe/MULSIGN.PAS`, part 005 in the psycho repository; measured with `kit/tools/pascal/spans.py` and `codegen.py` on 26 Aug 2026.
+[1] `src/P5ROTO.PAS`, `src/P5PATCH.PAS` and `probe/MULSIGN.PAS`, part 005 in the psycho repository; measured with `kit/tools/pascal/spans.py` and `codegen.py` on 26 Aug 2026.

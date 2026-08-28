@@ -116,8 +116,8 @@ Reordering collapsed three different shifts into one shift of `-23530` held acro
 
 # Citations
 
-[1] `src/P3MAIN.PAS`, `src/gen/P3PAL.INC` and `spans.toml`, part 003 in the psycho repository; the original's layout read from Ghidra's decompilation of `1139:03b4` and from byte searches over `work/split/NEUROSIS_003_fpu.exe`, measured with `kit/tools/pascal/spans.py` on 25 Aug 2026.
+[1] `src/NEUR3.PAS`, `src/gen/P3PAL.INC` and `spans.toml`, part 003 in the psycho repository; the original's layout read from Ghidra's decompilation of `1139:03b4` and from byte searches over `work/split/NEUROSIS_003_fpu.exe`, measured with `kit/tools/pascal/spans.py` on 25 Aug 2026.
 
-[2] `src/P5MAIN.PAS` and `src/P5S3.PAS`, part 005 in the same repository, 25 Aug 2026. The clause carries the measurement as a comment so nobody tidies it back into scene order. Measured with `kit/tools/pascal/dgimage.py` for the initialised image, `kit/tools/substrate/segmap.py` for the segment sizes, and `spans.py` for the number that did not move.
+[2] `src/NEUR5.PAS` and `src/P5PATCH.PAS`, part 005 in the same repository, 25 Aug 2026. The clause carries the measurement as a comment so nobody tidies it back into scene order. Measured with `kit/tools/pascal/dgimage.py` for the initialised image, `kit/tools/substrate/segmap.py` for the segment sizes, and `spans.py` for the number that did not move.
 
-[3] `src/P1S5.PAS`, part 001, in the psycho repository; measured with `kit/tools/pascal/dsmap.py` and `spans.py` on 25 Aug 2026. Recorded as `part1-dgroup-placement`, whose resolution keeps the misdiagnosis rather than editing it away.
+[3] `src/P1VECTOR.PAS`, part 001, in the psycho repository; measured with `kit/tools/pascal/dsmap.py` and `spans.py` on 25 Aug 2026. Recorded as `part1-dgroup-placement`, whose resolution keeps the misdiagnosis rather than editing it away.

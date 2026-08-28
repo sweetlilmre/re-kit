@@ -65,4 +65,4 @@ Part 001 of a 1994 VGA demo. A lens-gather routine, correctly identified as hand
 
 # Citations
 
-[1] `src/P1S1.PAS`, part 001 in the psycho repository; measured with `kit/tools/pascal/spans.py`, `dgimage.py` and `fpusites.py`, and detected by a watched DOSBox-X run on 26 Aug 2026.
+[1] `src/P1LOGO.PAS`, part 001 in the psycho repository; measured with `kit/tools/pascal/spans.py`, `dgimage.py` and `fpusites.py`, and detected by a watched DOSBox-X run on 26 Aug 2026.

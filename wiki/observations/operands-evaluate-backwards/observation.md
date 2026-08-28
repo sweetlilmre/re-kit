@@ -62,4 +62,4 @@ A lens-table builder at `1012:0008` in a 1994 VGA demo. Sixteen index and value 
 
 # Citations
 
-[1] `src/P1S1.PAS`, part 001 segment `1012`, in the psycho repository; measured with `kit/tools/pascal/spans.py` on 26 Aug 2026.
+[1] `src/P1LOGO.PAS`, part 001 segment `1012`, in the psycho repository; measured with `kit/tools/pascal/spans.py` on 26 Aug 2026.

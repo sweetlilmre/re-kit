@@ -144,6 +144,8 @@ The plan shrinks, the coverage walk's spans shrink, and the ratchet does not fal
 | record what I saw when I ran it | `pascal/observe.py` |
 | read the markers, measure coverage | `pascal/markers.py` (`marker.py` is its reader) |
 | is hand-written assembler duplicated between units? | `pascal/shared_asm.py` |
+| does a claimed compiler difference survive a measurement? | `pascal/codegen.py` -- one probe, every compiler |
+| do the probes still compile, and still yield a measurement? | `pascal/probecheck.py` -- a probe is cited like a binary and nothing else re-runs it |
 | is the transcription rule met? | `pascal/asmaudit.py` |
 | is the wiki valid? | `wikitools/okfcheck.py`, `wikitools/kbprofile.py`, `wikitools/glossary.py` |
 | does any tool leave an encoding to the locale? | `encaudit.py` |
@@ -176,11 +178,19 @@ The plan shrinks, the coverage walk's spans shrink, and the ratchet does not fal
     $V kit/tools/pascal/routines.py
     $V kit/tools/pascal/paslint.py
     $V kit/tools/pascal/asmaudit.py
+    $V kit/tools/pascal/probecheck.py build.toml   # SLOW: one DOSBox run per probe per compiler
     $V kit/tools/encaudit.py
 
     git ls-files -i -c --exclude-standard              # in the host AND in kit/
 
 **Not a program, deliberately.** That last line names every file git tracks that the ignore rules claim to exclude, and a `.gitignore` added after the fact does nothing to a file already tracked -- so the commit that looks like the fix is the commit that hides it. It has to run in the kit as well as the host, because a submodule has its own index and the host's run cannot see inside it. Nine such files travelled in the kit for a day, and only the SECOND consumer could see them: the host they were committed from holds them in its working tree and reports clean. Wrapping one git command in Python would add a tool that measures nothing the command does not.
+
+**`probecheck` is the one entry that names a config file**, because it drives the compilers and
+those live in the build data rather than in the answers file. It is also the one check with a
+real cost -- seconds per probe per compiler -- so it belongs in the list a session runs before
+committing rather than in the loop it runs while editing. Skipping it is safe on any day nobody
+touched a probe; a probe is cited by resolved investigations and by source comments the way a
+binary is, and nothing else in a tree ever recompiles one.
 
 **No paths and no numbers, and both absences are the point** -- this is the same list in every project. A host repository may have checks of its own on top; those live in its agent file.
 

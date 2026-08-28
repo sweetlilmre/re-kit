@@ -53,6 +53,6 @@ The same rule had already been written down in another part of the same target, 
 
 # Citations
 
-[1] `src/PART3_STARS.PAS` and `src/asm/STARMATH.ASM`, part 003 segment `10b8`, in the psycho repository; measured with `kit/tools/pascal/spans.py` on 26 Aug 2026.
+[1] `src/P3STARS.PAS` and `src/asm/STARMATH.ASM`, part 003 segment `10b8`, in the psycho repository; measured with `kit/tools/pascal/spans.py` on 26 Aug 2026.
 
-[2] `src/P5S3.PAS`, same repository, dated 24 Aug 2026.
+[2] `src/P5PATCH.PAS`, same repository, dated 24 Aug 2026.

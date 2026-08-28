@@ -66,4 +66,4 @@ A 1994 DOS demo in eight parts sharing one VGA unit. The smallest part's copy wa
 
 # Citations
 
-[1] `src/VGA.PAS` and `src/P7S1.PAS`, parts 006 and 007 in the psycho repository; measured with `kit/tools/pascal/spans.py` and `artefact.py` on 26 Aug 2026.
+[1] `src/VGA.PAS` and `src/P7FLIC.PAS`, parts 006 and 007 in the psycho repository; measured with `kit/tools/pascal/spans.py` and `artefact.py` on 26 Aug 2026.

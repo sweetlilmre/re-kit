@@ -114,6 +114,6 @@ Two details from that case are worth carrying. **The evidence had been quoted in
 
 # Citations
 
-[1] `src/P1S1.PAS` and `spans.toml`, part 001 segment `1012`, in the psycho repository; measured with `kit/tools/pascal/spans.py` against the shipped binary on 24 Aug 2026.
+[1] `src/P1LOGO.PAS` and `spans.toml`, part 001 segment `1012`, in the psycho repository; measured with `kit/tools/pascal/spans.py` against the shipped binary on 24 Aug 2026.
 
-[2] `src/P5S2.PAS`, part 005 segment `1096`, in the same repository; measured with `kit/tools/pascal/spans.py` on 24 Aug 2026. The refuted candidates are that target's `FIXMATH` (segments `1483` and `142a`) and its 320x400 video unit (`140c`), none of which contains an `ENTER`.
+[2] `src/P5ROTO.PAS`, part 005 segment `1096`, in the same repository; measured with `kit/tools/pascal/spans.py` on 24 Aug 2026. The refuted candidates are that target's `FIXMATH` (segments `1483` and `142a`) and its 320x400 video unit (`140c`), none of which contains an `ENTER`.
