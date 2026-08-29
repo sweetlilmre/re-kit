@@ -48,6 +48,27 @@ A stale number in a `{ DS:$xxxx }` comment is a wrong label. A stale number reas
 
 The argument is sound, the conclusion is correct, and the address is the previous version's — the variable is at `$02d3`. **Prose that argues from an address reads as corroboration for it**, so it survives review better than the bare comment would, and no fixer can touch it: rewriting a declaration's address leaves the paragraph beside it still reasoning from the old one. On this corpus 1,228 such mentions remained after 220 declarations were corrected. A tool that rewrites addresses should count what it could not reach and say so.
 
+## A fixer that touches prose needs a much higher bar than one that touches declarations
+
+A declaration has one address and one owner. A sentence has neither, and every rule for pairing a name with a number in prose has a counter-example. Four attempts on one corpus:
+
+| the rule | what it did |
+|---|---|
+| nearest address to each name | rewrote `LoopMod ... is $02c8` with ForceLoopMod's address — English parallelism puts the nearer name first |
+| nothing but punctuation between them | safe, and blind to every sentence with a verb in it |
+| names and addresses must alternate | good, but a name between two addresses claims both |
+| **only text inside `{ }` is prose** | removed 49 false pairings at a stroke |
+
+The last one is the load-bearing rule and it was found last. `if CanalPtr^.Period > $1FFF then` is a line of code; `$1FFF` is a clamp the program compares against, and `CanalPtr` is right beside it. Scanning whole lines put those two together. **Forty-nine of fifty-five candidates were constants in live expressions**, and the only reason none was rewritten is that an earlier, blunter rule had happened to reject them for an unrelated reason.
+
+Three narrower rules came out of reading the output rather than trusting it:
+
+* **Every name competes, including ones the checker cannot resolve.** A name declared in two units has no answer in the map — but it still owns the address beside it, and letting a further-away resolvable name win writes that name's value onto its neighbour's number.
+* **An assigned number is a value.** `StepVal := $1000` says what the variable holds.
+* **A range is a claim about a span.** Rewriting either end of `$0018..$001d` leaves a sentence that says nothing.
+
+**And some mentions can never be paired.** A note whose subject is an address, that then names a different variable — `{ DS:$0c74 -- the third duplicated global, after AltMode ... }` — reads to any rule as `AltMode = $0c74`. The fix is not a cleverer rule; it is to write the subject's name next to its address, so the sentence says what it means. On this corpus 165 mentions name no variable at all, and no rule can attribute them.
+
 ## A checker that does not model the layout manufactures findings
 
 The first version of that checker reported **28 disagreements. Nineteen were its own.**

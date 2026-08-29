@@ -360,28 +360,40 @@ def prose_addresses(files):
     return n
 
 
-# A name and an address are a pair only when NOTHING BUT PUNCTUATION separates
-# them, on either side. Both orders occur and they are not interchangeable:
+# A name and an address pair only when the line ALTERNATES between the two.
 #
-#     `UsingGUS` ($0bce), `TicksPerSecond` ($0bcc)     name first
-#     $0c6e ChainPtr   $0c72 Complain                  address first, in a table
+# Both orders occur and they are not interchangeable:
 #
-# **DISTANCE ALONE IS NOT ENOUGH, AND THE FAILURE IS SILENT.** English puts
-# things in parallel:
+#     `UsingGUS` ($0bce), `TicksPerSecond` ($0bcc)     name addr name addr
+#     $0c6e ChainPtr   $0c72 Complain                  addr name addr name
 #
-#     `LoopMod` then `ForceLoopMod` is $02c8 then $02c9
+# **DISTANCE IS NOT ENOUGH, AND THE FAILURE IS SILENT.** English puts things in
+# parallel, and then the names and the addresses come in two runs:
 #
-# Here $02c8 belongs to LoopMod and $02c9 to ForceLoopMod, but ForceLoopMod is
-# the NEARER name to $02c8. A proximity rule rewrites the first address with the
-# second variable's value and produces a sentence that is wrong in a new way.
-# This tool did exactly that before the rule was tightened.
+#     `LoopMod` then `ForceLoopMod` is $02c8 then $02c9      name name addr addr
+#     Frac at $0018, a pad at $0019                          name addr addr
 #
-# Requiring a gap free of letters keeps the two forms above and rejects every
-# sentence with a verb in it. That loses real mentions -- "Frac at $0018" is a
-# true one and goes unfixed -- and losing them is the right trade: an unfixed
-# mention is a known unknown, and a mis-rewritten one is a new false fact.
-PAIR_WINDOW = 24
-LETTER = re.compile(r'[A-Za-z]')
+# In the first, $02c8 is LoopMod's -- but ForceLoopMod is the NEARER name to it.
+# A proximity rule writes ForceLoopMod's address onto LoopMod's number and leaves
+# a sentence that is wrong in a new way. This tool did that, and the mistake was
+# found by reading a diff rather than by any check.
+#
+# Alternation is what separates the two shapes. Where names and addresses take
+# turns, each pairing is forced by position and no distance judgement is needed.
+# Where either runs twice, the mapping is carried across a gap by grammar, and
+# this refuses the whole line rather than guess at it.
+#
+# The window still applies, so a name and an address at opposite ends of a long
+# line do not pair merely because nothing came between them.
+#
+# **AND ONLY COMMENT TEXT IS PROSE.** A line of code carries numbers too --
+# `if CanalPtr^.Period > $1FFF then` -- and $1FFF is a clamp the code compares
+# against, not an address anything lives at. Scanning whole lines paired the two
+# and would have rewritten a constant in a live expression. Everything outside
+# `{ }` is skipped, which removes that entire class at once rather than guessing
+# at it one form at a time.
+PAIR_WINDOW = 40
+COMMENT = re.compile(r'\{[^}]*\}?')
 NAME_TOKEN = re.compile(r'\b([A-Za-z_]\w{2,})\b')
 ADDR_TOKEN = re.compile(r'\$([0-9a-fA-F]{4})\b')
 
@@ -393,12 +405,18 @@ def prose_claims(path, addresses, limit=None):
     it. A mention is only checkable when the line names a variable this file
     declares; everything else is reported as needing a person.
     """
-    out, orphan = [], 0
+    out, orphan = [], []
     with io.open(path, encoding='utf-8', errors='replace', newline='') as fh:
         lines = fh.read().split('\n')
-    for n, line in enumerate(lines, 1):
-        if DECL.match(line.rstrip()):
+    for n, raw in enumerate(lines, 1):
+        if DECL.match(raw.rstrip()):
             continue                       # --fix and --chain own the declarations
+        # Blank everything that is not inside a comment, keeping the columns so a
+        # rewrite still lands where the match was found.
+        line = ''.join(
+            raw[a:b] if any(m.start() <= a and b <= m.end()
+                            for m in COMMENT.finditer(raw)) else ' ' * (b - a)
+            for a, b in [(i, i + 1) for i in range(len(raw))])
         addrs = []
         for am in ADDR_TOKEN.finditer(line):
             # A VALUE IS NOT AN ADDRESS. `$ffff` beside `GUSIrq` is the constant
@@ -416,38 +434,32 @@ def prose_claims(path, addresses, limit=None):
                                                            am.start(1) - 1] == '..':
                 continue
             addrs.append(am)
-        # EACH ADDRESS IS CLAIMED ONCE, by the one name it is adjacent to.
-        # Assigning per NAME instead lets two names claim one address and the
-        # loser's rewrite lands on the winner's span.
-        paired, owner = set(), {}
+        # Merge names and addresses into one sequence, in column order.
+        toks = []
         for nm in NAME_TOKEN.finditer(line):
-            # EXACT CASE. `Guard` is a variable and `guard` is an English word,
-            # and this tree's prose is full of the second. Matching case-blind
-            # paired the noun in "the poll re-entrancy guard" with the address
-            # in the next column of a table.
-            # EVERY name competes for an address, not only the ones we can
-            # resolve. A name this file cannot resolve -- one declared in two
-            # units, say -- is still the rightful owner of the address beside
-            # it, and letting a further-away KNOWN name win puts that name's
-            # value onto its neighbour's number.
-            real = addresses.get(nm.group(1))
-            for am in addrs:
-                if am.end() <= nm.start():
-                    gap, d = line[am.end():nm.start()], nm.start() - am.end()
-                else:
-                    gap, d = line[nm.end():am.start()], am.start() - nm.end()
-                if d > PAIR_WINDOW or LETTER.search(gap):
+            if nm.group(1) in addresses:
+                toks.append(('n', nm.start(), nm.end(), nm.group(1)))
+        for am in addrs:
+            toks.append(('a', am.start(), am.end(), am))
+        toks.sort(key=lambda x: x[1])
+
+        paired, owner = set(), {}
+        alternates = all(toks[i][0] != toks[i + 1][0] for i in range(len(toks) - 1))
+        if alternates:
+            for i in range(len(toks) - 1):
+                left, right = toks[i], toks[i + 1]
+                if right[1] - left[2] > PAIR_WINDOW:
                     continue
-                key = (d, 0 if am.end() <= nm.start() else 1)
-                if am.start(1) not in owner or key < owner[am.start(1)][0]:
-                    owner[am.start(1)] = (key, nm.group(1), am.group(1), real)
+                nm = left if left[0] == 'n' else right
+                am = (left if left[0] == 'a' else right)[3]
+                owner[am.start(1)] = (0, nm[3], am.group(1), addresses[nm[3]])
         for col, (_, name, cited, real) in owner.items():
             paired.add(col)
             if real is not None and real != int(cited, 16):
                 out.append((n, col, name, cited.lower(), real))
         for m in addrs:
             if m.start(1) not in paired:
-                orphan += 1
+                orphan.append((n, m.group(1).lower(), line.strip()[:76]))
     return out, orphan
 
 
@@ -591,7 +603,11 @@ def main(argv):
                     continue
                 known[d['name']] = publics.get(d['name'].upper(), d['addr'])
             claims, orphan = prose_claims(f, known, dgroup_len)
-            orphans += orphan
+            orphans += len(orphan)
+            if "--orphans" in argv:
+                for n, tok, line in orphan:
+                    print("%s:%-5d $%s   %s"
+                          % (pathlib.Path(f).name, n, tok, line))
             for n, _, name, cited, real in claims:
                 print("%s:%-5d %-16s the prose says $%s, %s is at $%04X"
                       % (pathlib.Path(f).name, n, name, cited, name, real))
