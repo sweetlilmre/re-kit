@@ -31,9 +31,14 @@ trimmed this way, never a bare offset -- `{ 0000 RETF 6 }` is a routine table
 where the number IDENTIFIES the entry, and losing it leaves a row naming
 nothing.
 
-That distinction is the whole rule. A `segment:offset` is always a place in
-someone else's binary; a bare four-digit number might be a place, or a length,
-or a row label, and this tool cannot tell which.
+`{ DS:$02d2  the FilterOff key }` goes the same way and for the same reason: the
+`DS:` says outright that what follows is an address, so it cannot be a length or
+a row label either.
+
+That distinction is the whole rule, and it is about NOTATION rather than about
+value. A `segment:offset` or a `DS:$` prefix announces itself as a place in
+someone else's binary. A bare four-digit number might be a place, or a length, or
+a row label, and this tool cannot tell which -- so it is never touched.
 
 **On ANY line of a block comment, not just the first.** The common shape here is
 a rule of dashes, then the address on the line below it:
@@ -110,9 +115,9 @@ LEAD = re.compile(r'^[ \t]*(?:%s)(?:[\s,/]+(?:%s))*[ \t]*--[ \t]*'
                   % (SPAN, SPAN), re.M)
 # A segment:offset and then a note, with no dash between them. Two-part form
 # only: a bare offset may be identifying a row rather than citing a site.
-SITE = re.compile(r'^[ \t]*[0-9a-fA-F]{4}:[0-9a-fA-F]{4}'
-                  r'(?:[\s,/]+[0-9a-fA-F]{4}:[0-9a-fA-F]{4})*[ \t]+(?=\S)',
-                  re.M)
+SITE_TOKEN = r'(?:[0-9a-fA-F]{4}:[0-9a-fA-F]{4}|DS:\$[0-9a-fA-F]{2,4})'
+SITE = re.compile(r'^[ \t]*%s(?:[\s,/]+%s)*[ \t]+(?=\S)'
+                  % (SITE_TOKEN, SITE_TOKEN), re.M)
 COMMENT = re.compile(r'\{[^{}]*\}')
 
 
@@ -132,7 +137,9 @@ def clean_text(text):
         body = m.group(0)[1:-1]
         if '1.39b' in body:
             return m.group(0)
-        cut = SITE.sub('', LEAD.sub('', body))
+        # A single space, not nothing: the opening brace would otherwise sit
+        # against the first word.
+        cut = SITE.sub(' ', LEAD.sub('', body))
         if cut != body:
             trimmed += 1
             return '{' + cut + '}'
