@@ -123,6 +123,9 @@ import sys
 import bisect
 import pathlib
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+import project                                                    # noqa: E402
+
 # LZEXE's own constants, from lzss.asm's DATA segment.
 BUFSIZE = 0x2000          # the ring buffer -- BUFSIZE equ 2000h
 LENMAX = 253              # the longest match -- LENMAX equ 253
@@ -785,6 +788,16 @@ def main(argv):
     if not exepath.is_file():
         raise SystemExit("no such EXE: %s" % exepath)
     refpath, ref = packed_path(packed)
+
+    # The packer is the LAST measurement in the chain and the one whose verdict
+    # gets quoted, so it refuses a stale input rather than reporting a perfect
+    # match for an .EXE that predates the source on disk.
+    try:
+        project.fresh(exepath)
+    except Exception as exc:                                       # noqa: BLE001
+        if type(exc).__name__ == 'Stale':
+            raise SystemExit("STALE: %s" % exc)
+        pass
 
     print("packing   %s" % exepath)
     print("stub from %s" % refpath)

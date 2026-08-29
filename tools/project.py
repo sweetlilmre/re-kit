@@ -149,6 +149,70 @@ def products(build=None, start=None, quiet=True):
         return build
 
 
+class Stale(Exception):
+    """A build product older than something it was built from."""
+
+
+def fresh(artifact, sources=None, start=None):
+    """Refuse a build product older than the sources it was built from.
+
+    EVERY INSTRUMENT IN THE KIT READS AN ARTEFACT OFF DISK AND CANNOT TELL A
+    FRESH ONE FROM A STALE ONE. That is not a hypothetical. In this project's
+    own host repository a build failed six times in a row while four separate
+    measurements reported the image byte-identical and the packed output
+    byte-identical -- all four reading the last .EXE that HAD compiled, which
+    was genuinely exact, for source that no longer existed.
+
+    The build refused loudly every time and said exactly the right thing:
+    "NOTHING WAS INSTALLED, so anything in the output directory is STALE and
+    any measurement of it is meaningless." It was read through a grep for
+    `error|fatal`, which that sentence does not contain. **A warning that has
+    to be read is not a guard**; the instrument that consumes the artefact is
+    the only place a check cannot be skipped by accident.
+
+    So this is a comparison of modification times, and it belongs here rather
+    than in any one tool because they all need it and none of them owns it:
+
+        artifact   the product about to be measured
+        sources    what it was built from -- files, or directories to walk.
+                   Defaults to `layout.src`, which is the answer every host
+                   already has.
+
+    A missing artefact raises too, and with the same reasoning: the alternative
+    is a tool that finds nothing and reports agreement, which the note on
+    `products` above records as the failure that reads as ten passes.
+
+    IT IS DELIBERATELY A TIMESTAMP AND NOT A HASH. A hash of the sources would
+    be exact and needs somewhere to keep the manifest, which is a second thing
+    to go stale. A file older than its inputs is wrong under every build
+    system, and false alarms cost one rebuild.
+    """
+    artifact = pathlib.Path(artifact)
+    if not artifact.exists():
+        raise Stale("%s does not exist -- there is nothing to measure. Build "
+                    "first, and read what the build says." % artifact)
+
+    if sources is None:
+        sources = paths("layout.src", start=start, quiet=True)
+    if isinstance(sources, (str, pathlib.Path)):
+        sources = [sources]
+
+    newest, when = None, 0.0
+    for s in sources:
+        s = pathlib.Path(s)
+        for f in ([s] if s.is_file() else sorted(s.rglob("*"))):
+            if f.is_file() and f.stat().st_mtime > when:
+                newest, when = f, f.stat().st_mtime
+
+    if newest is not None and when > artifact.stat().st_mtime:
+        raise Stale(
+            "%s is OLDER than %s, so it was not built from the sources on "
+            "disk and measuring it means nothing.\n"
+            "  Rebuild. If the build refused, that is the finding -- read its "
+            "output in full rather than filtering it." % (artifact, newest))
+    return artifact
+
+
 def paths(key, override=None, start=None, quiet=False):
     """An answer that is a list of paths -- census roots, for instance."""
     value = get(key, override, start, quiet)

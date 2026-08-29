@@ -122,6 +122,7 @@ def main(argv=()):
         return 2
     # DGROUP is the last segment in the image, so the boundary the other
     # instruments call `end_at` is where it starts.
+    project.fresh(mapfile.with_suffix('.EXE'))
     orig, ours = (orig_image(image, link['end_at'], first),
                   our_image(mapfile, mapfile.with_suffix('.EXE')))
     print("initialised DGROUP:  ours %d bytes, original %d -- %+d" % (
@@ -195,4 +196,7 @@ def main(argv=()):
 
 
 if __name__ == '__main__':
-    sys.exit(main(sys.argv[1:]) or 0)
+    try:
+        sys.exit(main(sys.argv[1:]))
+    except project.Stale as exc:
+        raise SystemExit('STALE: %s' % exc)

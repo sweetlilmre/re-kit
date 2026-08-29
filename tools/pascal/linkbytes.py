@@ -133,11 +133,13 @@ def main(argv):
     first = project.get("target.first_para")
     orig = load_image((root / project.get("target.image")).read_bytes())
     text = (build / "VTMAIN.MAP").read_text() if (build / "VTMAIN.MAP").exists() else None
-    exe = None
+    exe = exe_path = None
     for p in build.glob("*.EXE"):
+        exe_path = p
         exe, text = load_image(p.read_bytes()), text or (p.with_suffix(".MAP")).read_text()
     if exe is None or text is None:
         raise SystemExit("need a linked .EXE and its .MAP in %s -- build with /GD" % build)
+    project.fresh(exe_path)
 
     if at is not None:
         od = (project.get("target.dgroup_para", quiet=True) or 0) * 16
@@ -165,4 +167,7 @@ def main(argv):
 if __name__ == "__main__":
     if not sys.argv[1:]:
         raise SystemExit(__doc__)
-    sys.exit(main(sys.argv[1:]))
+    try:
+        sys.exit(main(sys.argv[1:]))
+    except project.Stale as exc:
+        raise SystemExit('STALE: %s' % exc)
