@@ -25,6 +25,17 @@ comments, so removing them is most of the job by volume.
 everything after the dash and loses the span. The sentence is about the program;
 the span is about the image.
 
+**On ANY line of a block comment, not just the first.** The common shape here is
+a rule of dashes, then the address on the line below it:
+
+    { -------------------------------------------------------------------
+      12ba:0007 -- UnCanal. Mix one channel into its own buffer.
+
+Matching only at the start of the comment left every one of those untouched, and
+they are the headline of the routine -- the first line a reader sees. Found by
+reading the output rather than by any check, which is the argument for reading
+it.
+
 That is all it does, and the restraint is deliberate. It would be easy to drop
 whole paragraphs by scoring them for words like "operand" or "byte-identical",
 and easy to be wrong: the paragraphs that explain a self-modifying instruction, a
@@ -85,7 +96,8 @@ TOKEN = (r'(?:[0-9a-fA-F]{4}:[0-9a-fA-F]{4}'      # segment:offset
          r'|[0-9a-fA-F]{4})')                     # a bare offset
 SPAN = r'%s(?:\s*\.\.\s*%s)?' % (TOKEN, TOKEN)
 ONLY = re.compile(r'^\s*(?:%s)(?:[\s,/]+(?:%s))*\s*$' % (SPAN, SPAN))
-LEAD = re.compile(r'^\s*(?:%s)(?:[\s,/]+(?:%s))*\s*--\s*' % (SPAN, SPAN))
+LEAD = re.compile(r'^[ \t]*(?:%s)(?:[\s,/]+(?:%s))*[ \t]*--[ \t]*'
+                  % (SPAN, SPAN), re.M)
 COMMENT = re.compile(r'\{[^{}]*\}')
 
 
@@ -105,7 +117,7 @@ def clean_text(text):
         body = m.group(0)[1:-1]
         if '1.39b' in body:
             return m.group(0)
-        cut = LEAD.sub('', body, count=1)
+        cut = LEAD.sub('', body)
         if cut != body:
             trimmed += 1
             return '{' + cut + '}'
