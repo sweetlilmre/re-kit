@@ -80,8 +80,18 @@ Two things happen every iteration, and a third happens on a trigger.
 | trigger | what to write |
 |---|---|
 | a finding that would hold for ANY binary built this way | a wiki observation -- section 5 has the test |
-| you wrote a tool, or did the same thing by hand twice | the tool, in `kit/tools`, and a line in the log |
+| **you pasted a script into the shell** | see below -- this is the trigger that does not fire on its own |
 | an instrument changed, or said something false | the instrument, AND an observation for its blind spot |
+
+**The tool trigger is written as an observable act, not as a judgement, because the judgement version does not work.** "Did the same thing by hand twice" needs you to REMEMBER the first time, and you will not: each inline script feels like a one-off answer to the question in front of you, and the sixth one feels exactly like the first. On this corpus the same twenty-line linked-image comparison was retyped six times across four sessions before anybody noticed, and each time it was thrown away.
+
+So the test is mechanical: **an inline script long enough to be worth writing is long enough to be worth keeping.** If you could not have pasted it from a file, it does not exist as a tool yet -- and the fact that you had to retype it IS the evidence that you wrote it before. Retyping is the symptom; you do not need to recall the disease.
+
+Three practical consequences:
+
+* A script that answers a question about the TARGET -- dump these bytes, what is at this address -- is a one-off and stays one. A script that answers a question about the COMPARISON is a tool, because that question recurs by construction.
+* Write it into `kit/tools` at once, even roughly. A rough tool in the kit beats a polished script in the scrollback, because only one of them exists tomorrow.
+* Give it the docstring while you still know why the existing instrument was not enough. That paragraph is the whole value: the next person's question is not "what does this do" but "why is there a second one of these".
 
 Most iterations trigger none of them. That is the normal case and it is not a failure -- an iteration that transcribes a routine the previous one located has produced target knowledge, which belongs in the host's notes and nowhere else. **Do not manufacture an observation to have written one.** A wiki of thin entries is worse than a smaller one, because it makes the index unreadable and the next person stops checking it.
 
