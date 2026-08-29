@@ -6,6 +6,7 @@ r"""Check the `DS:$xxxx` addresses written in comments against the declarations.
     python kit/tools/pascal/dsverify.py src/*.PAS --map build/VTMAIN.MAP
     python kit/tools/pascal/dsverify.py src/*.PAS --map build/VTMAIN.MAP --fix
     python kit/tools/pascal/dsverify.py src/*.PAS --map MAP --fix --chain
+    python kit/tools/pascal/dsverify.py src/*.PAS --map MAP --prose [--fix]
 
 **PREFER `--map` WHENEVER A LINK EXISTS.** It settles absolutely what the rest of
 this tool can only settle relatively: the linker's own map lists every public
@@ -104,6 +105,32 @@ It refuses two kinds of claim rather than guessing:
 puts it at $09e8" -- is invisible to this and stays behind, so a fixed
 declaration can end up next to a paragraph that still argues from the old number.
 The tool reports how many such mentions remain; reconciling them is by hand.
+
+## `--prose`, for the addresses a declaration fixer cannot reach
+
+Correcting a declaration's comment leaves every SENTENCE that cites the old
+number untouched, and those sentences are the worse half of the problem: prose
+that argues from an address reads as corroboration for it. After 224 declarations
+were corrected on one corpus, **416 prose lines still quoted an address that had
+moved.**
+
+`--prose` pairs a variable's name with the address written beside it:
+
+    `UsingGUS` ($0bce), `TicksPerSecond` ($0bcc) and `DriverTicks` ($0bd0)
+
+Each name is matched to the nearest address that FOLLOWS it, and only when the
+two are close together. Distance is the whole safeguard. A line may name a
+variable and then discuss a different address entirely --
+
+    `Busy` is at $001A, so the five bytes between them start at $001B.
+
+-- where $001A belongs to `Busy` and $001B belongs to nothing. A rule that paired
+every address with the nearest preceding name would rewrite the second one.
+
+**It reports; it does not decide.** Roughly half the mentions on that corpus name
+no variable at all -- a bare address in a sentence, an address table, an offset
+inside a routine -- and no rule can attribute those. They are listed as needing a
+person, and they stay that way.
 
 ## What the two modes are each blind to
 
@@ -220,6 +247,14 @@ def map_publics(path):
     return {n: a.pop() for n, a in seen.items() if len(a) == 1}
 
 
+def map_length(path):
+    """How long DGROUP is, so a larger number can be ruled out as an address."""
+    text = pathlib.Path(path).read_text(encoding='ascii', errors='replace')
+    m = re.search(r'^\s*[0-9A-F]+H\s+[0-9A-F]+H\s+([0-9A-F]+)H\s+\S+\s+DATA\s*$',
+                  text, re.M)
+    return int(m.group(1), 16) if m else None
+
+
 def against_map(path, decls, publics, quiet=False, skip=()):
     """Check each claim against the address the linker assigned. Absolute."""
     name = pathlib.Path(path).name
@@ -323,6 +358,113 @@ def prose_addresses(files):
                 continue
             n += len(re.findall(r'\$[0-9a-fA-F]{4}\b', line))
     return n
+
+
+# A name and an address are a pair only when NOTHING BUT PUNCTUATION separates
+# them, on either side. Both orders occur and they are not interchangeable:
+#
+#     `UsingGUS` ($0bce), `TicksPerSecond` ($0bcc)     name first
+#     $0c6e ChainPtr   $0c72 Complain                  address first, in a table
+#
+# **DISTANCE ALONE IS NOT ENOUGH, AND THE FAILURE IS SILENT.** English puts
+# things in parallel:
+#
+#     `LoopMod` then `ForceLoopMod` is $02c8 then $02c9
+#
+# Here $02c8 belongs to LoopMod and $02c9 to ForceLoopMod, but ForceLoopMod is
+# the NEARER name to $02c8. A proximity rule rewrites the first address with the
+# second variable's value and produces a sentence that is wrong in a new way.
+# This tool did exactly that before the rule was tightened.
+#
+# Requiring a gap free of letters keeps the two forms above and rejects every
+# sentence with a verb in it. That loses real mentions -- "Frac at $0018" is a
+# true one and goes unfixed -- and losing them is the right trade: an unfixed
+# mention is a known unknown, and a mis-rewritten one is a new false fact.
+PAIR_WINDOW = 24
+LETTER = re.compile(r'[A-Za-z]')
+NAME_TOKEN = re.compile(r'\b([A-Za-z_]\w{2,})\b')
+ADDR_TOKEN = re.compile(r'\$([0-9a-fA-F]{4})\b')
+
+
+def prose_claims(path, addresses, limit=None):
+    """(line, name, cited, correct) for each prose mention that disagrees.
+
+    `addresses` maps a declared name to the address the map or the chain gives
+    it. A mention is only checkable when the line names a variable this file
+    declares; everything else is reported as needing a person.
+    """
+    out, orphan = [], 0
+    with io.open(path, encoding='utf-8', errors='replace', newline='') as fh:
+        lines = fh.read().split('\n')
+    for n, line in enumerate(lines, 1):
+        if DECL.match(line.rstrip()):
+            continue                       # --fix and --chain own the declarations
+        addrs = []
+        for am in ADDR_TOKEN.finditer(line):
+            # A VALUE IS NOT AN ADDRESS. `$ffff` beside `GUSIrq` is the constant
+            # the variable holds, and DGROUP is not that long -- so anything past
+            # the end of the data segment cannot be an address in it.
+            if limit is not None and int(am.group(1), 16) >= limit:
+                continue
+            # AN ASSIGNED NUMBER IS A VALUE. `StepVal := $1000` is code, and
+            # $1000 is what the variable HOLDS, not where it lives.
+            if line[:am.start(1) - 1].rstrip().endswith((':=', '=')):
+                continue
+            # A RANGE IS NOT A CLAIM ABOUT ONE VARIABLE. `$0018..$001d` describes
+            # a span; rewriting either end leaves a sentence that says nothing.
+            if line[am.end():am.end() + 2] == '..' or line[max(0, am.start(1) - 3):
+                                                           am.start(1) - 1] == '..':
+                continue
+            addrs.append(am)
+        # EACH ADDRESS IS CLAIMED ONCE, by the one name it is adjacent to.
+        # Assigning per NAME instead lets two names claim one address and the
+        # loser's rewrite lands on the winner's span.
+        paired, owner = set(), {}
+        for nm in NAME_TOKEN.finditer(line):
+            # EXACT CASE. `Guard` is a variable and `guard` is an English word,
+            # and this tree's prose is full of the second. Matching case-blind
+            # paired the noun in "the poll re-entrancy guard" with the address
+            # in the next column of a table.
+            # EVERY name competes for an address, not only the ones we can
+            # resolve. A name this file cannot resolve -- one declared in two
+            # units, say -- is still the rightful owner of the address beside
+            # it, and letting a further-away KNOWN name win puts that name's
+            # value onto its neighbour's number.
+            real = addresses.get(nm.group(1))
+            for am in addrs:
+                if am.end() <= nm.start():
+                    gap, d = line[am.end():nm.start()], nm.start() - am.end()
+                else:
+                    gap, d = line[nm.end():am.start()], am.start() - nm.end()
+                if d > PAIR_WINDOW or LETTER.search(gap):
+                    continue
+                key = (d, 0 if am.end() <= nm.start() else 1)
+                if am.start(1) not in owner or key < owner[am.start(1)][0]:
+                    owner[am.start(1)] = (key, nm.group(1), am.group(1), real)
+        for col, (_, name, cited, real) in owner.items():
+            paired.add(col)
+            if real is not None and real != int(cited, 16):
+                out.append((n, col, name, cited.lower(), real))
+        for m in addrs:
+            if m.start(1) not in paired:
+                orphan += 1
+    return out, orphan
+
+
+def fix_prose(path, claims):
+    """Rewrite only the paired mentions. Comments only, right to left."""
+    p = pathlib.Path(path)
+    with io.open(p, encoding='utf-8', errors='replace', newline='') as fh:
+        lines = fh.read().split('\n')
+    for n, col, name, cited, real in sorted(claims, reverse=True):
+        i = n - 1
+        assert lines[i][col:col + len(cited)].lower() == cited, "moved under us"
+        now = ("%04X" if cited.upper() == cited else "%04x") % real
+        lines[i] = lines[i][:col] + now + lines[i][col + len(cited):]
+    if claims:
+        with io.open(p, 'w', encoding='utf-8', newline='') as fh:
+            fh.write('\n'.join(lines))
+    return len(claims)
 
 
 def consts_in(text):
@@ -433,6 +575,37 @@ def main(argv):
         raise SystemExit(__doc__)
 
     publics = map_publics(mapfile) if mapfile else None
+
+    if "--prose" in argv:
+        if publics is None:
+            raise SystemExit("--prose needs --map: the addresses come from it")
+        skip = ambiguous(files)
+        dgroup_len = map_length(mapfile)
+        total = orphans = 0
+        for f in files:
+            known = {}
+            chain = {}
+            report(f, scan(f), quiet=True, fixes=chain)
+            for d in scan(f):
+                if d['addr'] is None or d['name'].upper() in skip:
+                    continue
+                known[d['name']] = publics.get(d['name'].upper(), d['addr'])
+            claims, orphan = prose_claims(f, known, dgroup_len)
+            orphans += orphan
+            for n, _, name, cited, real in claims:
+                print("%s:%-5d %-16s the prose says $%s, %s is at $%04X"
+                      % (pathlib.Path(f).name, n, name, cited, name, real))
+            if "--fix" in argv:
+                total += fix_prose(f, claims)
+            else:
+                total += len(claims)
+        print()
+        print("%d paired mention(s) %s"
+              % (total, "rewritten" if "--fix" in argv else "disagree"))
+        print("%d mention(s) name no variable -- a person has to read those"
+              % orphans)
+        return 1 if total and "--fix" not in argv else 0
+
     if "--fix" in argv:
         if publics is None:
             raise SystemExit("--fix needs --map: without it there is no right answer")
