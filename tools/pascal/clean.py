@@ -25,6 +25,16 @@ comments, so removing them is most of the job by volume.
 everything after the dash and loses the span. The sentence is about the program;
 the span is about the image.
 
+**A `segment:offset` prefix with no dash after it.** `{ 1b24:003a -> AND AL,0FBh }` becomes `{ -> AND AL,0FBh }`: the site is
+apparatus and the note explains the instruction. Only the two-part form is
+trimmed this way, never a bare offset -- `{ 0000 RETF 6 }` is a routine table
+where the number IDENTIFIES the entry, and losing it leaves a row naming
+nothing.
+
+That distinction is the whole rule. A `segment:offset` is always a place in
+someone else's binary; a bare four-digit number might be a place, or a length,
+or a row label, and this tool cannot tell which.
+
 **On ANY line of a block comment, not just the first.** The common shape here is
 a rule of dashes, then the address on the line below it:
 
@@ -98,6 +108,11 @@ SPAN = r'%s(?:\s*\.\.\s*%s)?' % (TOKEN, TOKEN)
 ONLY = re.compile(r'^\s*(?:%s)(?:[\s,/]+(?:%s))*\s*$' % (SPAN, SPAN))
 LEAD = re.compile(r'^[ \t]*(?:%s)(?:[\s,/]+(?:%s))*[ \t]*--[ \t]*'
                   % (SPAN, SPAN), re.M)
+# A segment:offset and then a note, with no dash between them. Two-part form
+# only: a bare offset may be identifying a row rather than citing a site.
+SITE = re.compile(r'^[ \t]*[0-9a-fA-F]{4}:[0-9a-fA-F]{4}'
+                  r'(?:[\s,/]+[0-9a-fA-F]{4}:[0-9a-fA-F]{4})*[ \t]+(?=\S)',
+                  re.M)
 COMMENT = re.compile(r'\{[^{}]*\}')
 
 
@@ -117,7 +132,7 @@ def clean_text(text):
         body = m.group(0)[1:-1]
         if '1.39b' in body:
             return m.group(0)
-        cut = LEAD.sub('', body)
+        cut = SITE.sub('', LEAD.sub('', body))
         if cut != body:
             trimmed += 1
             return '{' + cut + '}'
