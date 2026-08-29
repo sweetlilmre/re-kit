@@ -72,12 +72,25 @@ CONST = re.compile(
     r'^\s{0,8}([A-Za-z_]\w*)\s*(?::\s*\w+\s*)?=\s*(\$[0-9A-Fa-f]+|-?\d+)\s*;',
     re.M)
 NUMBER = re.compile(r'(?<![\w$.])(\$[0-9A-Fa-f]+|\d+)(?![\w.])')
+EQU = re.compile(r'^\s*([A-Za-z_]\w*)\s+EQU\s+(\$?[0-9A-Fa-f]+|-?\d+)\s*$',
+                 re.M | re.I)
 DECLARED = re.compile(r'[A-Za-z_]\w*\s*(?::\s*\w+\s*)?=\s*(?:\$[0-9A-Fa-f]+|-?\d+)\s*;')
 
 
-def strip(text):
-    """Blank comments, strings and char codes, keeping every column in place."""
+def strip(text, asm=False):
+    """Blank comments, strings and char codes, keeping every column in place.
+
+    `asm` adds the assembler's `;` to end-of-line form. It is NOT the default:
+    in Pascal `;` separates statements, so stripping from it would blank most of
+    every file. Scanning a .ASM without it reported two numbers that were both
+    inside comments -- the only two matches the file produced.
+    """
     out = list(text)
+    if asm:
+        for m in re.finditer(';[^' + chr(10) + ']*', text):
+            for k in range(m.start(), m.end()):
+                out[k] = ' '
+        text = ''.join(out)
     i, n = 0, len(text)
     while i < n:
         if text[i] == '{':
@@ -113,8 +126,9 @@ def named(paths):
     """{value: {name, ...}} for every constant the reference source declares."""
     out = collections.defaultdict(set)
     for p in paths:
-        text = strip(pathlib.Path(p).read_text(encoding='utf-8', errors='replace'))
-        for name, tok in CONST.findall(text):
+        text = strip(pathlib.Path(p).read_text(encoding='utf-8', errors='replace'),
+                     asm=str(p).upper().endswith('.ASM'))
+        for name, tok in CONST.findall(text) + EQU.findall(text):
             try:
                 out[value(tok)].add(name)
             except ValueError:
@@ -125,13 +139,13 @@ def named(paths):
 def literals(path, floor):
     """(line, value, text) for each bare number in the target's code."""
     raw = io.open(path, encoding='utf-8', errors='replace', newline='').read()
-    code = strip(raw)
+    code = strip(raw, asm=str(path).upper().endswith('.ASM'))
     lines = raw.split('\n')
     for n, line in enumerate(code.split('\n'), 1):
         # A DECLARATION IS THE NAME. Skip the whole line, and skip it wherever the
         # declaration sits -- Pascal allows several on one line, and anchoring at
         # the line start reported a target's OWN constants as unnamed literals.
-        if DECLARED.search(line):
+        if DECLARED.search(line) or EQU.match(line):
             continue
         for tok in NUMBER.findall(line):
             v = value(tok)
