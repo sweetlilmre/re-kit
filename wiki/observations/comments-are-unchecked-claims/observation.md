@@ -22,7 +22,31 @@ An absolute check needs each unit's base, a map, and a link. A relative one need
 
 That is cheap, needs no build, and on the corpus above it found nine disagreements the whole rest of the toolchain was blind to — including two runs where the declarations and the comments disagreed about the *order* of variables.
 
-**Its limit should be stated wherever it is used:** a run of stale addresses copied forward *together* stays internally consistent and passes. This finds the common failure — one comment updated and its neighbours not — and it cannot find a whole block that drifted as a unit. Anchors settle those, and anchors come from instructions.
+**Its limit should be stated wherever it is used:** a run of stale addresses copied forward *together* stays internally consistent and passes. This finds the common failure — one comment updated and its neighbours not — and it cannot find a whole block that drifted as a unit.
+
+## That limit turned out to be where nearly all of them were
+
+The relative check found nine. Then the same corpus was checked against the **linker's own map**, which publishes each unit's interface symbols with their offsets — and on a byte-exact reconstruction the linker's address IS the original's.
+
+**223 of 250 checkable claims disagreed.** Not 223 slips: whole blocks carried forward from the previous version of the target, each unit off by its own constant, every one of them internally consistent and therefore invisible to the relative pass. The limitation was written down before anybody knew it described almost the entire corpus.
+
+The lesson is not that the relative check is weak. It is that **a check's stated blind spot is a prediction about where the errors are**, and the cheapest next move after writing one down is to go and look there.
+
+## Two sources, neither subsuming the other
+
+* **The map names only what a unit exports.** Implementation-section declarations are invisible to it and get the relative check or nothing.
+* **The map cannot attribute a duplicated name.** Two units may each export a `DMAStop`, and the map lists both addresses under one name — so it carries no answer and must drop it. Keeping the first silently, which is what the obvious dictionary code does, produced twelve confident "the linker says" lines for the wrong variable.
+* **The relative chain settles exactly those.** It knows nothing absolutely, but once its neighbours are anchored it computes the one address that fits between them, duplicated name or not.
+
+So the order is: anchor absolutely, then chain relatively through what the anchors left. Run either alone and a quarter of the corpus stays wrong.
+
+## The worst case is prose that argues from the address
+
+A stale number in a `{ DS:$xxxx }` comment is a wrong label. A stale number reasoned *from* is worse:
+
+> "$02cd sits between two interface globals, and a unit's implementation declarations all come after its interface ones, so a private declaration cannot land there."
+
+The argument is sound, the conclusion is correct, and the address is the previous version's — the variable is at `$02d3`. **Prose that argues from an address reads as corroboration for it**, so it survives review better than the bare comment would, and no fixer can touch it: rewriting a declaration's address leaves the paragraph beside it still reasoning from the old one. On this corpus 1,228 such mentions remained after 220 declarations were corrected. A tool that rewrites addresses should count what it could not reach and say so.
 
 ## A checker that does not model the layout manufactures findings
 

@@ -3,6 +3,20 @@ r"""Check the `DS:$xxxx` addresses written in comments against the declarations.
     python kit/tools/pascal/dsverify.py src/UNIT.PAS
     python kit/tools/pascal/dsverify.py src/*.PAS
     python kit/tools/pascal/dsverify.py src/*.PAS --quiet   only the disagreements
+    python kit/tools/pascal/dsverify.py src/*.PAS --map build/VTMAIN.MAP
+    python kit/tools/pascal/dsverify.py src/*.PAS --map build/VTMAIN.MAP --fix
+    python kit/tools/pascal/dsverify.py src/*.PAS --map MAP --fix --chain
+
+**PREFER `--map` WHENEVER A LINK EXISTS.** It settles absolutely what the rest of
+this tool can only settle relatively: the linker's own map lists every public
+symbol with its DGROUP offset, so each comment is checked against the address the
+linker actually assigned rather than against its neighbours. Anything the map
+names needs no reasoning at all -- and on a byte-exact reconstruction the map's
+address IS the original's address.
+
+Its reach is the catch: only INTERFACE declarations are public in a Turbo Pascal
+unit, so implementation-section variables never appear and fall back to the
+relative check. Run both; they answer for different declarations.
 
 WHAT IT IS FOR. A reconstruction records where a variable lives by writing the
 address in a comment beside it, and those comments become the map everybody
@@ -71,6 +85,33 @@ at. That is not caution for its own sake: an unknown name gives away neither the
 size nor the ALIGNMENT, since a record starts even and a small enumeration is one
 byte and starts anywhere. Assuming either reported real declarations as stale.
 
+## `--fix`, and what it deliberately will not touch
+
+With a map, a disagreeing comment has a known right answer, so `--fix` rewrites
+the `DS:$xxxx` token in place. It changes comments and nothing else, and the
+rebuild afterwards is what proves that.
+
+It refuses two kinds of claim rather than guessing:
+
+  * **a name declared with an address in more than one file.** The linker
+    publishes one symbol per name; two units declaring `CtrlBlock` -- one the
+    variable, one an import of it -- cannot be told apart from the map alone, and
+    rewriting the wrong one would replace a stale address with a confident lie.
+  * **anything the linker does not name**, which is every implementation-section
+    declaration. Those keep the relative check and nothing more.
+
+**It cannot fix prose.** An address written into a sentence -- "$0998 + 80 is what
+puts it at $09e8" -- is invisible to this and stays behind, so a fixed
+declaration can end up next to a paragraph that still argues from the old number.
+The tool reports how many such mentions remain; reconciling them is by hand.
+
+## What the two modes are each blind to
+
+The relative check cannot see a run of addresses that drifted TOGETHER. The map
+check cannot see anything the linker did not publish. Neither subsumes the other,
+and a claim both are silent about is unverified -- which is the honest reading,
+not a pass.
+
 ## What it cannot see
 
 A `var` is not in the image at all, so no comparison in the kit can check where
@@ -80,6 +121,7 @@ other and are reported as fine. Anchors are what settle those, and anchors come
 from instructions.
 """
 
+import io
 import re
 import sys
 import pathlib
@@ -150,6 +192,139 @@ def width(typename, consts):
     return None, None
 
 
+def map_publics(path):
+    """{NAME: dgroup offset} for every public the linker put in DGROUP.
+
+    The map names DGROUP by its paragraph in the segment table -- the row whose
+    class is DATA -- and then lists publics as `PARA:OFFSET NAME`. Only the rows
+    in that paragraph are data; the rest are code, and a code offset compared
+    against a data address would be nonsense that looks like a finding.
+    """
+    text = pathlib.Path(path).read_text(encoding='ascii', errors='replace')
+    m = re.search(r'^\s*([0-9A-F]+)H\s+[0-9A-F]+H\s+[0-9A-F]+H\s+\S+\s+DATA\s*$',
+                  text, re.M)
+    if not m:
+        raise SystemExit("%s names no DATA segment -- build with the map switch" % path)
+    para = int(m.group(1), 16) // 16
+
+    # **A NAME CAN APPEAR TWICE.** Turbo Pascal publishes unqualified names, so two
+    # units may each export a `FilterIsOn` and the map lists both, at different
+    # addresses. Keeping the first silently -- which is what setdefault does --
+    # made this tool report twelve confident "the LINKER says" lines for the wrong
+    # variable. A duplicated name carries no answer and is dropped.
+    seen = {}
+    for seg, off, name in re.findall(
+            r'^\s*([0-9A-F]{4}):([0-9A-F]{4})\s+(\w+)\s*$', text, re.M):
+        if int(seg, 16) == para:
+            seen.setdefault(name.upper(), set()).add(int(off, 16))
+    return {n: a.pop() for n, a in seen.items() if len(a) == 1}
+
+
+def against_map(path, decls, publics, quiet=False, skip=()):
+    """Check each claim against the address the linker assigned. Absolute."""
+    name = pathlib.Path(path).name
+    bad = checked = 0
+    for d in decls:
+        if d['addr'] is None:
+            continue
+        if d['name'].upper() in skip:
+            # Declared with an address in more than one file. The map holds one
+            # symbol of that name and it may be the OTHER one -- a unit's private
+            # pointer to a structure another unit publishes reads exactly like a
+            # stale address here, and is not one.
+            if not quiet:
+                print("%s:%-5d %-16s $%04X  ambiguous -- the name is declared twice"
+                      % (name, d['line'], d['name'], d['addr']))
+            continue
+        real = publics.get(d['name'].upper())
+        if real is None:
+            continue
+        checked += 1
+        if real != d['addr']:
+            bad += 1
+            print("%s:%-5d %-16s claims $%04X, the LINKER says $%04X  <-- %+d"
+                  % (name, d['line'], d['name'], d['addr'], real, d['addr'] - real))
+        elif not quiet:
+            print("%s:%-5d %-16s $%04X  confirmed by the map"
+                  % (name, d['line'], d['name'], d['addr']))
+    return bad, checked
+
+
+def ambiguous(files):
+    """Names declared WITH an address in more than one file -- unsafe to rewrite."""
+    seen = {}
+    for f in files:
+        for d in scan(f):
+            if d['addr'] is not None:
+                seen.setdefault(d['name'].upper(), set()).add(f)
+    return {n for n, fs in seen.items() if len(fs) > 1}
+
+
+def fix(path, publics, skip, chain=False):
+    """Rewrite the DS addresses. Comments only.
+
+    Two sources, and the second is not a weaker version of the first. The linker
+    names only what a unit exports, and it cannot name a symbol two units both
+    export -- a duplicated name is dropped, because it carries no answer. The
+    relative chain has the opposite reach: it knows nothing absolutely, but once
+    its NEIGHBOURS are anchored it computes the one address that fits between
+    them, duplicated name or not. On this corpus the map settled 207 claims and
+    left `DMAStop` -- published twice, at two addresses -- and the chain then put
+    each of the two where its neighbours require. Run the map pass first; the
+    chain pass is only as good as the anchors around it.
+    """
+    # newline='' THROUGHOUT. A CRLF source tree read through Python's default
+    # newline translation and written back comes out LF, which rewrites every
+    # line in the file -- eleven real changes buried in a diff of fourteen
+    # thousand, and a reviewer with no way to see them.
+    p = pathlib.Path(path)
+    with io.open(p, encoding='utf-8', errors='replace', newline='') as fh:
+        lines = fh.read().split('\n')
+    changed = 0
+    decls = scan(path)
+    wanted = {}
+    if chain:
+        report(path, decls, quiet=True, fixes=wanted)
+    for d in decls:
+        if d['addr'] is None:
+            continue
+        # SKIP GUARDS THE MAP LOOKUP ONLY. An ambiguous name has no answer in the
+        # map and must never take one from it -- but the chain computes from its
+        # NEIGHBOURS, which do not care that the name is duplicated. Letting
+        # --chain waive the guard altogether rewrote a private pointer with the
+        # address of the published structure it points AT.
+        real = None
+        if d['name'].upper() not in skip:
+            real = publics.get(d['name'].upper())
+        if real is None:
+            real = wanted.get(d['line'])
+        if real is None or real == d['addr']:
+            continue
+        i = d['line'] - 1
+        m = ADDR.search(lines[i])
+        was = m.group(1)
+        # Keep the tree's own spelling: same width, same case.
+        now = ("%0*X" if was.upper() == was else "%0*x") % (len(was), real)
+        lines[i] = lines[i][:m.start(1)] + now + lines[i][m.end(1):]
+        changed += 1
+    if changed:
+        with io.open(p, 'w', encoding='utf-8', newline='') as fh:
+            fh.write('\n'.join(lines))
+    return changed
+
+
+def prose_addresses(files):
+    """Bare `$xxxx` mentions outside a declaration -- what --fix cannot reach."""
+    n = 0
+    for f in files:
+        for line in pathlib.Path(f).read_text(encoding='utf-8',
+                                              errors='replace').splitlines():
+            if DECL.match(line.rstrip()):
+                continue
+            n += len(re.findall(r'\$[0-9a-fA-F]{4}\b', line))
+    return n
+
+
 def consts_in(text):
     """`Name = 123;` and `Name = $ff;` -- the bounds an array may be written with."""
     out = {}
@@ -191,7 +366,7 @@ def scan(path):
     return out
 
 
-def report(path, decls, quiet=False):
+def report(path, decls, quiet=False, fixes=None):
     """Walk the declarations with a cursor that pads the way the compiler does."""
     name = pathlib.Path(path).name
     # TWO STREAMS, NOT ONE. Turbo Pascal puts typed constants in the initialised
@@ -223,6 +398,8 @@ def report(path, decls, quiet=False):
                 want = at + (-at % d['align'])
                 if want != d['addr']:
                     bad += 1
+                    if fixes is not None:
+                        fixes[d['line']] = want
                     print("%s:%-5d %-16s claims $%04X, declarations give $%04X"
                           "  <-- %+d" % (name, d['line'], d['name'], d['addr'],
                                          want, d['addr'] - want))
@@ -246,17 +423,46 @@ def report(path, decls, quiet=False):
 
 def main(argv):
     quiet = "--quiet" in argv
-    files = [a for a in argv if not a.startswith("--")]
+    mapfile = None
+    for i, a in enumerate(argv):
+        if a == "--map" and i + 1 < len(argv):
+            mapfile = argv[i + 1]
+    files = [a for i, a in enumerate(argv)
+             if not a.startswith("--") and (i == 0 or argv[i - 1] != "--map")]
     if not files:
         raise SystemExit(__doc__)
-    total, claims = 0, 0
+
+    publics = map_publics(mapfile) if mapfile else None
+    if "--fix" in argv:
+        if publics is None:
+            raise SystemExit("--fix needs --map: without it there is no right answer")
+        skip = ambiguous(files)
+        total = sum(fix(f, publics, skip, "--chain" in argv) for f in files)
+        print("%d comment(s) rewritten to the linker's addresses" % total)
+        print("%d name(s) skipped as ambiguous: %s"
+              % (len(skip), ", ".join(sorted(skip)) or "none"))
+        print("%d bare $xxxx mention(s) remain in prose, which --fix cannot reach"
+              % prose_addresses(files))
+        return 0
+    total, claims, anchored = 0, 0, 0
     for f in files:
         decls = scan(f)
         claims += sum(1 for d in decls if d['addr'] is not None)
-        total += report(f, decls, quiet)
+        if publics is not None:
+            bad, n = against_map(f, decls, publics, quiet, ambiguous(files))
+            total += bad
+            anchored += n
+        else:
+            total += report(f, decls, quiet)
     print()
-    print("%d address claim(s) checked, %d disagree with the declarations"
-          % (claims, total))
+    if publics is not None:
+        print("%d claim(s), %d of them named by the linker, %d disagree with it"
+              % (claims, anchored, total))
+        print("the other %d are not public -- run without --map for the relative check"
+              % (claims - anchored))
+    else:
+        print("%d address claim(s) checked, %d disagree with the declarations"
+              % (claims, total))
     return 1 if total else 0
 
 
