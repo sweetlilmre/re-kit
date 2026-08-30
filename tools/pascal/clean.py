@@ -130,6 +130,11 @@ TOKEN = (r'(?:[0-9a-fA-F]{4}:[0-9a-fA-F]{4}'      # segment:offset
          r'|[0-9a-fA-F]{4})')                     # a bare offset
 SPAN = r'%s(?:\s*\.\.\s*%s)?' % (TOKEN, TOKEN)
 ONLY = re.compile(r'^\s*(?:%s)(?:[\s,/]+(?:%s))*\s*$' % (SPAN, SPAN))
+# **THE BYTES AT THAT ADDRESS ARE APPARATUS TOO.** `{ DS:$0962  7f }` loses
+# its prefix and leaves `{ 7f }` beside `= 127` -- the same number twice, once
+# in a base the reader did not ask for. Anything left that is only hex pairs
+# is the image quoted back, not a note about the code.
+BYTES = re.compile(r'^\s*[0-9a-fA-F]{2}(?:\s+[0-9a-fA-F]{2})*\s*$')
 LEAD = re.compile(r'^[ \t]*(?:%s)(?:[\s,/]+(?:%s))*[ \t]*--[ \t]*'
                   % (SPAN, SPAN), re.M)
 # A segment:offset and then a note, with no dash between them. Two-part form
@@ -284,7 +289,7 @@ def clean_text(text, asm=False):
         body = m.group(0)[1:-1]
         if '1.39b' in body:                  # the author's words: never touched
             return m.group(0)
-        if ONLY.match(body):
+        if ONLY.match(body) or BYTES.match(body):
             dropped += 1
             return ''
         return m.group(0)
@@ -298,7 +303,10 @@ def clean_text(text, asm=False):
             out.append(new.rstrip() if new != line else line)
         elif not line.strip():
             out.append(line)
-    return '\n'.join(out), dropped, trimmed, tagged
+    # Dropping a trailing comment leaves behind the whitespace that
+    # separated it from the code. Nothing in Pascal reads it, and a file
+    # meant to be read should not carry it.
+    return '\n'.join(q.rstrip() for q in out), dropped, trimmed, tagged
 
 
 def survivors(text):
