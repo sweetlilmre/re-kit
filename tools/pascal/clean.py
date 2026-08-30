@@ -126,6 +126,7 @@ import magic                                                      # noqa: E402
 # An address, in every form this method writes one.
 TOKEN = (r'(?:[0-9a-fA-F]{4}:[0-9a-fA-F]{4}'      # segment:offset
          r'|DS:\$[0-9a-fA-F]{2,4}'                # a data address
+         r'|\[BP[-+]\$?[0-9A-Fa-f]{1,4}h?\]'      # a stack frame slot
          r'|[0-9a-fA-F]{4})')                     # a bare offset
 SPAN = r'%s(?:\s*\.\.\s*%s)?' % (TOKEN, TOKEN)
 ONLY = re.compile(r'^\s*(?:%s)(?:[\s,/]+(?:%s))*\s*$' % (SPAN, SPAN))
@@ -133,7 +134,9 @@ LEAD = re.compile(r'^[ \t]*(?:%s)(?:[\s,/]+(?:%s))*[ \t]*--[ \t]*'
                   % (SPAN, SPAN), re.M)
 # A segment:offset and then a note, with no dash between them. Two-part form
 # only: a bare offset may be identifying a row rather than citing a site.
-SITE_TOKEN = r'(?:[0-9a-fA-F]{4}:[0-9a-fA-F]{4}|DS:\$[0-9a-fA-F]{2,4})'
+SITE_TOKEN = (r'(?:[0-9a-fA-F]{4}:[0-9a-fA-F]{4}'      # segment:offset
+              r'|DS:\$[0-9a-fA-F]{2,4}'                # a data address
+              r'|\[BP[-+]\$?[0-9A-Fa-f]{1,4}h?\])')     # a frame slot
 # **A RANGE IS ONE SITE, NOT A PREFIX AND A NOTE.** `{ 116a:0006 .. 116a:0010 }`
 # had its first address trimmed as though the rest were prose, and came out
 # as `{ .. 116a:0010 }` -- a comment that then matched no dropper, said
@@ -264,7 +267,11 @@ def clean_text(text, asm=False):
             # Only once something was actually trimmed -- applied unconditionally
             # this rewrites `{$A+}` itself, which is a directive and not a prefix
             # this tool has any business touching.
-            if cut[:1] == '$':
+            # Any non-space start, not just `$`: trimming a prefix off
+            # `{ 188f:0003  [BP+06h] -- Ofs(P) }` leaves `{Ofs(P)`, which reads
+            # as a typo. `$` additionally MUST have the space, because `{$` is
+            # a compiler directive rather than a comment at all.
+            if cut[:1] not in ('', ' ', '\t', '\n'):
                 cut = ' ' + cut
             trimmed += 1
             return '{' + cut + '}'
