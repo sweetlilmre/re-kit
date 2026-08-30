@@ -160,6 +160,7 @@ SITE_TOKEN = (r'(?:[0-9a-fA-F]{4}:[0-9a-fA-F]{4}'      # segment:offset
 # continuation never matched and every run stopped after its first citation,
 # which is the very thing the scan was written to fix.
 CITE = re.compile(r'[ \t]*%s' % SITE_TOKEN)
+TAIL = re.compile(r'[0-9a-fA-F]{4}')
 JOIN = re.compile(r'(?:[ \t]*[,/][ \t]*|[ \t]*\.\.[ \t]*|[ \t]+and[ \t]+|[ \t]+)')
 
 
@@ -179,6 +180,13 @@ def cite_run(text):
         if not j:
             break
         m = CITE.match(text, j.end())
+        if m is None and text[end:j.end()].strip() == '..':
+            # **A BARE OFFSET IS A CITATION DIRECTLY AFTER A RANGE DOT**, and
+            # nowhere else. `154d:0000..04e1` names one span in the compact
+            # form, and refusing the tail leaves the whole thing untrimmed.
+            # Anywhere else four hex digits might be a row label or a length,
+            # which is why they are never taken on their own.
+            m = TAIL.match(text, j.end())
         if not m:
             break
         end = m.end()
