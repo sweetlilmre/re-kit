@@ -164,6 +164,11 @@ DECL = re.compile(
 ADDR = re.compile(r'DS:\$([0-9A-Fa-f]{2,4})')
 ARRAY = re.compile(r'^array\s*\[\s*(.+?)\s*\.\.\s*(.+?)\s*\]\s*of\s+(\w+)$', re.I)
 SECTION = re.compile(r'^\s*(const|var)\s*$', re.I)
+# The start of a declaration, for deciding whether to join the lines that follow.
+OPENER = re.compile(r'^\s{2,}[A-Za-z_]\w*\s*:')
+# How far a run-on declaration is followed. An initialiser that needs more than
+# this is not something this tool should be sizing from the source anyway.
+CONTINUE_LINES = 6
 STRING = re.compile(r'^string\s*\[\s*(\d+)\s*\]$', re.I)
 
 # Turbo Pascal's Dos unit, whose string types read like pointer names and are not.
@@ -193,6 +198,13 @@ def align_of(size, elem=None):
 def width(typename, consts):
     """(bytes, alignment), or (None, 1) for a type this tool will not guess at."""
     t = typename.strip().rstrip(';').strip()
+    # A TYPED CONSTANT MAY PUT ITS INITIALISER ON THE NEXT LINE, which leaves the
+    # `=` hanging on the end of the type. `array[1..N] of Byte =` then matched no
+    # rule and came back unsized, and an unsized declaration contributes nothing
+    # to the running address -- so every claim after it read as stale by exactly
+    # the width of the array. Measured: one eight-byte table, and the eight bytes
+    # came off every address below it. Cut at the `=`; no Pascal type contains one.
+    t = t.split('=')[0].strip()
     low = t.lower()
     if low in SCALARS:
         return SCALARS[low], align_of(SCALARS[low])
@@ -286,12 +298,24 @@ def against_map(path, decls, publics, quiet=False, skip=()):
 
 
 def ambiguous(files):
-    """Names declared WITH an address in more than one file -- unsafe to rewrite."""
+    """Names declared in more than one file -- the map cannot say whose it is.
+
+    EVERY declaration counts, not only the ones already carrying an address.
+    The map holds one row per name and no unit, so a name two units declare is
+    unanswerable even when only one of them is asking: the row may belong to
+    the other unit entirely. Counting only commented declarations made a name
+    look unique whenever its twin happened to be uncommented, and the lookup
+    then answered a private variable with a public symbol from somewhere else.
+
+    Measured: a private variable was reported as disagreeing with the linker by
+    a whole segment's worth, because another unit declared an uncommented
+    constant of the same name and that was the row the map held. The comment was
+    right. Under --fix it would have been overwritten with an address from
+    another unit -- a correct claim replaced by a wrong one, silently."""
     seen = {}
     for f in files:
         for d in scan(f):
-            if d['addr'] is not None:
-                seen.setdefault(d['name'].upper(), set()).add(f)
+            seen.setdefault(d['name'].upper(), set()).add(f)
     return {n for n, fs in seen.items() if len(fs) > 1}
 
 
@@ -497,13 +521,32 @@ def scan(path):
     text = pathlib.Path(path).read_text(encoding='utf-8', errors='replace')
     consts = consts_in(text)
     out, sections = [], []
-    for n, line in enumerate(text.splitlines(), 1):
+    raw = text.splitlines()
+    for n, line in enumerate(raw, 1):
         if SECTION.match(line):
             sections.append(n)
             continue
-        m = DECL.match(line.rstrip())
+        # A DECLARATION MAY RUN ON. A typed constant whose initialiser is long
+        # enough puts it on the following line, which leaves the first line with
+        # no `;` and no match -- and an unmatched declaration is not reported as
+        # unknown, it is DROPPED. The cursor then walks straight past its bytes
+        # and every claim below it reads as stale by exactly that width.
+        # Measured: one `array[1..N] of Byte` on two lines, and the eight bytes
+        # came off every address under it.
+        # Joined only when the opener cannot be anything else: it declares a
+        # name, it has no `;`, and it is not a record or an object, whose bodies
+        # run for many lines and are skipped below in any case.
+        probe = line.rstrip()
+        if (OPENER.match(probe) and ';' not in probe
+                and not re.search(r':\s*(record|object)', probe, re.I)):
+            for extra in raw[n:n + CONTINUE_LINES]:
+                probe += ' ' + extra.strip()
+                if ';' in extra:
+                    break
+        m = DECL.match(probe)
         if not m:
             continue
+        line = probe
         if re.search(r'absolute', line, re.I):
             continue                    # an overlay occupies none of its own space
         name, typ, comment = m.group(1), m.group(2), m.group(3) or ''
