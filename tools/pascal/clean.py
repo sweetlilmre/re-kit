@@ -139,7 +139,84 @@ SITE = re.compile(r'^[ \t]*%s(?:[\s,/]+%s)*[ \t]+(?=\S)'
 COMMENT = re.compile(r'\{[^{}]*\}')
 
 
-def clean_text(text):
+# **THE TAGS.** A paragraph opening `[re]` is apparatus and is stripped; one
+# opening `[reading]` is a claim resting only on someone's reading of the
+# instructions and is KEPT, so a reader can tell the author's fact from an
+# inference at a glance and so the inferences can be counted. `[1.39b]` is the
+# release's own words and predates both.
+RE_TAG = re.compile(r'^\s*\[re\]\s*', re.I)
+
+
+def drop_tagged_pascal(text):
+    """Remove `[re]` paragraphs from every { } comment. Returns (text, n).
+
+    THE GRAIN IS THE BLANK LINE, which is how these comments are already
+    written -- 499 of the tangled ones are multi-paragraph. Working per
+    paragraph means a comment that is half evidence and half explanation does
+    not have to be split in two first, and the 2,121 comments carrying no
+    apparatus at all are never touched.
+    """
+    n = 0
+
+    def one(m):
+        nonlocal n
+        body = m.group(0)[1:-1]
+        paras = re.split(r'\n[ \t]*\n', body)
+        # **A TAGGED PARAGRAPH CARRIES ITS CONTINUATIONS**, which are the
+        # blocks indented under it -- a frame layout, a table, a quoted
+        # listing. They are separate paragraphs by the blank-line rule and
+        # belong to the tag by the indentation, and the first pilot unit
+        # leaked exactly this: the tag went on the prose and the indented
+        # table under it stayed behind, alone and unexplained.
+        keep, drop_to = [], None
+        for q in paras:
+            lead = len(q) - len(q.lstrip(' '))
+            if RE_TAG.match(q):
+                drop_to = lead
+                continue
+            if drop_to is not None and q.strip() and lead > drop_to:
+                continue
+            drop_to = None
+            keep.append(q)
+        n += len(paras) - len(keep)
+        if not keep or not ''.join(keep).strip():
+            return ''               # nothing but apparatus: the comment goes
+        if len(keep) == len(paras):
+            return m.group(0)
+        out = '\n\n'.join(keep)
+        if out.lstrip()[:1] == '$':  # `{$` is a DIRECTIVE, not a comment
+            out = ' ' + out.lstrip()
+        return '{' + out + '}'
+
+    return re.compile(r'\{[^{}]*\}', re.S).sub(one, text), n
+
+
+def drop_tagged_asm(text):
+    """Remove runs of `; [re] ...` lines. Returns (text, n).
+
+    A .ASM file has no blank-line paragraphs inside a comment, so the tag sits
+    after the `;` and a run of consecutive comment lines goes together: the
+    continuation lines of one tagged note carry no tag of their own. A line
+    holding code with a trailing comment is never dropped -- only whole
+    comment lines.
+    """
+    out, n, dropping = [], 0, False
+    for line in text.split('\n'):
+        s = line.strip()
+        if s.startswith(';'):
+            after = s[1:].lstrip()
+            if RE_TAG.match(after):
+                dropping, n = True, n + 1
+                continue
+            if dropping and after and not after.startswith('['):
+                n += 1                      # continuation of the tagged note
+                continue
+        dropping = False
+        out.append(line)
+    return '\n'.join(out), n
+
+
+def clean_text(text, asm=False):
     """Return (text, dropped, trimmed) with the apparatus removed.
 
     TWO PASSES, AND THE SPLIT IS THE SAFETY. Prefix trimming runs over the whole
@@ -149,6 +226,13 @@ def clean_text(text):
     its first line looked like an address.
     """
     dropped = trimmed = 0
+    # THE TAG PASS RUNS FIRST, and it is the one that answers the ask:
+    # apparatus is what a person MARKED, not what a pattern guessed.
+    # The address dropper below survives as a complement -- it clears
+    # the pure citations for free, three quarters of them, and leaves
+    # the tangled prose to the tags.
+    text, tagged = (drop_tagged_asm(text) if asm
+                    else drop_tagged_pascal(text))
 
     def prefix(m):
         nonlocal trimmed
@@ -197,7 +281,7 @@ def clean_text(text):
             out.append(new.rstrip() if new != line else line)
         elif not line.strip():
             out.append(line)
-    return '\n'.join(out), dropped, trimmed
+    return '\n'.join(out), dropped, trimmed, tagged
 
 
 def survivors(text):
@@ -229,25 +313,26 @@ def main(argv):
     if not dry:
         dst.mkdir(parents=True, exist_ok=True)
 
-    files = drop = trim = left = 0
+    files = drop = trim = left = tags = 0
     written = set()
     for f in sorted(src.iterdir()):
         if not f.is_file():
             continue
         raw = io.open(f, encoding='utf-8', errors='replace', newline='').read()
         text = raw.replace('\r\n', '\n')
-        new, d, t = clean_text(text)
+        asm = f.suffix.upper() in ('.ASM', '.INC')
+        new, d, t, g = clean_text(text, asm=asm)
         rest = survivors(new)
         files += 1
         drop += d
         trim += t
+        tags += g
         left += len(rest)
-        print("%-16s dropped %4d  trimmed %3d  still addressed %3d"
-              % (f.name, d, t, len(rest)))
+        print("%-16s tagged %4d  dropped %4d  trimmed %3d  addressed %3d"
+              % (f.name, g, d, t, len(rest)))
         if report:
             for n, body in rest[:8]:
                 print("      %5d  %s" % (n, body))
-        asm = f.suffix.upper() in ('.ASM', '.INC')
         if code_only(text, asm) != code_only(new, asm):
             before, after = code_only(text, asm), code_only(new, asm)
             for x, y in zip(before, after):
@@ -264,8 +349,8 @@ def main(argv):
                 new.replace('\n', '\r\n'))
 
     print()
-    print("%d file(s): %d address-only comment(s) dropped, %d prefix(es) trimmed"
-          % (files, drop, trim))
+    print("%d file(s): %d [re] paragraph(s) removed, %d address-only\n         comment(s) dropped, %d prefix(es) trimmed"
+          % (files, tags, drop, trim))
     print("%d comment(s) still mention an address -- those need a person" % left)
     print("every file verified: not one line of code differs")
 
