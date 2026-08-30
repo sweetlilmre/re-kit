@@ -134,8 +134,18 @@ LEAD = re.compile(r'^[ \t]*(?:%s)(?:[\s,/]+(?:%s))*[ \t]*--[ \t]*'
 # A segment:offset and then a note, with no dash between them. Two-part form
 # only: a bare offset may be identifying a row rather than citing a site.
 SITE_TOKEN = r'(?:[0-9a-fA-F]{4}:[0-9a-fA-F]{4}|DS:\$[0-9a-fA-F]{2,4})'
-SITE = re.compile(r'^[ \t]*%s(?:[\s,/]+%s)*[ \t]+(?=\S)'
-                  % (SITE_TOKEN, SITE_TOKEN), re.M)
+# **A RANGE IS ONE SITE, NOT A PREFIX AND A NOTE.** `{ 116a:0006 .. 116a:0010 }`
+# had its first address trimmed as though the rest were prose, and came out
+# as `{ .. 116a:0010 }` -- a comment that then matched no dropper, said
+# nothing to anyone, and survived into the copy. The span form has to be part
+# of the token, so a range with nothing after it is left whole for the
+# address-only dropper to remove.
+SITE_SPAN = r'%s(?:\s*\.\.\s*%s)?' % (SITE_TOKEN, SITE_TOKEN)
+# The lookahead REFUSES A FOLLOWING DOT, and it has to: with a plain `\S`
+# the span backtracks, gives up its range, matches the first address alone,
+# and then happily accepts the `.` of the `..` as the start of prose.
+SITE = re.compile(r'^[ \t]*%s(?:[\s,/]+%s)*[ \t]+(?=[^\s.])'
+                  % (SITE_SPAN, SITE_SPAN), re.M)
 COMMENT = re.compile(r'\{[^{}]*\}')
 
 
