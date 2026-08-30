@@ -87,14 +87,32 @@ removed from both -- if a single line of code differs, the run fails and says
 which line. That is cheap, it is exact, and it is the only thing standing
 between a regex and a silently altered program.
 
-The check is not optional and there is no flag to skip it. A copy nobody builds
-is a copy nothing else would ever catch.
+The check is not optional and there is no flag to skip it.
+
+## AND THE CHECK HAS ONE BLIND SPOT: `{$` IS A DIRECTIVE, NOT A COMMENT
+
+The comparison blanks every `{ ... }` in both copies, which is what makes it
+immune to wording. It is therefore also immune to a `{$A+}` -- so damage to a
+compiler directive is the one edit this tool can make that its own check will
+never report, and directives are exactly the comments that change the program.
+
+Two ways it can happen, both measured on this corpus and both fixed above:
+trimming a prefix off `{ DS:$0582 -- $FFFF means ... }` leaves `{$FFFF ... }`,
+which the compiler reads as the far-calls directive; and a repair applied
+without first testing that anything was trimmed rewrites `{$A+}` itself into
+`{ $A+}`, silently disabling all eighteen of them.
+
+**So build the stripped copy.** Point a second build config at it and compare
+the linked image: that is the only check that sees this class of defect, it is
+one command, and on this corpus it came back 0 differing bytes over a
+63,040-byte load image.
 
 ## What this copy is not
 
-**It is never built and never compared.** The reconstruction of record stays
-where it is and stays byte-identical; this copy is documentation, and a reader
-who wants to know what the bytes are should go back to the source it came from.
+**It is not the reconstruction of record.** That stays where it is; this copy is
+documentation, and a reader who wants to know what the bytes are should go back
+to the source it came from. But it SHOULD build, and building it is the only
+way to know the stripper has not changed the program.
 """
 
 import io
@@ -140,7 +158,20 @@ def clean_text(text):
         # A single space, not nothing: the opening brace would otherwise sit
         # against the first word.
         cut = SITE.sub(' ', LEAD.sub('', body))
+        # **`{$` IS A COMPILER DIRECTIVE, NOT A COMMENT.** Trimming a prefix can
+        # leave the brace against a `$` that was mid-sentence -- `{ DS:$0582 --
+        # $FFFF means ... }` becomes `{$FFFF means ... }`, which Turbo Pascal
+        # reads as the far-calls directive and the rest as its argument. The
+        # stripped copy then compiles differently from the source it came from,
+        # and NOTHING HERE WOULD SAY SO: the self-check below blanks every
+        # comment in both copies, directives included, so this is invisible to
+        # exactly the instrument meant to catch it.
         if cut != body:
+            # Only once something was actually trimmed -- applied unconditionally
+            # this rewrites `{$A+}` itself, which is a directive and not a prefix
+            # this tool has any business touching.
+            if cut[:1] == '$':
+                cut = ' ' + cut
             trimmed += 1
             return '{' + cut + '}'
         return m.group(0)
