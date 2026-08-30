@@ -94,13 +94,24 @@ def paragraphs(text, asm):
                 yield start + body[:off].count('\n'), para
                 off += len(para) + 2
         return
+    # **A BARE `;` LINE ENDS A PARAGRAPH**, exactly as a blank line does inside
+    # a Pascal comment, because that is what the stripper does. The two tools
+    # have to agree on the grain or this one misreports: grouping a whole
+    # header as one paragraph, it reported a tell that sits in a part already
+    # tagged, and no amount of tagging would have silenced it.
     run, first = [], 0
     for n, line in enumerate(text.split('\n'), 1):
         s = line.strip()
         if s.startswith(';'):
+            body = s[1:].lstrip()
+            if not body:                     # the separator
+                if run:
+                    yield first, '\n'.join(run)
+                    run = []
+                continue
             if not run:
                 first = n
-            run.append(s[1:].lstrip())
+            run.append(body)
             continue
         if run:
             yield first, '\n'.join(run)
