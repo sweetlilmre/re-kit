@@ -29,6 +29,7 @@ runs is worse than none.
   cannot leak. This is the tag the tool exists to encourage.
 * **`[1.39b]` paragraphs.** The original author's own words, quoted. They are
   the best explanation in such a tree and are kept deliberately.
+* **A frame slot, in assembler only.** There it is the parameter's only name.
 
 **`[reading]` IS NOT EXEMPT, AND THAT IS THE POINT.** It marks a claim resting
 only on someone's reading of the instructions, and it is KEPT in the stripped
@@ -58,13 +59,21 @@ TELLS = (
     (re.compile(r'\bDS:\$[0-9a-fA-F]{2,4}\b'), 'a DS: address'),
     (re.compile(r'\b\w+\.py\b'), 'a measuring tool'),
     (re.compile(r'~~'), 'a withdrawn claim'),
-    # Added after the first pilot leaked a stack-frame table: the paragraph
-    # held no address and no tool name, so nothing above matched it, and a
-    # reader of the stripped copy met `[BP+$0c] @Result` with no frame
-    # anywhere in sight. A frame slot is apparatus by definition -- it
-    # describes the call, not the behaviour.
-    (re.compile(r'\[BP[-+]'), 'a stack frame slot'),
 )
+
+# **A FRAME SLOT IS APPARATUS IN PASCAL AND DOCUMENTATION IN ASSEMBLER**, so
+# this tell is applied to one and not the other.
+#
+# In Pascal the parameter has a name, and `[BP+$0c] @Result` beside it says
+# only where the compiler happened to put it -- which a reader of the stripped
+# copy meets with no frame anywhere in sight. That was the first pilot's leak.
+#
+# In a hand-written assembler routine there IS no name. The routine is entered
+# with its arguments on the stack and `[BP+8]` is the only way to refer to one,
+# so a header reading `IN  [BP+8]  stereo flag` is the parameter list. Flagging
+# it would push a tool towards deleting the only documentation those arguments
+# have.
+PASCAL_ONLY = ((re.compile(r'\[BP[-+]'), 'a stack frame slot'),)
 EXEMPT = re.compile(r'^\s*\[(?:re|1\.39b)\]', re.I)
 COMMENT = re.compile(r'\{[^{}]*\}', re.S)
 
@@ -121,7 +130,7 @@ def check(path):
     for n, para in paragraphs(text, asm):
         if not para.strip() or EXEMPT.match(para):
             continue
-        for pat, what in TELLS:
+        for pat, what in (TELLS if asm else TELLS + PASCAL_ONLY):
             m = pat.search(para)
             if m:
                 hits.append((n, what, m.group(0), ' '.join(para.split())[:70]))
