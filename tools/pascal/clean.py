@@ -160,6 +160,7 @@ SITE_TOKEN = (r'(?:[0-9a-fA-F]{4}:[0-9a-fA-F]{4}'      # segment:offset
 # continuation never matched and every run stopped after its first citation,
 # which is the very thing the scan was written to fix.
 CITE = re.compile(r'[ \t]*%s' % SITE_TOKEN)
+BARE_RANGE = re.compile(r'[ \t]*[0-9a-fA-F]{4}[ \t]*\.\.[ \t]*[0-9a-fA-F]{4}')
 TAIL = re.compile(r'[0-9a-fA-F]{4}')
 JOIN = re.compile(r'(?:[ \t]*[,/][ \t]*|[ \t]*\.\.[ \t]*|[ \t]+and[ \t]+|[ \t]+)')
 
@@ -172,6 +173,14 @@ def cite_run(text):
     citation may be punctuated, as in `{ 1880:0077. Returns ... }`.
     """
     m = CITE.match(text)
+    if m is None:
+        # **A BARE RANGE OPENS A CITATION; A BARE OFFSET DOES NOT.**
+        # `{ 005b..0076.  RETF 2.  Hand-written ... }` cites a span inside the
+        # unit's own segment, where naming the segment every time would be
+        # noise. Two bare offsets joined by dots can only be that. ONE bare
+        # offset stays refused, because `{ 0000 RETF 6 }` is a routine-table
+        # row where the number identifies the entry.
+        m = BARE_RANGE.match(text)
     if not m:
         return 0
     end = m.end()
