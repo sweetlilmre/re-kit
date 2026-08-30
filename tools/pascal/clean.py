@@ -310,8 +310,15 @@ def clean_text(text, asm=False):
     def prefix(m):
         nonlocal trimmed
         body = m.group(0)[1:-1]
-        if '1.39b' in body:
-            return m.group(0)
+        # **THE QUOTE IS PROTECTED; THE CITATION IN FRONT OF IT IS NOT.** This
+        # used to refuse the whole comment whenever it mentioned the release,
+        # which shielded `{ 1723:03cf  [1.39b] "Reset the GF1" }` -- address and
+        # all -- from a trim that would only ever have taken the address. The
+        # trims below reach a LEADING run of citations and nothing else, so
+        # they cannot touch the author's words wherever those words sit.
+        #
+        # Dropping a whole comment is different, and that still refuses: see
+        # `one` below, where a quoted comment is never removed entirely.
         # A single space, not nothing: the opening brace would otherwise sit
         # against the first word.
         cut = LEAD.sub('', body)
