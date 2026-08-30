@@ -142,26 +142,56 @@ LEAD = re.compile(r'^[ \t]*(?:%s)(?:[\s,/]+(?:%s))*[ \t]*--[ \t]*'
 SITE_TOKEN = (r'(?:[0-9a-fA-F]{4}:[0-9a-fA-F]{4}'      # segment:offset
               r'|DS:\$[0-9a-fA-F]{2,4}'                # a data address
               r'|\[BP[-+]\$?[0-9A-Fa-f]{1,4}h?\])')     # a frame slot
-# **A RANGE IS ONE SITE, NOT A PREFIX AND A NOTE.** `{ 116a:0006 .. 116a:0010 }`
-# had its first address trimmed as though the rest were prose, and came out
-# as `{ .. 116a:0010 }` -- a comment that then matched no dropper, said
-# nothing to anyone, and survived into the copy. The span form has to be part
-# of the token, so a range with nothing after it is left whole for the
-# address-only dropper to remove.
-SITE_SPAN = r'%s(?:\s*\.\.\s*%s)?' % (SITE_TOKEN, SITE_TOKEN)
-# The lookahead refuses A RANGE, not a dot. With a plain `\S` the span
-# backtracks, gives up its range, matches the first address alone, and
-# accepts the `.` of the `..` as the start of prose. Refusing every dot
-# fixed that and broke the opposite case: `{ 1880:0085  ... across the
-# second call }` is an address and then PROSE that happens to open with an
-# ellipsis, and it kept its address. So the test is whether what follows is
-# a range -- two dots and another address -- and not whether it is a dot.
-# A sentence may punctuate the citation -- `{ 1880:0077. Returns ... }` --
-# so a single trailing stop or comma belongs to the prefix, while `..`
-# followed by another address is a range and does not.
-SITE = re.compile(r'^[ \t]*%s(?:[\s,/]+%s)*[.,]?[ \t]+'
-                  r'(?!\.\.\s*%s)(?=\S)'
-                  % (SITE_SPAN, SITE_SPAN, SITE_TOKEN), re.M)
+# **THE PREFIX ENDS WHERE THE CITATIONS DO**, and this is a SCAN rather than a
+# regex on purpose. A run of sites may be joined by a comma, a slash, a range or
+# the word `and`, and expressing "a run of those, then prose" as one pattern
+# needs a quantifier inside a lookahead. Written that way it did not merely
+# mis-match: on this corpus it hung, because the optional halves of the span
+# backtrack against each other. Three separate leaks came from trying:
+#
+#     `{ .. 116a:0010 }`      a range read as a prefix and a note
+#     `{ / 1b24:02f0 }`       a slash-joined pair, the first taken
+#     `{ and DS:$0c18. ... }` an `and`-joined pair, likewise
+#
+# One cause, and every one of them found by reading the stripped copy rather
+# than by anything failing.
+# NO `^` ON EITHER OF THESE: `.match(s, pos)` already anchors at pos, and a
+# `^` in the pattern goes on meaning the START OF THE STRING -- so the
+# continuation never matched and every run stopped after its first citation,
+# which is the very thing the scan was written to fix.
+CITE = re.compile(r'[ \t]*%s' % SITE_TOKEN)
+JOIN = re.compile(r'(?:[ \t]*[,/][ \t]*|[ \t]*\.\.[ \t]*|[ \t]+and[ \t]+|[ \t]+)')
+
+
+def cite_run(text):
+    """How much of `text` is a leading run of citations, and nothing else.
+
+    Returns the offset where the prose starts, or 0 if the line does not open
+    with a citation at all. A trailing stop or comma goes with the run: a
+    citation may be punctuated, as in `{ 1880:0077. Returns ... }`.
+    """
+    m = CITE.match(text)
+    if not m:
+        return 0
+    end = m.end()
+    while True:
+        j = JOIN.match(text, end)
+        if not j:
+            break
+        m = CITE.match(text, j.end())
+        if not m:
+            break
+        end = m.end()
+    if end < len(text) and text[end] in '.,':
+        end += 1
+    rest = text[end:]
+    if not rest.strip():          # nothing but citations: the dropper's job
+        return 0
+    if not rest[:1].isspace():    # `1642:0004abc` is not a prefix
+        return 0
+    return len(text) - len(rest.lstrip(' \t'))
+
+
 COMMENT = re.compile(r'\{[^{}]*\}')
 
 
@@ -267,7 +297,9 @@ def clean_text(text, asm=False):
             return m.group(0)
         # A single space, not nothing: the opening brace would otherwise sit
         # against the first word.
-        cut = SITE.sub(' ', LEAD.sub('', body))
+        cut = LEAD.sub('', body)
+        cut = '\n'.join((' ' + ln[cite_run(ln):]) if cite_run(ln) else ln
+                        for ln in cut.split('\n'))
         # **`{$` IS A COMPILER DIRECTIVE, NOT A COMMENT.** Trimming a prefix can
         # leave the brace against a `$` that was mid-sentence -- `{ DS:$0582 --
         # $FFFF means ... }` becomes `{$FFFF means ... }`, which Turbo Pascal
