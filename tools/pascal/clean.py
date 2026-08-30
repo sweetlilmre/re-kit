@@ -149,11 +149,19 @@ SITE_TOKEN = (r'(?:[0-9a-fA-F]{4}:[0-9a-fA-F]{4}'      # segment:offset
 # of the token, so a range with nothing after it is left whole for the
 # address-only dropper to remove.
 SITE_SPAN = r'%s(?:\s*\.\.\s*%s)?' % (SITE_TOKEN, SITE_TOKEN)
-# The lookahead REFUSES A FOLLOWING DOT, and it has to: with a plain `\S`
-# the span backtracks, gives up its range, matches the first address alone,
-# and then happily accepts the `.` of the `..` as the start of prose.
-SITE = re.compile(r'^[ \t]*%s(?:[\s,/]+%s)*[ \t]+(?=[^\s.])'
-                  % (SITE_SPAN, SITE_SPAN), re.M)
+# The lookahead refuses A RANGE, not a dot. With a plain `\S` the span
+# backtracks, gives up its range, matches the first address alone, and
+# accepts the `.` of the `..` as the start of prose. Refusing every dot
+# fixed that and broke the opposite case: `{ 1880:0085  ... across the
+# second call }` is an address and then PROSE that happens to open with an
+# ellipsis, and it kept its address. So the test is whether what follows is
+# a range -- two dots and another address -- and not whether it is a dot.
+# A sentence may punctuate the citation -- `{ 1880:0077. Returns ... }` --
+# so a single trailing stop or comma belongs to the prefix, while `..`
+# followed by another address is a range and does not.
+SITE = re.compile(r'^[ \t]*%s(?:[\s,/]+%s)*[.,]?[ \t]+'
+                  r'(?!\.\.\s*%s)(?=\S)'
+                  % (SITE_SPAN, SITE_SPAN, SITE_TOKEN), re.M)
 COMMENT = re.compile(r'\{[^{}]*\}')
 
 
