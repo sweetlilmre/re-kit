@@ -185,7 +185,14 @@ TOKEN = (r'(?:[0-9a-fA-F]{4}:[0-9a-fA-F]{4}'      # segment:offset
          r'|\[BP[-+]\$?[0-9A-Fa-f]{1,4}h?\]'      # a stack frame slot
          r'|[0-9a-fA-F]{4})')                     # a bare offset
 SPAN = r'%s(?:\s*\.\.\s*%s)?' % (TOKEN, TOKEN)
-ONLY = re.compile(r'^\s*(?:%s)(?:[\s,/]+(?:%s))*\s*$' % (SPAN, SPAN))
+# **AN ARROW IS A JOINER, exactly as a comma is.** `{ 1000:0038 -> 1436:0000 }`
+# is a call site and the routine it reaches: two citations, no prose. Without
+# the arrow admitted here the address-only rule does not fire, the leading half
+# is trimmed instead, and the comment survives as `{ -> 1436:0000 }` -- which is
+# apparatus wearing a punctuation mark. 82 of them on one corpus, 23 in a single
+# file.
+JOINER = r'(?:[ \t]*(?:->|[,/])[ \t]*|\s+)'
+ONLY = re.compile(r'^\s*(?:%s)(?:%s(?:%s))*\s*$' % (SPAN, JOINER, SPAN))
 # **THE BYTES AT THAT ADDRESS ARE APPARATUS TOO.** `{ DS:$0962  7f }` loses
 # its prefix and leaves `{ 7f }` beside `= 127` -- the same number twice, once
 # in a base the reader did not ask for. Anything left that is only hex pairs
@@ -218,7 +225,11 @@ SITE_TOKEN = (r'(?:[0-9a-fA-F]{4}:[0-9a-fA-F]{4}'      # segment:offset
 CITE = re.compile(r'[ \t]*%s' % SITE_TOKEN)
 BARE_RANGE = re.compile(r'[ \t]*[0-9a-fA-F]{4}[ \t]*\.\.[ \t]*[0-9a-fA-F]{4}')
 TAIL = re.compile(r'[0-9a-fA-F]{4}')
-JOIN = re.compile(r'(?:[ \t]*[,/][ \t]*|[ \t]*\.\.[ \t]*|[ \t]+and[ \t]+|[ \t]+)')
+# `->` joins a run here too, and it is safe: the scan only advances past a
+# joiner when a CITATION follows it, so `{ 1b24:003a -> AND AL,0FBh }` still
+# stops at the arrow and keeps the note, exactly as the docstring promises.
+JOIN = re.compile(r'(?:[ \t]*(?:->|[,/])[ \t]*|[ \t]*\.\.[ \t]*'
+                  r'|[ \t]+and[ \t]+|[ \t]+)')
 
 
 def cite_run(text):
