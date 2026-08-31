@@ -3,6 +3,7 @@ r"""Copy a reconstruction's source and strip the reverse-engineering apparatus.
     python kit/tools/pascal/clean.py src clean-src
     python kit/tools/pascal/clean.py src clean-src --dry
     python kit/tools/pascal/clean.py src clean-src --report
+    python kit/tools/pascal/clean.py src clean-src --exclude asm/shared-exempt.txt
 
 WHY A SECOND COPY. A reconstruction's source answers "how do we know this byte
 is right". Every address, every operand delta, every note on which instrument
@@ -83,6 +84,24 @@ a tool's data file has braces and semicolons that mean something else entirely,
 and processing one as Pascal is how a stripper edits a file it was never
 pointed at.
 
+## AN INSTRUMENT'S OWN INPUT IS NOT DOCUMENTATION: `--exclude`
+
+Some files in a reconstruction's source tree are apparatus by NATURE rather than
+by tagging -- a comparison tool's exemption list, say. They document nothing
+about the program, nothing in the build reads them, and their content is a claim
+about the measuring rather than about the subject. A tag cannot reach them,
+because they are not comments.
+
+`--exclude` takes a path relative to the source root, repeatable, matched as a
+glob against the relative path in POSIX form (`asm/shared-exempt.txt`,
+`*/scratch/*`). An excluded file is reported as such and not written, so a reader
+of the run can see the decision rather than inferring it from an absence -- which
+is the same reason the verbatim copies are reported by name.
+
+Excluding a `.PAS`, `.ASM` or `.INC` is refused outright. Those are the sources
+the stripped copy exists to carry, the build needs every one of them, and a tool
+that will silently leave a unit out is the flat-walk defect wearing a flag.
+
 ## AND THE LINE ENDINGS ARE THE INPUT'S, NOT THIS TOOL'S
 
 The final write used to be `new.replace('\n', '\r\n')`, unconditionally. A
@@ -146,6 +165,7 @@ way to know the stripper has not changed the program.
 import io
 import re
 import sys
+import fnmatch
 import pathlib
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -425,21 +445,48 @@ def code_only(text, asm):
 
 
 def main(argv):
-    args = [a for a in argv if not a.startswith('--')]
+    # `--exclude` TAKES A VALUE, so the positionals cannot be sieved out of
+    # argv by their leading dashes alone: the pattern that follows it would be
+    # read as the destination directory, and two sources with an odd name is
+    # not a mistake this should make quietly.
+    args, skip, rest = [], [], list(argv)
+    while rest:
+        a = rest.pop(0)
+        if a == '--exclude':
+            if not rest:
+                raise SystemExit("--exclude needs a path, relative to the "
+                                 "source root")
+            skip.append(rest.pop(0))
+        elif a.startswith('--exclude='):
+            skip.append(a.split('=', 1)[1])
+        elif not a.startswith('--'):
+            args.append(a)
     if len(args) != 2:
         raise SystemExit(__doc__)
     src, dst = pathlib.Path(args[0]), pathlib.Path(args[1])
     dry, report = '--dry' in argv, '--report' in argv
+    for pat in skip:
+        if pathlib.PurePosixPath(pat).suffix.upper() in SOURCE:
+            raise SystemExit(
+                "--exclude %s names a source file, which this refuses: the "
+                "stripped copy exists to carry those and the build needs "
+                "every one." % pat)
 
     if not dry:
         dst.mkdir(parents=True, exist_ok=True)
 
-    files = drop = trim = left = tags = copied = 0
+    files = drop = trim = left = tags = copied = excluded = 0
     written = set()
     for f in sorted(src.rglob('*')):
         if not f.is_file():
             continue
         rel = f.relative_to(src)
+        if any(fnmatch.fnmatch(rel.as_posix(), pat) for pat in skip):
+            # Reported, not merely absent: a reader of the run sees the
+            # decision rather than having to notice a gap.
+            excluded += 1
+            print("%-24s excluded" % rel.as_posix())
+            continue
         written.add(rel)
         out = dst / rel
         if not dry:
@@ -490,7 +537,7 @@ def main(argv):
     print("%d file(s): %d [re] paragraph(s) removed, %d address-only\n         comment(s) dropped, %d prefix(es) trimmed"
           % (files, tags, drop, trim))
     print("%d comment(s) still mention an address -- those need a person" % left)
-    print("%d file(s) carried across verbatim" % copied)
+    print("%d file(s) carried across verbatim, %d excluded" % (copied, excluded))
     print("every file verified: not one line of code differs")
 
     if not dry and dst.exists():
