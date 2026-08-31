@@ -378,6 +378,13 @@ def drop_tagged_pascal(text):
         out = '\n\n'.join(keep)
         if out.lstrip()[:1] == '$':  # `{$` is a DIRECTIVE, not a comment
             out = ' ' + out.lstrip()
+        # A CLOSER SHOULD NOT SIT AGAINST A WORD. Where the tagged paragraph was
+        # the comment's LAST, the delimiter it used to stand clear of comes back
+        # hard against the final full stop -- `...closing brace.*)`. The
+        # original spaced it; keeping that costs one character and the stripped
+        # copy is prose somebody reads.
+        if out[-1:] not in ('', ' ', '\t', '\n'):
+            out += ' '
         return op + out + cl
 
     return COMMENT_ALL.sub(one, text), n
