@@ -191,7 +191,13 @@ SPAN = r'%s(?:\s*\.\.\s*%s)?' % (TOKEN, TOKEN)
 # is trimmed instead, and the comment survives as `{ -> 1436:0000 }` -- which is
 # apparatus wearing a punctuation mark. 82 of them on one corpus, 23 in a single
 # file.
-JOINER = r'(?:[ \t]*(?:->|[,/])[ \t]*|\s+)'
+# **AND THE WORD `and` JOINS A RUN TOO**, for the same reason and with the same
+# evidence: `{ DS:$051E and DS:$0520 }` is two citations and no prose. The scan
+# below has admitted `and` since the three leaks it was written for, but this
+# rule did not, so the comment survived the drop and was trimmed instead --
+# leaving `{ $0520 }`. Two of them on this corpus, in two files, and both were
+# found by reading the stripped copy rather than by anything failing.
+JOINER = r'(?:[ \t]*(?:->|[,/])[ \t]*|[ \t]+and[ \t]+|\s+)'
 ONLY = re.compile(r'^\s*(?:%s)(?:%s(?:%s))*\s*$' % (SPAN, JOINER, SPAN))
 # **THE BYTES AT THAT ADDRESS ARE APPARATUS TOO.** `{ DS:$0962  7f }` loses
 # its prefix and leaves `{ 7f }` beside `= 127` -- the same number twice, once
