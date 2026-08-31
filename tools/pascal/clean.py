@@ -257,11 +257,58 @@ def cite_run(text):
     return len(text) - len(rest.lstrip(' \t'))
 
 
-COMMENT = re.compile(r'\{[^{}]*\}')
+# **PASCAL HAS TWO COMMENT FORMS AND THE SECOND ONE IS WHERE THE DANGEROUS
+# PROSE LIVES.** `{ }` and `(* *)` are both comments and neither nests in the
+# other, so a corpus uses `(* *)` for exactly one reason: it is the only way to
+# WRITE a compiler directive inside prose. `(* 286 CODE ON. this unit had no
+# {$G+} ... *)` is a sentence; the same words inside braces would end the
+# comment at the directive's own closing brace.
+#
+# So the form is not a style choice, it is a workaround -- and it clusters
+# around directives, which are the highest-risk comments in any reconstruction.
+# Knowing only `{ }` meant a paragraph in `(* *)` could not be tagged (the tag
+# was never read), could not be stripped, and was invisible to the checker that
+# counts what leaks. Measured on the corpus that found it: 18 blocks, 75
+# paragraphs, **16 carrying apparatus**, and 5 directives written inside them.
+COMMENT = re.compile(r'\{[^{}]*\}|\(\*.*?\*\)')
+COMMENT_ALL = re.compile(r'\{[^{}]*\}|\(\*.*?\*\)', re.S)
 
 # The only extensions whose comment grammar this tool knows. Everything else in
 # the tree is carried across byte for byte -- see the docstring.
 SOURCE = ('.PAS', '.ASM', '.INC')
+
+
+def delims(hit):
+    """(opener, body, closer) for whichever comment form this is."""
+    if hit[:1] == '{':
+        return '{', hit[1:-1], '}'
+    return '(*', hit[2:-2], '*)'
+
+
+def is_asm(path, text=None):
+    """Is this an ASSEMBLER source? Decided by CONTENT where the suffix cannot.
+
+    `.INC` says nothing about grammar. In one corpus `COSTAB.INC` is TASM while
+    `BLITCLIP.INC`, `SETPAL.INC` and `SETRGB.INC` are Pascal includes -- and
+    taking all four for assembler applied the `;`-run paragraph grain to Pascal,
+    where `;` ends a statement. That reported **0 problems over three files full
+    of apparatus**, which is the shape of a check that cannot fail.
+
+    So: `.ASM` is assembler and `.PAS` is not, both by definition; an `.INC` is
+    read, and the first line that is not blank decides. An assembler file opens
+    with a `;` banner, a Pascal one with `{` or `(*` or code.
+    """
+    suffix = pathlib.Path(path).suffix.upper()
+    if suffix == '.ASM':
+        return True
+    if suffix != '.INC':
+        return False
+    if text is None:
+        text = io.open(path, encoding='utf-8', errors='replace').read()
+    for line in text.split('\n'):
+        if line.strip():
+            return line.lstrip().startswith(';')
+    return False
 
 
 # **THE TAGS.** A paragraph opening `[re]` is apparatus and is stripped; one
@@ -289,7 +336,7 @@ def drop_tagged_pascal(text):
 
     def one(m):
         nonlocal n
-        body = m.group(0)[1:-1]
+        op, body, cl = delims(m.group(0))
         paras = re.split(r'\n[ \t]*\n', body)
         # **A TAGGED PARAGRAPH CARRIES ITS CONTINUATIONS**, which are the
         # blocks indented under it -- a frame layout, a table, a quoted
@@ -323,9 +370,9 @@ def drop_tagged_pascal(text):
         out = '\n\n'.join(keep)
         if out.lstrip()[:1] == '$':  # `{$` is a DIRECTIVE, not a comment
             out = ' ' + out.lstrip()
-        return '{' + out + '}'
+        return op + out + cl
 
-    return re.compile(r'\{[^{}]*\}', re.S).sub(one, text), n
+    return COMMENT_ALL.sub(one, text), n
 
 
 def drop_tagged_asm(text):
@@ -373,7 +420,7 @@ def clean_text(text, asm=False):
 
     def prefix(m):
         nonlocal trimmed
-        body = m.group(0)[1:-1]
+        op, body, cl = delims(m.group(0))
         # **THE QUOTE IS PROTECTED; THE CITATION IN FRONT OF IT IS NOT.** This
         # used to refuse the whole comment whenever it mentioned the release,
         # which shielded `{ 1723:03cf  [1.39b] "Reset the GF1" }` -- address and
@@ -407,14 +454,14 @@ def clean_text(text, asm=False):
             if cut[:1] not in ('', ' ', '\t', '\n'):
                 cut = ' ' + cut
             trimmed += 1
-            return '{' + cut + '}'
+            return op + cut + cl
         return m.group(0)
 
-    text = re.compile(r'\{[^{}]*\}', re.S).sub(prefix, text)
+    text = COMMENT_ALL.sub(prefix, text)
 
     def one(m):
         nonlocal dropped, trimmed
-        body = m.group(0)[1:-1]
+        body = delims(m.group(0))[1]
         if '1.39b' in body:                  # the author's words: never touched
             return m.group(0)
         if ONLY.match(body) or BYTES.match(body):
@@ -448,7 +495,7 @@ def survivors(text):
     hits = []
     for n, line in enumerate(text.split('\n'), 1):
         for m in COMMENT.finditer(line):
-            body = ' '.join(m.group(0)[1:-1].split())
+            body = ' '.join(delims(m.group(0))[1].split())
             if '1.39b' in body:
                 continue
             if re.search(r'[0-9a-fA-F]{4}:[0-9a-fA-F]{4}|DS:\$', body):
@@ -523,7 +570,7 @@ def main(argv):
         # WHAT THIS FILE HAD IS WHAT IT GETS BACK. Decided per file: a tree may
         # legitimately hold both, and a tool that normalises rewrites the lot.
         crlf = '\r\n' in raw
-        asm = f.suffix.upper() in ('.ASM', '.INC')
+        asm = is_asm(f, text)
         new, d, t, g = clean_text(text, asm=asm)
         rest = survivors(new)
         files += 1
