@@ -400,6 +400,72 @@ def drop_tagged_asm(text):
     return '\n'.join(out), n
 
 
+def asm_comment_at(line):
+    """Where the `;` comment starts on an assembler line, or -1.
+
+    Quote-aware, because `DB 'a;b'` is not a comment and blanking from that
+    semicolon would delete a string's second half from the stripped copy while
+    the self-check -- which blanks comments in BOTH copies -- stayed happy.
+    """
+    quote = None
+    for k, ch in enumerate(line):
+        if quote:
+            if ch == quote:
+                quote = None
+        elif ch in '"\'':
+            quote = ch
+        elif ch == ';':
+            return k
+    return -1
+
+
+def clean_asm_addresses(text):
+    """Apply the address rules to `;` comments. Returns (text, dropped, trimmed).
+
+    **THE TAG CANNOT REACH THESE, WHICH IS WHY THE PASS EXISTS.** A tag drops
+    whole comment LINES, deliberately -- a line of code with a trailing note is
+    never removed, or a stripper would delete code. But hand-written assembler
+    documents itself per instruction, and in a reconstruction that means a
+    column of addresses:
+
+        push    bp                      ; 1102:0391
+        mov     eax,[bp+08h]            ; 1102:0394  A
+
+    Twenty-six of those in one file, none of them taggable and every one of
+    them apparatus. Without this pass they stay in the stripped copy for good
+    and the tree-wide count can never reach zero, which is the destination.
+
+    The rules are the ones already used on `{ }`: a comment that is nothing but
+    addresses goes with its trailing whitespace, and a leading run of citations
+    is trimmed off a comment that also says something. Nothing else is touched.
+    """
+    dropped = trimmed = 0
+    out = []
+    for line in text.split('\n'):
+        k = asm_comment_at(line)
+        if k < 0:
+            out.append(line)
+            continue
+        code, body = line[:k], line[k + 1:]
+        if not code.strip():          # a whole comment line: the tag's job
+            out.append(line)
+            continue
+        if ONLY.match(body) or BYTES.match(body):
+            dropped += 1
+            out.append(code.rstrip())
+            continue
+        cut = LEAD.sub('', body)
+        run = cite_run(cut)
+        if run:
+            cut = ' ' + cut[run:]
+        if cut != body:
+            trimmed += 1
+            out.append(code + ';' + cut.rstrip())
+            continue
+        out.append(line)
+    return '\n'.join(out), dropped, trimmed
+
+
 def clean_text(text, asm=False):
     """Return (text, dropped, trimmed) with the apparatus removed.
 
@@ -417,6 +483,14 @@ def clean_text(text, asm=False):
     # the tangled prose to the tags.
     text, tagged = (drop_tagged_asm(text) if asm
                     else drop_tagged_pascal(text))
+
+    # THE SAME ADDRESS RULES, ON THE OTHER COMMENT SYNTAX. The brace passes
+    # below cannot see a `;` comment, so an assembler file's per-instruction
+    # address column survived every one of them.
+    if asm:
+        text, d, t = clean_asm_addresses(text)
+        dropped += d
+        trimmed += t
 
     def prefix(m):
         nonlocal trimmed
