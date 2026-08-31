@@ -41,6 +41,14 @@ value. A `segment:offset` or a `DS:$` prefix announces itself as a place in
 someone else's binary. A bare four-digit number might be a place, or a length, or
 a row label, and this tool cannot tell which -- so it is never touched.
 
+**ANY SEGMENT REGISTER, NOT JUST DS.** `CS:$002C` names a constant sitting in
+the original's CODE segment and is an address by exactly the same argument, but
+knowing only `DS:` left 70 of them across 19 files that neither this tool nor
+the checker could see. `ES:` and `SS:` are admitted for the same reason before a
+corpus produces one. In Pascal these forms appear only in comments -- the
+language writes `Mem[Seg:Ofs]` with no `$` -- and in assembler a real override
+is `es:[00CCh]`, also without one, so the pattern cannot reach code.
+
 **On ANY line of a block comment, not just the first.** The common shape here is
 a rule of dashes, then the address on the line below it:
 
@@ -173,7 +181,7 @@ import magic                                                      # noqa: E402
 
 # An address, in every form this method writes one.
 TOKEN = (r'(?:[0-9a-fA-F]{4}:[0-9a-fA-F]{4}'      # segment:offset
-         r'|DS:\$[0-9a-fA-F]{2,4}'                # a data address
+         r'|(?:DS|CS|ES|SS):\$[0-9a-fA-F]{2,4}'   # a segmented address
          r'|\[BP[-+]\$?[0-9A-Fa-f]{1,4}h?\]'      # a stack frame slot
          r'|[0-9a-fA-F]{4})')                     # a bare offset
 SPAN = r'%s(?:\s*\.\.\s*%s)?' % (TOKEN, TOKEN)
@@ -188,7 +196,7 @@ LEAD = re.compile(r'^[ \t]*(?:%s)(?:[\s,/]+(?:%s))*[ \t]*--[ \t]*'
 # A segment:offset and then a note, with no dash between them. Two-part form
 # only: a bare offset may be identifying a row rather than citing a site.
 SITE_TOKEN = (r'(?:[0-9a-fA-F]{4}:[0-9a-fA-F]{4}'      # segment:offset
-              r'|DS:\$[0-9a-fA-F]{2,4}'                # a data address
+              r'|(?:DS|CS|ES|SS):\$[0-9a-fA-F]{2,4}'   # a segmented address
               r'|\[BP[-+]\$?[0-9A-Fa-f]{1,4}h?\])')     # a frame slot
 # **THE PREFIX ENDS WHERE THE CITATIONS DO**, and this is a SCAN rather than a
 # regex on purpose. A run of sites may be joined by a comma, a slash, a range or

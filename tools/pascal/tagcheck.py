@@ -18,7 +18,8 @@ merely convenient.
 
 ## What counts as a tell
 
-Only mechanical ones -- a `segment:offset`, a `DS:$` address, the name of a
+Only mechanical ones -- a `segment:offset`, a segmented `DS:$`/`CS:$` address,
+the name of a
 measuring tool, a `~~withdrawn~~` marker. Never prose style. A tool that
 guessed at tone would cry wolf until it was ignored, and an instrument nobody
 runs is worse than none.
@@ -57,7 +58,11 @@ import clean                                                      # noqa: E402
 # The tells. Mechanical, every one -- a thing no explanation of behaviour needs.
 TELLS = (
     (re.compile(r'\b[0-9a-fA-F]{4}:[0-9a-fA-F]{4}\b'), 'a segment:offset'),
-    (re.compile(r'\bDS:\$[0-9a-fA-F]{2,4}\b'), 'a DS: address'),
+    # ANY SEGMENT REGISTER, not just DS. `CS:$002C` names a constant in the
+    # original's CODE segment and is an address by the same argument; knowing
+    # only DS left 70 of them across 19 files that nothing could see.
+    (re.compile(r'\b(?:DS|CS|ES|SS):\$[0-9a-fA-F]{2,4}\b'),
+     'a segmented address'),
     (re.compile(r'\b\w+\.py\b'), 'a measuring tool'),
     (re.compile(r'~~'), 'a withdrawn claim'),
 )
