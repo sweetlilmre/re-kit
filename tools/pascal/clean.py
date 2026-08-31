@@ -198,6 +198,34 @@ ONLY = re.compile(r'^\s*(?:%s)(?:%s(?:%s))*\s*$' % (SPAN, JOINER, SPAN))
 # in a base the reader did not ask for. Anything left that is only hex pairs
 # is the image quoted back, not a note about the code.
 BYTES = re.compile(r'^\s*[0-9a-fA-F]{2}(?:\s+[0-9a-fA-F]{2})*\s*$')
+# **A LIST OF ADDRESSES WRITES THE PREFIX ONCE.** `{ DS:$BE90, $BE92 }` names
+# two consecutive words, and only the first carries the segment -- so the
+# second is a bare `$XXXX`, a form TOKEN deliberately does not admit, because
+# `{ $A000 }` beside a segment constant and `{ $C8 }` beside 200 are the same
+# shape and are honest documentation. The address-only rule therefore missed
+# the whole comment, the prefix trim took the qualified half, and what shipped
+# was `{ $BE92 }`: apparatus, with the one token that identified it as
+# apparatus removed. Eleven of them in four files, and `addressed` counted
+# none of them, so the tool reported nothing for a person to look at.
+#
+# The kind is established by the LIST, not by the token: a bare `$XXXX` is an
+# address when it stands in a joiner-separated list with a segment-qualified
+# one, and is left alone otherwise. That keeps all 35 honest hex constants on
+# the same corpus.
+DOLLAR = r'\$[0-9a-fA-F]{2,4}'
+LIST_ITEM = r'(?:%s|%s)' % (SPAN, DOLLAR)
+ONLY_LIST = re.compile(r'^\s*%s(?:%s%s)*\s*$'
+                       % (LIST_ITEM, JOINER, LIST_ITEM))
+QUALIFIED = re.compile(r'(?:[0-9a-fA-F]{4}:[0-9a-fA-F]{4}'
+                       r'|(?:DS|CS|ES|SS):\$[0-9a-fA-F]{2,4}'
+                       r'|\[BP[-+]\$?[0-9A-Fa-f]{1,4}h?\])')
+
+
+def address_only(body):
+    """The comment is citations and nothing else, so it goes entirely."""
+    return bool(ONLY.match(body) or BYTES.match(body)
+                or (ONLY_LIST.match(body) and QUALIFIED.search(body)))
+
 LEAD = re.compile(r'^[ \t]*(?:%s)(?:[\s,/]+(?:%s))*[ \t]*--[ \t]*'
                   % (SPAN, SPAN), re.M)
 # A segment:offset and then a note, with no dash between them. Two-part form
@@ -496,7 +524,7 @@ def clean_asm_addresses(text):
         if not code.strip():          # a whole comment line: the tag's job
             out.append(line)
             continue
-        if ONLY.match(body) or BYTES.match(body):
+        if address_only(body):
             dropped += 1
             out.append(code.rstrip())
             continue
@@ -552,6 +580,20 @@ def clean_text(text, asm=False):
     def prefix(m):
         nonlocal trimmed
         op, body, cl = delims(m.group(0))
+        # **THE DROPPER OWNS A COMMENT THAT IS NOTHING BUT ADDRESSES**, and
+        # this pass has to leave it alone. `{ DS:$BE90, $BE92 }` names two
+        # consecutive words with the segment written once; trimming the leading
+        # citation leaves `{ $BE92 }`, and by the time the drop pass below sees
+        # that body the one token that identified it as an address is gone. So
+        # the comment survives, in the deliverable, as apparatus that no longer
+        # looks like any -- and `addressed` does not count it either, because
+        # nothing is left for the residual-address report to recognise.
+        #
+        # Two passes in a fixed order means the earlier one can destroy the
+        # later one's evidence. Eleven comments in four files on this corpus,
+        # and the way it was found was reading the stripped copy.
+        if address_only(body):
+            return m.group(0)
         # **THE QUOTE IS PROTECTED; THE CITATION IN FRONT OF IT IS NOT.** This
         # used to refuse the whole comment whenever it mentioned the release,
         # which shielded `{ 1723:03cf  [1.39b] "Reset the GF1" }` -- address and
@@ -595,7 +637,7 @@ def clean_text(text, asm=False):
         body = delims(m.group(0))[1]
         if '1.39b' in body:                  # the author's words: never touched
             return m.group(0)
-        if ONLY.match(body) or BYTES.match(body):
+        if address_only(body):
             dropped += 1
             return ''
         return m.group(0)
