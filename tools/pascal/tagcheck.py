@@ -137,6 +137,51 @@ def paragraphs(text, asm):
         yield first, '\n'.join(run)
 
 
+ANYTAG = re.compile(r'\[(?:re|reading)\]', re.I)
+
+
+def inert(text, asm):
+    """Tags that do NOTHING, which is the worst state a tag can be in.
+
+    A tag is read at the START of a paragraph and nowhere else -- that is how
+    the stripper decides, and it is deliberate: a tag buried mid-sentence would
+    make the meaning of a paragraph depend on where somebody happened to put a
+    marker. So a `[re]` on a continuation line is INERT.
+
+    That is worse than an untagged paragraph, and it hides in the one place
+    nothing looks. The apparatus stays in the stripped copy exactly as if it had
+    never been marked, AND the marker itself is now visible in the copy meant
+    for a reader who has never heard of it -- so it reads as a typo in the
+    documentation. Neither the stripper nor the leak check can see it: the
+    stripper looks only at paragraph starts, and the leak check EXEMPTS a
+    paragraph whose start matches, so a paragraph with a mid-sentence tag is
+    simply an untagged one to both.
+
+    Measured on the corpus that found this: three of them, and one had survived
+    a closed ticket's gate.
+
+    The usual cause is a paragraph that opens with a rule of dashes -- the tag
+    goes on the first line of PROSE, which is the second line of the paragraph.
+    The fix is a blank line, making the prose its own paragraph.
+    """
+    bad = []
+    for m in clean.COMMENT_ALL.finditer(text):
+        op, body, cl = clean.delims(m.group(0))
+        start = text[:m.start()].count('\n') + 1
+        off = 0
+        for para in re.split(r'\n[ \t]*\n', body):
+            n = start + body[:off].count('\n')
+            off += len(para) + 2
+            if not ANYTAG.search(para) or EXEMPT.match(para):
+                continue
+            if re.match(r'^\s*\[reading\]', para, re.I):
+                continue
+            bad.append((n, 'AN INERT TAG', '[re]',
+                        'tag is not at the paragraph start: '
+                        + ' '.join(para.split())[:52]))
+    return bad if not asm else []
+
+
 def check(path):
     """What LEAKS, which is not the same as what a comment contains.
 
@@ -155,8 +200,8 @@ def check(path):
     # where `;` ends a statement -- reporting 0 over three files full of
     # apparatus. clean.is_asm reads the first non-blank line.
     asm = clean.is_asm(path, text)
+    hits = inert(text, asm)
     text, _, _, _ = clean.clean_text(text.replace('\r\n', '\n'), asm=asm)
-    hits = []
     for n, para in paragraphs(text, asm):
         if not para.strip() or EXEMPT.match(para) or BANNER.search(para):
             continue
