@@ -479,6 +479,17 @@ def clean_asm_addresses(text):
         if run:
             cut = ' ' + cut[run:]
         if cut != body:
+            # **AND WHAT IS LEFT MAY ITSELF BE THE IMAGE QUOTED BACK.**
+            # `; 12C5:0ADC  F3 66 A5` trims to ` F3 66 A5`, which is the
+            # instruction's own encoding beside the instruction -- the same
+            # thing twice, once in a base the reader did not ask for. The
+            # Pascal side gets this for free by running its trim and its drop
+            # as two passes over the text; this one does both in a single walk,
+            # so it has to look again.
+            if BYTES.match(cut):
+                dropped += 1
+                out.append(code.rstrip())
+                continue
             trimmed += 1
             out.append(code + ';' + cut.rstrip())
             continue
