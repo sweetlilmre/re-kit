@@ -67,6 +67,34 @@ last are the original author's words, which are the point of the exercise. The
 token grammar below admits only whole addresses, so a two-character effect code
 cannot look like one.
 
+## THE TREE IS A TREE, AND ONLY ONE CORPUS EVER SAID OTHERWISE
+
+An earlier version walked `src.iterdir()` and skipped anything that was not a
+file, **silently**. On a flat corpus that is correct and invisible; on a tree it
+copies the units and leaves the hand-written assembler, the generated tables,
+the harnesses and the batch file behind, and says nothing about having done so.
+The stripped copy then cannot build, and the first thing that tells you is the
+compiler failing on a missing include.
+
+So the walk recurses and relative paths are preserved. A directory is created
+on demand, and **a file this tool does not understand is copied BYTE FOR BYTE**:
+only `.PAS`, `.ASM` and `.INC` carry comments in a grammar it knows. A `.BAT` or
+a tool's data file has braces and semicolons that mean something else entirely,
+and processing one as Pascal is how a stripper edits a file it was never
+pointed at.
+
+## AND THE LINE ENDINGS ARE THE INPUT'S, NOT THIS TOOL'S
+
+The final write used to be `new.replace('\n', '\r\n')`, unconditionally. A
+corpus whose sources are CRLF on disk cannot see that; one whose sources are LF
+-- because `.gitattributes` marks them `-text` and they were authored that way
+-- gets a copy that differs from its origin in every line of every file, which
+makes any diff between the two trees noise and hides the one line that matters.
+
+Each file is written with the endings it was read with. Preserving is the only
+rule that is right on both corpora, and a bulk line-ending change is a hazard
+in its own right: it rewrites every file in the tree for no measured gain.
+
 ## It does not own the whole directory
 
 The output directory may hold things this tool did not write -- a README, a
@@ -210,6 +238,10 @@ def cite_run(text):
 
 
 COMMENT = re.compile(r'\{[^{}]*\}')
+
+# The only extensions whose comment grammar this tool knows. Everything else in
+# the tree is carried across byte for byte -- see the docstring.
+SOURCE = ('.PAS', '.ASM', '.INC')
 
 
 # **THE TAGS.** A paragraph opening `[re]` is apparatus and is stripped; one
@@ -402,13 +434,30 @@ def main(argv):
     if not dry:
         dst.mkdir(parents=True, exist_ok=True)
 
-    files = drop = trim = left = tags = 0
+    files = drop = trim = left = tags = copied = 0
     written = set()
-    for f in sorted(src.iterdir()):
+    for f in sorted(src.rglob('*')):
         if not f.is_file():
+            continue
+        rel = f.relative_to(src)
+        written.add(rel)
+        out = dst / rel
+        if not dry:
+            out.parent.mkdir(parents=True, exist_ok=True)
+        # A file whose comment grammar this tool does not know is carried
+        # across untouched -- bytes, so neither its encoding nor its line
+        # endings are this tool's to decide.
+        if f.suffix.upper() not in SOURCE:
+            copied += 1
+            print("%-24s carried across verbatim" % rel.as_posix())
+            if not dry:
+                out.write_bytes(f.read_bytes())
             continue
         raw = io.open(f, encoding='utf-8', errors='replace', newline='').read()
         text = raw.replace('\r\n', '\n')
+        # WHAT THIS FILE HAD IS WHAT IT GETS BACK. Decided per file: a tree may
+        # legitimately hold both, and a tool that normalises rewrites the lot.
+        crlf = '\r\n' in raw
         asm = f.suffix.upper() in ('.ASM', '.INC')
         new, d, t, g = clean_text(text, asm=asm)
         rest = survivors(new)
@@ -417,8 +466,8 @@ def main(argv):
         trim += t
         tags += g
         left += len(rest)
-        print("%-16s tagged %4d  dropped %4d  trimmed %3d  addressed %3d"
-              % (f.name, g, d, t, len(rest)))
+        print("%-24s tagged %4d  dropped %4d  trimmed %3d  addressed %3d"
+              % (rel.as_posix(), g, d, t, len(rest)))
         if report:
             for n, body in rest[:8]:
                 print("      %5d  %s" % (n, body))
@@ -428,24 +477,25 @@ def main(argv):
                 if x != y:
                     raise SystemExit(
                         "%s: THE CODE CHANGED, which this must never do.\n"
-                        "  was : %s\n  now : %s" % (f.name, x[:78], y[:78]))
+                        "  was : %s\n  now : %s"
+                        % (rel.as_posix(), x[:78], y[:78]))
             raise SystemExit("%s: the code changed length, %d -> %d"
-                             % (f.name, len(before), len(after)))
+                             % (rel.as_posix(), len(before), len(after)))
 
-        written.add(f.name)
         if not dry:
-            io.open(dst / f.name, 'w', encoding='utf-8', newline='').write(
-                new.replace('\n', '\r\n'))
+            io.open(out, 'w', encoding='utf-8', newline='').write(
+                new.replace('\n', '\r\n') if crlf else new)
 
     print()
     print("%d file(s): %d [re] paragraph(s) removed, %d address-only\n         comment(s) dropped, %d prefix(es) trimmed"
           % (files, tags, drop, trim))
     print("%d comment(s) still mention an address -- those need a person" % left)
+    print("%d file(s) carried across verbatim" % copied)
     print("every file verified: not one line of code differs")
 
     if not dry and dst.exists():
-        kept = [q.name for q in sorted(dst.iterdir())
-                if q.is_file() and q.name not in written]
+        kept = [q.relative_to(dst).as_posix() for q in sorted(dst.rglob('*'))
+                if q.is_file() and q.relative_to(dst) not in written]
         if kept:
             print("kept, not generated by this tool: %s" % ", ".join(kept))
     return 0
