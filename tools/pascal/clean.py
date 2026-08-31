@@ -271,6 +271,10 @@ SOURCE = ('.PAS', '.ASM', '.INC')
 # release's own words and predates both.
 RE_TAG = re.compile(r'^\s*\[re\]\s*', re.I)
 
+# Stands in for a comment removed whole, until the line pass decides whether
+# the LINE goes with it. Not a character any DOS source contains.
+GONE = '\x00'
+
 
 def drop_tagged_pascal(text):
     """Remove `[re]` paragraphs from every { } comment. Returns (text, n).
@@ -305,7 +309,15 @@ def drop_tagged_pascal(text):
             keep.append(q)
         n += len(paras) - len(keep)
         if not keep or not ''.join(keep).strip():
-            return ''               # nothing but apparatus: the comment goes
+            # **NOTHING BUT APPARATUS: THE COMMENT GOES, AND SO DO ITS LINES.**
+            # A sentinel rather than an empty string, because a comment that
+            # occupied whole lines otherwise leaves them behind as blanks --
+            # and a routine header then floats a blank line above its own
+            # declaration, everywhere a marker was stripped. The line pass in
+            # `clean_text` removes any line that is nothing but sentinels and
+            # strips the rest, which is the only way to tell a line this tool
+            # emptied from a blank line somebody wrote.
+            return GONE
         if len(keep) == len(paras):
             return m.group(0)
         out = '\n\n'.join(keep)
@@ -412,6 +424,12 @@ def clean_text(text, asm=False):
 
     out = []
     for line in text.split('\n'):
+        if GONE in line:
+            # A line that held nothing but a removed comment goes entirely;
+            # one that also held code keeps the code and loses the gap.
+            if not line.replace(GONE, '').strip():
+                continue
+            line = line.replace(GONE, '').rstrip()
         new = COMMENT.sub(one, line)
         # A line that held nothing but its comment goes with it; a line of code
         # keeps its indentation and loses the trailing blank.
