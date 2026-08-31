@@ -383,19 +383,39 @@ def drop_tagged_asm(text):
     continuation lines of one tagged note carry no tag of their own. A line
     holding code with a trailing comment is never dropped -- only whole
     comment lines.
+
+    **AND THE SEPARATOR THE RUN SAT BETWEEN GOES WITH IT.** A bare `;` ends a
+    paragraph, so a tagged one is normally fenced by two of them -- drop the
+    run and the fences meet, leaving `;` followed by `;` in the stripped copy.
+    This is the assembler's version of the blank line a removed `{ }` comment
+    used to leave behind, and it matters for the same reason: the stripped copy
+    IS the product, and a column of doubled separators is visible noise in it.
+
+    Only an adjacency this pass CREATED is collapsed -- the previous emitted
+    line being a bare `;` and a drop having just ended. Two separators somebody
+    wrote deliberately are left alone.
     """
-    out, n, dropping = [], 0, False
+    out, n, dropping, just_dropped = [], 0, False, False
     for line in text.split('\n'):
         s = line.strip()
         if s.startswith(';'):
             after = s[1:].lstrip()
             if RE_TAG.match(after):
-                dropping, n = True, n + 1
+                dropping, n, just_dropped = True, n + 1, True
                 continue
             if dropping and after and not after.startswith('['):
                 n += 1                      # continuation of the tagged note
                 continue
-        dropping = False
+        if (just_dropped and s == ';' and out and out[-1].strip() == ';'):
+            # THE RUN ENDS HERE, and saying so is not optional: an earlier
+            # version skipped this line without clearing `dropping`, so the run
+            # went on eating the NEXT paragraph -- two paragraphs of real
+            # documentation, removed silently. The self-check cannot see it,
+            # because only comments changed. Reading the stripped copy is what
+            # caught it, for the third time in this effort.
+            dropping, just_dropped = False, False
+            continue
+        dropping, just_dropped = False, False
         out.append(line)
     return '\n'.join(out), n
 
