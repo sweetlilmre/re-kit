@@ -2,6 +2,13 @@ r"""Emit compiled-in data back out as Borland Pascal typed constants.
 
     python kit/tools/pascal/emit.py EMIT.toml
     python kit/tools/pascal/emit.py EMIT.toml --only P3SINE.INC
+    python kit/tools/pascal/emit.py EMIT.toml --check    compare, write nothing
+
+**RUN `--check` BEFORE REGENERATING.** What this writes can be hand-edited after
+the fact -- most often by a documentation pass, which touches the prose at the
+top and not the config that produced it -- and regenerating then silently
+reverts that work. See `check()` for the case this is drawn from and why no other
+instrument in a reconstruction can see it.
 
 WHY THIS IS NEEDED AT ALL, and it is the reason the reconstruction is not just a
 skeleton: anything in DGROUP's INITIALISED region was a typed constant in the
@@ -28,8 +35,11 @@ would have to be rewritten for another binary. What is here is the formatter and
 the reading.
 """
 import io
+import re
+import shutil
 import struct
 import sys
+import tempfile
 import pathlib
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
@@ -99,14 +109,113 @@ def values_of(raw, base, spec):
     return out
 
 
-def emit(cfg_path, only=None):
+def code_only(data):
+    """The file with every Pascal comment removed, for comparing DATA alone.
+
+    Nested braces are stripped from the inside out, because Turbo Pascal does not
+    nest `{ }` and a lone inner brace would otherwise swallow the rest of a file.
+    """
+    text = data.decode("latin-1")
+    while True:
+        stripped = re.sub(r"\{[^{}]*\}", "", text, flags=re.S)
+        if stripped == text:
+            break
+        text = stripped
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def check(cfg_path):
+    """Regenerate into a temporary directory and compare against the tree.
+
+    WHY A GENERATED FILE NEEDS THIS AT ALL. The banner this tool writes -- named
+    binary, named offset, `do not edit` -- is a claim about the RELATIONSHIP
+    between a config and a file, and nothing else in a reconstruction measures
+    relationships. A build reads one file and answers a question about that file;
+    so does a byte comparison, and so does a whole-binary artefact check. None of
+    them asks whether the generator still produces what is committed.
+
+    That is not theoretical. On one project every one of seven generated includes
+    had been hand-edited months earlier to strip reverse-engineering apparatus
+    out of the documentation copy, and the emitters were not given the same edit
+    -- so running one would have reverted a closed ticket, in seven files at
+    once, and the only thing preventing it was nobody happening to run it. It
+    stayed invisible because the divergence was comment-only and the data
+    identical: comments reach no compiler, so the build stayed byte-identical and
+    every artefact row went on holding. The wiki carries the general form under
+    `generated-means-checked`.
+
+    THE TWO KINDS OF DIFFERENCE ARE NOT THE SAME WEIGHT, which is why this
+    classifies rather than just diffing. Comments-only means the config and the
+    tree disagree about wording, and either side may be the one to keep -- a
+    judgement for whoever knows why the edit was made. A DATA difference means a
+    byte-identical build is resting on committed copies this tool no longer
+    produces, and regenerating over them would move real bytes.
+
+    It writes nothing, so it is safe to run before deciding anything.
+    """
+    with io.open(cfg_path, "rb") as fh:
+        cfg = tomllib.load(fh)
+    try:
+        root = project.find()
+        tree = root / cfg["out"]
+    except project.Missing as exc:
+        return project.complain(exc)
+
+    names = [spec["name"] for spec in cfg["file"]]
+    tmp = pathlib.Path(tempfile.mkdtemp(prefix="emitcheck-"))
+    try:
+        rc = emit(cfg_path, out_override=tmp, quiet=True)
+        if rc:
+            return rc
+        bad = data_bad = 0
+        sys.stdout.write("regenerated into a temporary directory and compared "
+                         "against %s\n\n" % tree.as_posix())
+        for name in names:
+            a, b = tree / name, tmp / name
+            if not a.exists():
+                sys.stdout.write("  %-16s MISSING from the tree\n" % name)
+                bad += 1
+                continue
+            av, bv = a.read_bytes(), b.read_bytes()
+            if av == bv:
+                sys.stdout.write("  %-16s identical\n" % name)
+                continue
+            bad += 1
+            if code_only(av) == code_only(bv):
+                sys.stdout.write("  %-16s DIFFERS in comments only -- the data "
+                                 "is identical, so no build changes\n" % name)
+            else:
+                data_bad += 1
+                sys.stdout.write("  %-16s DIFFERS IN THE DATA -- this changes "
+                                 "what the compiler sees\n" % name)
+        sys.stdout.write("\n  %d of %d file(s) differ from what this config "
+                         "produces.\n" % (bad, len(names)))
+        if data_bad:
+            sys.stdout.write(
+                "  %d of them differ in DATA. Do not regenerate over the tree "
+                "until that is\n  understood: a byte-identical build may be "
+                "resting on the committed copies.\n" % data_bad)
+        elif bad:
+            sys.stdout.write(
+                "  All comment-only. Either the tree was edited by hand and this "
+                "config needs\n  the same edit, or the config changed and the "
+                "tree needs regenerating. They\n  disagree, and regenerating "
+                "would overwrite the tree's wording without saying so.\n")
+        else:
+            sys.stdout.write("  The tree is exactly what this config writes.\n")
+        return 1 if bad else 0
+    finally:
+        shutil.rmtree(str(tmp), ignore_errors=True)
+
+
+def emit(cfg_path, only=None, out_override=None, quiet=False):
     with io.open(cfg_path, "rb") as fh:
         cfg = tomllib.load(fh)
     try:
         root = project.find()
         originals = project.get("target.original")
         first = project.get("target.first_para", quiet=True)
-        out_dir = root / cfg["out"]
+        out_dir = out_override or (root / cfg["out"])
     except project.Missing as exc:
         return project.complain(exc)
 
@@ -137,19 +246,33 @@ def emit(cfg_path, only=None):
         io.open(out_dir / spec["name"], "w", encoding="ascii",
                 newline="\n").write(text)
 
-    for f in sorted(out_dir.iterdir()):
-        n = len(io.open(f, encoding="ascii", errors="replace").read().splitlines())
-        print("%s  %5d lines" % (f, n))
-    print("")
-    print("%s values emitted" % format(total, ","))
+    # THE FILES THIS RUN WROTE, and not a listing of the directory. It used to
+    # walk out_dir, which presents every neighbour as though this config had
+    # produced it -- on a target where a second emitter writes into the same
+    # folder that reads as an overlap between two tools, and one reader spent a
+    # detour ruling out a conflict that was never there. A report that names
+    # more than it measured is the same defect as one that measures nothing.
+    if not quiet:
+        for spec in cfg["file"]:
+            if only and spec["name"] != only:
+                continue
+            f = out_dir / spec["name"]
+            n = len(io.open(f, encoding="ascii",
+                            errors="replace").read().splitlines())
+            print("%s  %5d lines" % (f, n))
+        print("")
+        print("%s values emitted" % format(total, ","))
     return 0
 
 
 def main(argv):
     args = [a for a in argv if not a.startswith("-")]
     if not args:
-        sys.stdout.write("usage: emit.py EMIT.toml [--only FILE.INC]" + "\n")
+        sys.stdout.write("usage: emit.py EMIT.toml [--only FILE.INC] "
+                         "[--check]" + "\n")
         return 2
+    if "--check" in argv:
+        return check(args[0])
     only = None
     if "--only" in argv:
         only = argv[argv.index("--only") + 1]
