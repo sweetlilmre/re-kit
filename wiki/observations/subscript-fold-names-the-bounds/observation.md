@@ -3,7 +3,7 @@ type: Observation
 title: A runtime `DEC` before an array subscript names the array's bounds
 description: Borland Pascal folds an array's low bound into the addressing displacement when the subscript is a bare variable, and evaluates it at runtime when the subscript is an expression. So whether the original computes `I-1` in a register tells you whether the source wrote `A[I]` into a one-based array or `A[I-1]` into a zero-based one -- a declaration you cannot otherwise see, because both compute the same address.
 tags: [pascal, codegen, turbo-pascal, source-shape, arrays, addressing, reconstruction]
-timestamp: 2026-08-24T00:00:00Z
+timestamp: 2026-08-25T00:00:00Z
 ---
 
 # A runtime `DEC` before an array subscript names the array's bounds

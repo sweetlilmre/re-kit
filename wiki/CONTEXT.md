@@ -1,9 +1,9 @@
 ---
 type: Glossary
-title: The wiki -- vocabulary
+title: The method -- vocabulary
 description: The method's vocabulary -- what we measure, what measures it, how a wiki page is shaped, how the catalogue is organised, and the fidelity ladder.
 tags: [glossary, vocabulary]
-timestamp: 2026-08-20T00:00:00Z
+timestamp: 2026-09-01T00:00:00Z
 ---
 
 # The method -- vocabulary
@@ -25,7 +25,7 @@ The whole thing a reader browses -- hubs, artefact answers, case studies and ori
 _Avoid_: knowledge base (fine in conversation, but the wiki is the readable thing), manual, site
 
 **Catalogue**:
-The technique pages inside the wiki, and only those. It draws on 209 techniques found in the source material.
+The technique pages inside the wiki, and only those. The inventory it was cut from held 209 techniques -- that is a measurement of the SOURCE MATERIAL, not of the wiki, and the page count was always meant to be an output rather than a target. Consolidating toward a number is how you lose the distinction that cost most to learn.
 _Avoid_: manual, library, index
 
 **Tier**:
@@ -106,24 +106,29 @@ _Avoid_: gate (a gate is a different thing), guard, lock
 
 ### How the catalogue is organised
 
+**Hub**:
+A symptom page that has artefact answers under it. It is a DISCRIMINATOR and never states a rule, because its children hold rules that invert: what one artefact requires you to forgive is what convicts another, so a rule in the hub is a rule stated for the wrong half of the corpus. A page with no children is not a hub and states its rule directly, having nowhere else to put it.
+_Avoid_: parent page, index page, landing page
+
+
 **Lookup key**:
-The thing a reader knows before they open a page. It decides how the catalogue is sorted.
+The thing a reader knows before they open a page. It decides how the catalogue is sorted. The key chosen here is what you OBSERVED, which is why the observation is the page and the artefact is a section inside it.
 _Avoid_: axis, organising principle, taxonomy
 
 **Symptom page**:
-A page you find by what you observed. It opens with the observation, then has one section for each artefact you might be holding. Example: "a zero byte where the original has something else".
+A page you find by what you observed. It opens with the observation, then has one section for each artefact you might be holding. Example: "a zero byte where the original has something else". **This is what the bundle calls `type: Observation`** -- the word here is the design's and the word in the frontmatter is the tree's, and they name the same thing. Every page in the wiki is one.
 _Avoid_: lookup page, diagnostic page
 
 **Procedure page**:
-A page you find by the job you decided to do. Example: "unpack the container".
+A page you find by the job you decided to do. Example: "unpack the container". `type: Procedure` is registered in the profile and the validator accepts it; **there are no instances yet**, so this term describes a page the bundle can hold and does not.
 _Avoid_: how-to, task page, method page
 
 **Section**:
-One artefact's answer inside a page. It carries its own rule, its own caveats, its own withdrawn conclusions, and its own tier.
+One artefact's answer inside a page. It carries its own rule, its own caveats, its own withdrawn conclusions, and its own tier. **In the tree it is a document of its own, `type: Artefact Answer`**, filed beside the hub it answers under -- one per artefact, so one can grow without bloating its siblings, and so the hub's table can be generated from their frontmatter instead of written twice.
 _Avoid_: branch, case, variant
 
 **Cross-index**:
-A list that points at pages already written, sorted a second way. It adds no pages. There are three: the nine classes of withdrawn conclusion, the twelve activities, and the ladder nodes.
+A list that points at pages already written, sorted a second way. It adds no pages. Three were decided -- the nine classes of withdrawn conclusion, the twelve activities, and the ladder nodes -- and **none has been built**. The ladder one was dropped deliberately and for a stated reason: every artefact answer written so far sits at the same ladder node, so it would file them all together and tell a reader nothing. That is worth keeping as the test for the other two, which is whether the second sort separates anything.
 _Avoid_: view, tag, secondary axis
 
 ### The fidelity ladder

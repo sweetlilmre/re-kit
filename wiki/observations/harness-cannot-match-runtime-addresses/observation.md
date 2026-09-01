@@ -6,7 +6,7 @@ tags: [reconstruction, measurement, linking, turbo-pascal, dos, coverage, harnes
 timestamp: 2026-08-26T00:00:00Z
 ---
 
-# A harness can never match the original's runtime call addresses
+# A harness can never match the original's runtime call addresses, and the coverage number quietly pays for it
 
 A reconstruction usually cannot run the original's main program yet, so each unit gets a **harness**: a small main that calls one scene and exits. The harness is not the original main, so it is not the same size, so everything linked after it sits at a different paragraph -- including the runtime. Every `9A` far call into the runtime then differs from the original's in its segment word, in every harness, forever.
 
