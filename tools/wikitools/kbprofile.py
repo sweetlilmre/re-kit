@@ -41,6 +41,26 @@ import project                                    # noqa: E402
 # halves of that rule come from the decision that made a blind spot a mechanism.
 OVERRIDES = []
 
+# The tag vocabulary, loaded from the bundle's own tags.txt. Empty means the
+# file is absent, and then the check does not run -- a bundle without the file
+# is not failed, because the vocabulary is this profile's convention and not
+# OKF's. It is loaded rather than hardcoded for the reason every list here is:
+# a second copy of it in this file would drift from the tree it describes.
+VOCAB = set()
+
+
+def load_vocab(root):
+    """Read the tag vocabulary. A missing file disables the check, loudly."""
+    path = root / "tags.txt"
+    if not path.exists():
+        return set(), None
+    words = set()
+    for line in io.open(path, encoding="utf-8", newline="").read().split("\n"):
+        line = line.split("#", 1)[0].strip()
+        if line:
+            words.add(line)
+    return words, path
+
 BEGIN = "<!-- generated:discriminator -->"
 END = "<!-- /generated:discriminator -->"
 
@@ -112,6 +132,19 @@ def check_doc(path, rel):
         val = fm.get(key)
         if val is None or (isinstance(val, str) and not val.strip()):
             problems.append("%s: missing frontmatter key `%s`" % (rel, key))
+
+    # A tag outside the vocabulary. This exists because every tag merge this
+    # bundle has needed was a SECOND SPELLING of a tag already in use --
+    # includes/include, code-generation/codegen, linker/linking -- and nothing
+    # would have stopped the next one. A tag used ONCE is not the defect and is
+    # not refused: most single-use tags name one specific thing, and merging by
+    # how similar two words look is how a real distinction gets destroyed.
+    if VOCAB:
+        for tag in (fm.get("tags") or []):
+            if str(tag) not in VOCAB:
+                problems.append(
+                    "%s: tag %r is not in the vocabulary -- add it to "
+                    "tags.txt deliberately, or use an existing one" % (rel, str(tag)))
 
     have = headings(body)
     for want in REQUIRED_SECTIONS[kind]:
@@ -360,6 +393,11 @@ def main(argv):
         except project.Missing as exc:
             return project.complain(exc)
     root = pathlib.Path(args[0])
+
+    global VOCAB
+    VOCAB, vocab_path = load_vocab(root)
+    if vocab_path is None:
+        sys.stdout.write("  no tags.txt in this bundle -- tag vocabulary NOT checked\n")
 
     problems = []
     docs = 0

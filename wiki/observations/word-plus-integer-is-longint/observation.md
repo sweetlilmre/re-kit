@@ -2,7 +2,7 @@
 type: Observation
 title: A sixteen-bit address computation that emits thirty-two-bit code
 description: In Borland Pascal the sum of a Word and an Integer is a LongInt, because neither type can hold every result. An address expression written from a Word row table and an Integer column therefore compiles to CWD, a register pair, XOR DX,DX and ADC where the original has one ADD -- twelve to twenty bytes per site, in the innermost loop of every blitter. The promotion is silent, the arithmetic is right, and the give-away is a sign-extension instruction inside an address computation.
-tags: [pascal, types, code-generation, addressing, reconstruction, performance, measurement]
+tags: [pascal, types, codegen, addressing, reconstruction, performance, measurement]
 timestamp: 2026-08-26T00:00:00Z
 ---
 

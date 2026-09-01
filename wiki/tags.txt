@@ -1,0 +1,110 @@
+# The tag vocabulary.
+#
+# One tag per line. A tag not on this list is refused by kbprofile, so adding
+# one is a deliberate act -- which is the whole point of the file. Every merge
+# this list was born from was a SECOND SPELLING of a tag that already existed
+# (includes/include, code-generation/codegen, linker/linking), and nothing
+# would have stopped the fourth.
+#
+# A tag used once is NOT a defect. Most of the single-use tags name one real
+# and specific thing, and collapsing them by how similar the words look is how
+# a real distinction gets destroyed -- `basm` is Turbo Pascal's built-in
+# assembler and is not a synonym for hand-written assembler, which a
+# similarity-based merge nearly erased.
+#
+# Sorted by use, then name, so the tail is visible rather than buried.
+
+verification           # 50
+measurement            # 41
+reconstruction         # 37
+pascal                 # 31
+tooling                # 29
+turbo-pascal           # 28
+codegen                # 22
+comparison             # 18
+dgroup                 # 14
+reverse-engineering    # 12
+source-shape           # 12
+blind-spot             # 11
+naming                 # 9
+fixups                 # 8
+linking                # 8
+hand-assembler         # 7
+alignment              # 6
+relocation             # 6
+documentation          # 5
+drift                  # 5
+segments               # 5
+addressing             # 4
+charting               # 4
+coverage               # 4
+disassembly            # 4
+evidence               # 4
+identification         # 4
+instruments            # 4
+layout                 # 4
+switches               # 4
+transcription          # 4
+basm                   # 3
+code-segment           # 3
+encoding               # 3
+mz                     # 3
+process                # 3
+rebuild                # 3
+x87                    # 3
+borland                # 2
+calling-convention     # 2
+debug-info             # 2
+expressions            # 2
+ghidra                 # 2
+include                # 2
+locals                 # 2
+method                 # 2
+migration              # 2
+parameters             # 2
+runtime                # 2
+smart-linking          # 2
+stack-frame            # 2
+tasm                   # 2
+units                  # 2
+variables              # 2
+arithmetic             # 1
+arrays                 # 1
+behaviour              # 1
+byte-diff              # 1
+capstone               # 1
+comments               # 1
+container              # 1
+data-segment           # 1
+dead-code              # 1
+decompilation          # 1
+dependencies           # 1
+dos                    # 1
+far-call               # 1
+frame-layout           # 1
+generated-code         # 1
+glossary               # 1
+harness                # 1
+heap                   # 1
+longint                # 1
+loops                  # 1
+near-far               # 1
+nesting                # 1
+object-file            # 1
+omf                    # 1
+orientation            # 1
+performance            # 1
+probe                  # 1
+retraction             # 1
+rtl                    # 1
+scoping                # 1
+segment-layout         # 1
+statements             # 1
+strings                # 1
+substrate              # 1
+toolchain              # 1
+types                  # 1
+vocabulary             # 1
+with                   # 1
+workflow               # 1
+zero-rule              # 1
