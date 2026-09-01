@@ -48,7 +48,7 @@ RTL = {s['segment']: s['name'].title() for s in LINK['segments']
 DATA = {d['segment']: d['why'] for d in LINK['data']}
 
 # what verify.py reports, parsed from its own output
-# The per-unit table comes from the kit's instrument now (#50). This still
+# The per-unit table comes from the kit's instrument now. This still
 # parses another tool's printed output, which is fragile by nature -- the row
 # shape is the contract and nothing enforces it. Moving this into the kit is
 # where that gets fixed; until then the parse is unchanged and so is the answer.
@@ -103,7 +103,7 @@ if prog is not None:
     # segment the per-unit table has nothing to say about, because a program
     # emits no .TPU.
     #
-    # THIS WAS SILENTLY READING ZERO. It shelled out to progcmp.py, which #36
+    # THIS WAS SILENTLY READING ZERO. It shelled out to progcmp.py, which a migration
     # archived in favour of blockcmp with a config -- and the parse simply found
     # no match, so `n` fell back to 0 and the program's verified bytes dropped
     # out of the total with nothing said. A regex that returns None on a missing

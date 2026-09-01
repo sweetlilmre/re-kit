@@ -5,7 +5,7 @@
 RENAMED from `probe.py`. There were two unrelated tools under that name, one in
 each consumer, and the disposition said so in the same breath as giving them a
 single row -- so BOTH were renamed rather than one, or an older document's
-mention of "probe" would stay ambiguous for ever (#17, #50). The other is
+mention of "probe" would stay ambiguous for ever. The other is
 `pascal/codegen.py`.
 
 Two questions, and the second is the one worth having: what is appended past

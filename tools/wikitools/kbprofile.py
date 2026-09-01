@@ -2,11 +2,11 @@
 
 Three jobs, and the third is the one that earns this file:
 
-  CHECK    the fields our template settled on in issue #8 are present, and
+  CHECK    the fields our template settled on are present, and
            `example: none yet` is written out rather than left blank.
 
   REFUSE   a hub that states an unqualified rule. This is the failure mode
-           issue #14 exists to prevent: if the hub says "forgive zeros"
+           the hub design exists to prevent: if the hub says "forgive zeros"
            without naming an artefact, it has stated ONE artefact's rule as
            a general truth and demoted the others to footnotes nobody
            reads. The zero rule was re-implemented wrongly "within an hour
@@ -79,7 +79,7 @@ REQUIRED_FRONTMATTER = {
 }
 
 # Body headings an artefact answer must carry. `Decides` is retired and
-# `Disasm` folded into Cost -- see issue #8.
+# `Disasm` folded into Cost when the template was settled.
 REQUIRED_SECTIONS = {
     "Artefact Answer": ("What to do", "Why it works", "Blind spot", "Cost",
                         "Example", "Withdrawn", "Citations"),

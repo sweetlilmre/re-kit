@@ -7,7 +7,7 @@ RENAMED from `census.py`, its name in the repository it came from -- and that
 name already belonged to the kit's script-retirement census. The two share
 nothing at all, and a table keyed by basename cannot hold both: the retirement
 census reported this file as a row about itself, and it was very nearly archived
-on the strength of a successor that is an unrelated program (#50).
+on the strength of a successor that is an unrelated program of the same name.
 
 WHY THIS EXISTS. Four scans settled almost everything structural in `17cf` and `116e`,
 and all four are greps rather than disassembly:

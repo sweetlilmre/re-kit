@@ -1,12 +1,12 @@
 """Record what a person saw when they ran a harness, so it stops being prose.
 
 Rungs R2 ("it runs") and R3 ("a viewer sees no difference") are the only nodes
-on the fidelity ladder whose instrument is a person watching a screen. Issue #7
+on the fidelity ladder whose instrument is a person watching a screen. The ladder
 had to declare both instruments MISSING, and the measurement behind that is
 blunt: 29 harnesses exist, 29 are built in run/, and there is no record of any
 result anywhere in the repo. Four parts once "built" and had never been run.
 
-Issue #15's rule is that a human observation may make a rung green, but only
+The rule is that a human observation may make a rung green, but only
 once it is recorded as a dated claim naming who ran what. The observation is
 the instrument; THE RECORD IS THE RATCHET. This is that record.
 
@@ -29,7 +29,7 @@ THREE RULES THIS TOOL ENFORCES, each from a measured failure:
   holds the last measured rung and the ratchet reads it, while `confirmed_at`
   holds the commit and the report reads that. An unverified claim is visible as
   unverified without the ratchet failing on an edit -- which is the wedge issue
-  #13 had to avoid.
+  the ratchet's design had to avoid.
 
   A RENAME IS NOT A CHANGE, AND THE BINARY IS WHAT SAYS SO. The staleness rule
   above hashes the SOURCES an observation depends on, which is the right question
@@ -133,7 +133,7 @@ def harness_sources(harness, src="src"):
     """The harness's own file plus every unit in its `uses` clause.
 
     Precise on purpose. Hashing all of src/ would mark every observation stale
-    on any edit anywhere, which is the over-broad answer issue #16 rejected.
+    on any edit anywhere, which is the over-broad answer that was rejected.
     """
     root = pathlib.Path(src)
     own = root / (harness.upper() + ".PAS")
@@ -400,7 +400,7 @@ def main(argv):
                if not fields.get(k)]
     if missing:
         sys.stdout.write("  missing: %s -- an observation is only evidence if "
-                         "it is dated and says who ran what (issue #15)\n"
+                         "it is dated and says who ran what\n"
                          % ", ".join(missing))
         return 2
 

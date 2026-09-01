@@ -1,7 +1,7 @@
 """Read every routine marker in a Pascal tree, and account for all of them.
 
 This is the repaired successor to `tools/ledger.py`, which is now ARCHIVED --
-deleted under psycho #36 and recoverable from the `archive/pre-kit-scripts`
+deleted with the rest of the superseded scripts and recoverable from the `archive/pre-kit-scripts`
 tag. Nothing here is a refactor of it: the CONVENTION it reads was always
 sound, and only its reader was broken.
 
@@ -13,7 +13,7 @@ address belonging to a different routine. Meanwhile nine marker-shaped strings
 that do exist in the source are never seen. It then prints "94%", which is 17
 of its own 18 rows rather than of the 317 routines in the tree.
 
-THE FIX IS NOT A BETTER REGEX. Issue #15 settled the mechanism for this class
+THE FIX IS NOT A BETTER REGEX. The settled mechanism for this class
 of defect -- a measurement artefact read as a finding -- and it is: stop
 counting, and classify every field until none is unexplained. That is what the
 `.OBJ` fixup work did (192 word fields, 0 unexplained) and it is what this tool
@@ -30,7 +30,7 @@ The four shapes that actually exist, which is why one regex could never do it:
                  12c5:098a -- integer ... }"
     no-address   "{ [transcribed] Mosaic block sampling. }"
 
-THREE AXES, NEVER CONFLATED (issue #7):
+THREE AXES, NEVER CONFLATED:
 
     provenance   how the code came to exist. Hand-written. NEVER a rung: a
                  [transcribed] routine read off a mis-decoded instruction
@@ -66,7 +66,7 @@ ADDR = re.compile(r"\b([0-9a-fA-F]{4}):([0-9a-fA-F]{4})\b")
 # convention a marker is the first thing in its comment, so `Stars[star]` and
 # `[frame]` sitting inside prose can never match. Without the anchor this
 # fired on five ordinary words in the real tree (frame, offset, star, step,
-# column), which under issue #15 would have demoted the whole check from a
+# column), which under the report-or-gate rule would have demoted the whole check from a
 # gate to a report. Four letters is a second floor, excluding [si] and [bx].
 #
 # The trailing \s matters as much as the anchor, and the case that forced it is
@@ -127,7 +127,7 @@ def classify(comment):
     An UNEXPLAINED category is the point of this function, not an afterthought.
     A bracketed word nobody registered -- `[partial]`, `[guessed]` -- is
     exactly what disappears silently under a tool that looks only for the three
-    words it knows. Under issue #15's rule for this defect class, a marker that
+    words it knows. Under the rule for this defect class, a marker that
     cannot be classified must fail the run rather than be skipped.
     """
     found = [k for k in PROVENANCE if "[" + k + "]" in comment]
@@ -242,7 +242,7 @@ def main(argv):
         sys.stdout.write("  measured %d target(s) -> %s\n"
                          % (len(targets), out))
 
-    sys.stdout.write("\nCOVERAGE, reported and not gated (issue #15)\n")
+    sys.stdout.write("\nCOVERAGE, reported and not gated -- a heuristic may only report\n")
     sys.stdout.write("  %d bare seg:off address(es) in the tree; %d carry a target.\n"
                      % (bare, len(targets)))
     sys.stdout.write("  An address in a comment is NOT a claim that bytes match, so "

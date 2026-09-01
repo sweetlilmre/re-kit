@@ -12,7 +12,7 @@ lines across two repositories -- did the same six things: stage sources into a
 DOS-visible directory under 8.3 names, order the targets so a unit precedes
 whatever uses it, write a batch file, run DOSBox-X with a timeout, read the log
 back from the host, and install what came out. What differed was DATA, and it
-is now a config file per target (psycho issue #35).
+is now a config file per target, so no machine path is written down twice.
 
 **A NOTE ON THE WORD.** The ticket calls this a build harness. `harness` is
 taken: in this method's vocabulary it is a small program that runs one piece of

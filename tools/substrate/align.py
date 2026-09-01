@@ -225,7 +225,7 @@ def locate(orig, image, allow=holes, stop=None):
 
 # ---------------------------------------------------------------------------
 # THE ALLOWED-DIFFERENCE RULES, one per artefact, all passed in rather than
-# built in. Issue #9's finding was that four compare tools differed ONLY in
+# built in. The original finding was that four compare tools differed ONLY in
 # this, so here they are, side by side, where the difference is readable.
 #
 # They come in the two shapes the two comparisons need: a WALK rule sees a

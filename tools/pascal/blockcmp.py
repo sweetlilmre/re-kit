@@ -32,7 +32,7 @@ program five times over, parameterised only by the segment, its length, the
 search window and a block list -- the classification called it the clearest
 single split in either repository. Those four values are now a config file per
 segment, generated from the five scripts by parsing them rather than by hand
-(psycho issue #34). What is left here is the measurement, which was identical
+when that family became one tool and five configurations. What is left here is the measurement, which was identical
 in all five.
 
 THE CONFIG, one file per segment:

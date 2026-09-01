@@ -1,9 +1,9 @@
 """The ratchet: a lock that rises by itself and will not fall quietly.
 
 There is exactly one ratchet across the 55 scripts in the two repos --
-`asmverify.py`'s `EXPECTED` -- and everything else merely reports. Issue #9
+`asmverify.py`'s `EXPECTED` -- and everything else merely reports. The consolidation
 settled that the ratchet belongs to the shared compare tool rather than to one
-project's driver, and issue #13 settled what it becomes. This is that.
+project's driver, and what it becomes was settled deliberately. This is that.
 
 WHAT THE OLD ONE DID, and the three holes in it:
 
@@ -35,7 +35,7 @@ WHAT THIS DOES INSTEAD:
     legitimate drop -- a routine deliberately rewritten, its stance changed to
     `equivalent` -- is expressed by LOWERING THE TARGET with a reason. The way
     out is a declared decision, not an edit to a number;
-  * NOTHING FAILS SILENTLY AND NOTHING PASSES SILENTLY (issue #15). Every rise
+  * NOTHING FAILS SILENTLY AND NOTHING PASSES SILENTLY. Every rise
     is printed. Every lowering needs prose and is printed.
 
 An unlocked routine still does not fail the run. Failing would mean a routine

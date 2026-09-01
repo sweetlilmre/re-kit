@@ -1,6 +1,6 @@
 """The plan: what to fix, in what order, and where that is written down.
 
-Issue #11 settled the shape. The plan's top level is a short ORDERED LIST OF
+The shape is settled. The plan's top level is a short ORDERED LIST OF
 INVESTIGATIONS -- named findings a person saw, each with prose -- and its
 order IS the priority: there is no priority number to drift out of step with
 the list. Routine rows are created LAZILY, when a session localises a finding
@@ -8,7 +8,7 @@ to a routine, and each names the investigation it belongs to. A 317-row table
 nobody grooms is the failed ledger again; the plan enumerates what someone
 has decided ABOUT.
 
-The seam issue #11 re-affirmed: this tool is CORE -- it holds no project
+The seam, re-affirmed when the shape was settled: this tool is CORE -- it holds no project
 facts, reads the register it is handed, and treats row keys as opaque. The
 investigations, the rows, the addresses and every other project fact live in
 the project's own register (the psycho repo's `status.toml`), never here.
@@ -17,7 +17,7 @@ What is DECIDED lives in [plan] (this tool writes it); what is MEASURED lives
 in [routine.*] and [observation.*] (ratchet.py and observe.py write those).
 The report joins the two, and never writes.
 
-Sound checks, per issue #15 -- each refuses rather than reports:
+Sound checks -- each refuses rather than reports, which a check may do only when it is sound:
 
   * a row must name an investigation that exists;
   * an investigation's `seen_in` must name a recorded observation -- the plan
@@ -92,7 +92,7 @@ def resolve(status, name, resolution):
         return "no investigation named %r" % name
     if not resolution:
         return ("resolving needs prose. The way out is a declared decision "
-                "(issue #13), not a state flip.")
+                "-- a measured rung, not a state flip.")
     inv["state"] = "resolved"
     inv["resolution"] = resolution
     return None

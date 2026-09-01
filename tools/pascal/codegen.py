@@ -4,7 +4,7 @@ r"""Compile one probe unit with every installed compiler and diff the code.
     python kit/tools/pascal/codegen.py CONFIG.toml PROBE.PAS tp6 tp7
 
 RENAMED from `probe.py`. There were two unrelated tools under that name, one in
-each consumer, and #17 decided both would be renamed rather than one -- else an
+each consumer, and BOTH were renamed rather than one -- else an
 older document's mention of "probe" stays ambiguous. The other is
 `substrate/fingerprint.py`, which answers what is appended to a file and what
 wrote it. This one answers whether two Turbo Pascal releases emit the same code.

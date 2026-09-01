@@ -8,7 +8,7 @@ That is the corpus's own finding arriving in the process rather than the code:
 a lesson recorded only in prose does not prevent its next instance. So the
 glossary gets a mechanism.
 
-WHAT IT CHECKS, and the split matters -- see issue #15:
+WHAT IT CHECKS, and the split matters:
 
   GATE (fails, exit 1)   A page uses a MULTI-WORD term from an `_Avoid_` list.
                          "excuse rule", "maturity model", "evidence class" are
@@ -19,11 +19,11 @@ WHAT IT CHECKS, and the split matters -- see issue #15:
   REPORT (exit 0)        A page uses a SINGLE-WORD avoid term. Those lists hold
                          common English -- tool, test, index, manual -- which
                          appear in ordinary prose constantly. A gate here would
-                         cry wolf, and #15 settled that a heuristic may only
+                         cry wolf, and the settled rule is that a heuristic may only
                          report. So it prints a count and passes.
 
 OVERRIDE. A page may carry `glossary_allow` in its frontmatter, listing terms
-it is permitted to use, with the reason in prose nearby. #15's rule is that an
+it is permitted to use, with the reason in prose nearby. The rule is that an
 overridable gate beats a warning, because a warning gets ignored -- but it must
 never pass silently, so every override is printed.
 
