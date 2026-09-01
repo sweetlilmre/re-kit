@@ -196,6 +196,8 @@ A conclusion that turned out to be wrong is written down as a **withdrawn conclu
 - **No personal references, anywhere a repository can keep them.** No name, no initials, no email -- in source, documents, commit messages, issue bodies or the register. Write the ROLE: *the author*, *a person*, *the maintainer*, *a watched run*. The register's observation rows need only that a human watched, never which human, and `observe.py`'s own example says `--observer maintainer` for that reason. This is not fastidiousness: it is PII in a repository that may not stay private, and git history is permanent, so the cost of getting it wrong cannot be edited away later -- which is why it is a rule rather than a preference.
 - **What a commit message must CARRY is the host repository's policy, not this file's** -- a trailer, a ticket reference, a sign-off. The rule above it travels; this one would have to be rewritten by every consumer, so it is theirs to state.
 
+  There is a second reason, and it is the better one: **it was a rule the kit could not enforce and had no way to learn had been overridden.** On one consumer's machine a local `commit-msg` hook strips those lines, so the tracked rule and the actual history disagreed silently for as long as both existed -- the same shape as a check that cannot fail. A rule whose violation is invisible to the thing stating it belongs to whoever can see the violation.
+
 ## 7. Changing the kit from inside a project
 
 The kit is a submodule. A change to it and a project's acceptance of that change are **two separate acts**, deliberately.
