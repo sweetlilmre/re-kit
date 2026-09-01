@@ -37,13 +37,22 @@ DEFAULT_EXT = (".BAT",)
 SKIP_DIRS = {".git", "build", "run", "work", "__pycache__", ".venv"}
 
 
-def offenders(roots, exts):
+def offenders(roots, exts, seen=None):
+    """Yield the offending files, and count every file examined into `seen`.
+
+    The seen count is not decoration. A summary of `0 file(s) carry Unix line
+    endings` is what a clean tree prints AND what a check that matched no files
+    at all prints, and those want telling apart -- this corpus lost weeks to a
+    linter reporting `0 problem(s) in 0 file(s)` and passing.
+    """
     for root in roots:
         for p in sorted(pathlib.Path(root).rglob("*")):
             if not p.is_file() or p.suffix.upper() not in exts:
                 continue
             if any(part in SKIP_DIRS for part in p.parts):
                 continue
+            if seen is not None:
+                seen.append(p)
             data = p.read_bytes()
             bare = data.count(b"\n") - data.count(b"\r\n")
             if bare:
@@ -55,11 +64,15 @@ def main(argv):
                  for a in argv if a.startswith(".")) or DEFAULT_EXT
     roots = [a for a in argv if not a.startswith(".")] or ["."]
     bad = 0
-    for p, bare, crlf in offenders(roots, exts):
+    seen = []
+    for p, bare, crlf in offenders(roots, exts, seen):
         print("  %-44s %d bare LF, %d CRLF" % (p.as_posix(), bare, crlf))
         bad += 1
-    print("%d file(s) a DOS tool reads carry Unix line endings%s"
-          % (bad, "" if bad else " -- checked " + ", ".join(exts)))
+    print("%d of %d file(s) a DOS tool reads carry Unix line endings -- %s"
+          % (bad, len(seen), ", ".join(exts)))
+    if not seen:
+        print("  NOTHING WAS EXAMINED. That is not a pass: widen the extensions "
+              "or check the root.")
     return 1 if bad else 0
 
 

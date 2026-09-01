@@ -2,7 +2,7 @@
 
 **Read this first, at the start of every session.** It is the method; it holds no fact about any particular target. What is true of the target you are working on is in the host repository's own agent file and in `kit.toml`.
 
-**It is longer than it should be, and the honest response is to say which part you read.** Sections 1, 2, 2a and 4 are the session: where things are, what to work on, the loop, and the checks. Sections 3 and 8 are REFERENCE -- forty-nine instruments and what to distrust -- consulted when you have a question, not read through. Sections 5, 6, 7 and 9 are the rules and the traps, and they repay one careful reading each. A document read at the start of every session is one whose length is a defect, so it is worth knowing that the first four sections are about a page.
+**It is longer than it should be, and the honest response is to say which part you read.** Sections 1, 2, 2a and 4 are the session: where things are, what to work on, the loop, and the checks. Sections 3 and 8 are REFERENCE -- the instruments and what to distrust -- consulted when you have a question, not read through. Sections 5, 6, 7 and 9 are the rules and the traps, and they repay one careful reading each. A document read at the start of every session is one whose length is a defect, so it is worth knowing that the first four sections are about a page.
 
 ## 1. Where this project keeps things
 
@@ -109,7 +109,7 @@ And the wiki grows. A reconstruction that advances for a week without adding an 
 
 ## 3. Which instrument answers which question
 
-**Forty-nine programs, and you will use six of them.** The list is long because it accumulated from two real targets; it is grouped below by the question you actually have, and the questions are in the order they come up. If two instruments could answer one, prefer the stricter: a rule that forgives less is a measurement that claims less.
+**You will use about six of them.** The list is long because it accumulated from two real targets, and it is a SELECTION rather than a census -- `tools/README.md` carries the generated inventory, and this table carries the ones a session reaches for. It is grouped by the question you actually have, and the questions are in the order they come up. If two instruments could answer one, prefer the stricter: a rule that forgives less is a measurement that claims less.
 
 ### Getting in at all
 
@@ -216,6 +216,8 @@ And the wiki grows. A reconstruction that advances for a week without adding an 
     $V kit/tools/pascal/asmaudit.py
     $V kit/tools/pascal/probecheck.py build.toml   # SLOW: one DOSBox run per probe per compiler
     $V kit/tools/encaudit.py
+    $V kit/tools/eolcheck.py
+    $V kit/tools/toolindex.py --check
 
     git ls-files -i -c --exclude-standard              # in the host AND in kit/
 
@@ -227,6 +229,8 @@ real cost -- seconds per probe per compiler -- so it belongs in the list a sessi
 committing rather than in the loop it runs while editing. Skipping it is safe on any day nobody
 touched a probe; a probe is cited by resolved investigations and by source comments the way a
 binary is, and nothing else in a tree ever recompiles one.
+
+**Some tools gate and are deliberately NOT on that list.** `braces`, `tagcheck`, `dsverify`, `unitorder`, `cleanconf` and `clean` all exit non-zero, and each belongs to a job rather than to a session: they check a source tree mid-transform, or a stripped copy against its original, and running them where that job is not underway reports on something nobody is doing. `cleanconf.py`'s docstring asks to be in "the gate" -- that means the gate of the transform it serves, and a host repository that runs one adds it to its own list. **The list above is what is true of every target; a tool that answers a question only one effort is asking belongs to that effort.**
 
 **No paths and no numbers, and both absences are the point** -- this is the same list in every project. A host repository may have checks of its own on top; those live in its agent file.
 

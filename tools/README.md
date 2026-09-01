@@ -8,20 +8,121 @@ Reusable programs with no project facts in them. Three folders, decided in [Draw
 | `pascal/` | Facts true only of Borland Pascal: `.TPU` structure, DGROUP layout, RTL byte patterns. | pascal |
 | `wikitools/` | Looking after the wiki itself: OKF conformance, our stricter profile, and the generators. | neither |
 
-The migration that filled these folders is finished. **Forty-nine programs, and the originals they came from are archived** under each consumer's `archive/pre-kit-scripts` tag; the record of where each one went, and the measurement that made deleting it safe, is one generated document in the host repository -- `docs/32-tool-disposition.md` here. Ten scripts stayed behind deliberately -- a project's own data carvers, its harness generator, a reference-path helper -- and each says why in the same table.
+The migration that filled these folders is finished, and **the originals the tools came from are archived** under each consumer's `archive/pre-kit-scripts` tag; the record of where each one went, and the measurement that made deleting it safe, is one generated document in the host repository -- `docs/32-tool-disposition.md` here. Ten scripts stayed behind deliberately -- a project's own data carvers, its harness generator, a reference-path helper -- and each says why in the same table.
 
 **Every move was verified against the original before the original went.** Mostly that meant identical output; where a tool produced a file it meant a byte-identical file; where it produced a build it meant all 35 executables byte-identical. Five of the moves changed their answer, and every one of those was a repair -- see `WORKING.md` section 8 on what to distrust, which is where they are recorded.
 
-| folder | what it holds |
+<!-- generated:inventory -->
+
+**74 programs.** This table is generated from each tool's own first docstring line by `toolindex.py`; `WORKING.md` groups them by the question you have, which is the useful way in.
+
+### `substrate/` -- 13
+
+Reading DOS and 16-bit binaries. Should work against a C or assembler target too.
+
+| tool | what it says it does |
 |---|---|
-| `substrate/` (12) | `align` the comparison engine; `disasm` the instruction decoder, addressed as SEG:OFF; `fingerprint`, `mzinfo`, `split`, `unlzexe` for getting into a file; `segmap`, `symbols`, `tddump`, `strings` for reading one; `omf` for an object module; `modex` for unchained VGA |
-| `pascal/` (33) | the instruments that measure a rebuild -- `routines`, `units`, `objcheck`, `blockcmp`, `linkcmp`, `mapcmp`, `linkorder`, `dgroup`, `spans`, `coverage`, `artefact`; the ones that read a binary before you write any Pascal -- `survey`, `rtl`, `x87`, `emit`, `prologue`, `framehist`, `dsgaps` which prices declarations against the gaps a project's own comments record which compares frame sizes when nothing can be paired, `handasm` which asks whether a routine is even Pascal; `build` which makes what the rest measure; the register's own -- `plan`, `ratchet`, `observe`, `markers`, `marker`, `register`, `staged`; and the source checks `paslint`, `asmaudit`, `undeclared`, `shared_asm`, `codegen` |
-| `wikitools/` (3) | `okfcheck` for conformance and nothing more, `kbprofile` for our profile and the generators, `glossary` for the avoid-lists |
-| beside them (4) | `project` reads the answers and is the only thing that does; `wizard` installs the kit; `encaudit` and `repairdoc` are facts about the tools a session is driven WITH, which every project inherits on day one |
+| `align` | Which bytes of an original do NOT line up against a rebuild of it. |
+| `disasm` | Decode a range of a 16-bit real-mode image, addressed the way its code is. |
+| `fingerprint` | Identify a binary's appended payload and the toolchain that built it. |
+| `lzpack` | Pack an MZ executable the way LZEXE 0.91 did, and compare against the original. |
+| `modex` | De-interleave four Mode-X planes into one linear image. |
+| `mzinfo` | Parse a DOS MZ header, and say whether the file is bigger than its image. |
+| `omf` | Read an Intel OMF .OBJ and report which bytes of its code are FIXUPS. |
+| `segmap` | Derive the real-mode segment layout of a 16-bit MZ image from its fixups. |
+| `split` | Split each demo part into a clean MZ image plus its appended payload. |
+| `strings` | Dump printable strings, optionally restricted to the EXE load image. |
+| `symbols` | Extract Borland Pascal symbolic debug info (magic 0x52FB) name pools. |
+| `tddump` | Dump Borland Turbo Debugger debug info appended to a DOS MZ executable. |
+| `unlzexe` | Unpack an LZEXE 0.91 ('LZ91') compressed MZ executable. |
 
-`WORKING.md` section 3 groups all of them by the question you actually have, which is the useful way in. This table is the inventory.
+### `pascal/` -- 52
 
-**Every copy carries the finding that produced it in its docstring**, and several carry a correction to what was believed before -- `align.py` names the two location strategies that failed, `rtl.py` names the assumption about smart-linked offsets that does not hold, `x87.py` says out loud that a trap-rewritten file is a disassembly aid and not a variant of the original. The wiki carries the general form: `verifier-blind-to-absence` for the coverage walk, `one-routine-two-units` for shared assembler, `plausible-and-wrong` for the compare rules.
+True only of Borland Pascal: `.TPU` structure, DGROUP layout, RTL byte patterns.
+
+| tool | what it says it does |
+|---|---|
+| `artefact` | The artefact-tier instrument: is our whole build the original's bytes? |
+| `asmaudit` | Report where the assembler-transcription rule is not yet met. |
+| `blockcmp` | Verify a segment BLOCK BY BLOCK, which is the only honest measure of a |
+| `braces` | Comment nesting and the directive set: the two things a comment edit breaks. |
+| `build` | Stage Pascal sources under 8.3 names, drive a real Turbo Pascal under |
+| `clean` | Copy a reconstruction's source and strip the reverse-engineering apparatus. |
+| `cleanconf` | Write a build config for the STRIPPED source tree, from the real one. |
+| `codegen` | Compile one probe unit with every installed compiler and diff the code. |
+| `coverage` | How much of a target is accounted for, computed from the tree rather than recited. |
+| `dgimage` | Compare the two builds' INITIALISED data byte for byte, and say where they part. |
+| `dgroup` | Compare our INITIALISED DGROUP image against the original's, block by block. |
+| `dsgaps` | Sort the `DS:$XXXX` addresses a reconstruction's comments record, and print |
+| `dsmap` | Pair the original's absolute data references with ours, and report the shift. |
+| `dspair` | Pair every displacement operand by INSTRUCTION POSITION, not by content. |
+| `dsverify` | Check the `DS:$xxxx` addresses written in comments against the declarations. |
+| `emit` | Emit compiled-in data back out as Borland Pascal typed constants. |
+| `fpusites` | Count a part's floating-point sites on both sides, and name the units that differ. |
+| `framehist` | Compare the MULTISET of stack-frame sizes in two builds. |
+| `handasm` | Which routines in a segment are HAND-WRITTEN ASSEMBLER rather than compiled. |
+| `harvest` | Comments in a sibling's source that carry knowledge, with the code they annotate. |
+| `linkbytes` | Every byte of the LINKED image that differs, by unit, with context. |
+| `linkcmp` | Compare every linked code segment against the original's, and read the |
+| `linkorder` | Predict our link order from the `uses` graph, and diff it against the original's. |
+| `magic` | Raw numbers in the reconstruction that a sibling's source gives a NAME. |
+| `mapcmp` | Compare build/VTMAIN.MAP's segment lengths against the original's, ON THE SAME FOOTING. |
+| `marker` | One reader for the routine markers in a Pascal tree. |
+| `markers` | Read every routine marker in a Pascal tree, and account for all of them. |
+| `objcheck` | Measure a `{$L}` object module STRICTLY, against the object's own relocations. |
+| `observe` | Record what a person saw when they ran a harness, so it stops being prose. |
+| `paslint` | Catch the Pascal defects that cost the most time to diagnose from a compiler |
+| `plan` | The plan: what to fix, in what order, and where that is written down. |
+| `probecheck` | Every probe still compiles, and still yields a measurement. |
+| `progseg` | The main program is a table of every unit's entry-point offsets. Compare it. |
+| `prologue` | Read a routine's prologue: what the source declared, and which switch built it. |
+| `ratchet` | The ratchet: a lock that rises by itself and will not fall quietly. |
+| `register` | The status register's one serializer, so no tool can drop another's section. |
+| `routines` | Byte-diff every declared assembler routine against the original binary. |
+| `rtl` | The Borland runtime, and where its routines and yours actually start. |
+| `segpair` | Pair OUR segments to the ORIGINAL's by content, and report the ORDER. |
+| `shared_asm` | Assembler that appears in more than one unit should be ONE TEXT. |
+| `sitedump` | Disassemble one address in both images, side by side, on a VERIFIED anchor. |
+| `spanclass` | Classify every remaining span WITHOUT needing to align our image. |
+| `spans` | Which bytes of an original do NOT line up against our build, and where. |
+| `spanwhy` | Which unaligned spans can editing close, and which are addresses that moved. |
+| `staged` | Is a build output still the source it was built from? |
+| `survey` | The four cheap measurements on one segment, in one command. |
+| `tagcheck` | Comments that carry reverse-engineering apparatus without saying so. |
+| `undeclared` | List identifiers each reconstruction unit uses but never declares. |
+| `unitorder` | Does our build link its units in the ORIGINAL's order? The walk cannot tell. |
+| `units` | Compare each compiled unit's code against the original segment it rebuilds. |
+| `verdiff` | What CHANGED between the same segment in two builds of one program. |
+| `x87` | The x87 emulator traps: survey them, rewrite them, and read what they load. |
+
+### `wikitools/` -- 3
+
+Looking after the wiki bundle: conformance, our profile, and the generators.
+
+| tool | what it says it does |
+|---|---|
+| `glossary` | Turn the glossary's `_Avoid_` lists into a check, because writing a term |
+| `kbprofile` | Our stricter profile on top of OKF, plus the generators that stop drift. |
+| `okfcheck` | OKF v0.1 conformance check -- and NOTHING more than conformance. |
+
+### `beside them` -- 6
+
+About the kit or the session rather than about any target.
+
+| tool | what it says it does |
+|---|---|
+| `encaudit` | Find text I/O that relies on the locale encoding instead of stating one. |
+| `eolcheck` | Every file a DOS tool reads must be CRLF. Nothing was checking. |
+| `project` | The project's answers to the kit's questions. |
+| `repairdoc` | Repair a markdown document whose line breaks have been multiplied. |
+| `toolindex` | The toolkit's inventory, generated from the tools rather than typed beside them. |
+| `wizard` | Install the kit into a project: propose, confirm, write. |
+
+<!-- /generated:inventory -->
+
+`WORKING.md` section 3 groups the ones a session reaches for by the question you actually have, which is the useful way in. **It is a selection and not a census** -- it named 55 of 73 when this was written, which is the right shape for a routing table and the wrong shape for an inventory. The table above is the inventory, and it is generated: run `toolindex.py --write` after adding a tool, and `--check` fails if it was not.
+
+**Every copy carries the finding that produced it in its docstring**, and several carry a correction to what was believed before -- `align.py` names its two location strategies and the candidate positions that failed under them, `rtl.py` names the assumption about smart-linked offsets that does not hold, `x87.py` says out loud that a trap-rewritten file is a disassembly aid and not a variant of the original. The wiki carries the general form: `verifier-blind-to-absence` for the coverage walk, `one-routine-two-units` for shared assembler, `plausible-and-wrong` for the compare rules.
 
 **A NEW generic tool is born here; only a tool that already existed is copied.** Copy-and-adjust exists to keep working originals working, and a tool written today has no original to protect. Writing one in `tools/` and copying it the same day duplicates it from birth -- which happened once, on 23 Aug 2026, and put two rows in the retirement census for one tool before it was collapsed. The project-specific half of such a tool is DATA passed in, not a second script: `shared_asm.py` takes the psycho repository's exemptions from `src/asm/shared-exempt.txt`.
 
