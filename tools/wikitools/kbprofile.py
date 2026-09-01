@@ -126,7 +126,7 @@ def check_doc(path, rel):
             problems.append("%s: `Example` is blank -- write `none yet` if there is none"
                             % rel)
 
-    if kind == "Observation":
+    if kind == "Observation" and is_hub(path):
         problems.extend(check_hub_states_no_rule(rel, body))
 
     if kind == "Artefact Answer":
@@ -189,6 +189,36 @@ def check_index_lists_everything(root):
             % (d.name, fm.get("title", d.name), link,
                (fm.get("description") or "")[:80]))
     return problems
+
+
+def is_hub(path):
+    """Does this observation HAVE artefact answers under it?
+
+    A HUB is an observation with children, and the no-rule check below exists
+    only for a hub: its children hold rules that INVERT by artefact, so a rule
+    stated in the hub is a rule stated for the wrong half of the corpus. An
+    observation with no children is a single page, and stating its rule is the
+    whole job -- there is nowhere else for it to go.
+
+    The check was applied to every `type: Observation` instead, which on this
+    corpus is 77 documents of which 3 are hubs. It had therefore been able to
+    fail 74 pages for doing what they exist to do, and it did fail two of them.
+    It only failed two because the verb list is narrow, which is luck rather
+    than design: a check misaimed at a whole type is quiet in proportion to how
+    little it looks for, so the near-miss reads like a working check.
+
+    Uses the same definition of a child as `generate` -- a sibling `.md` whose
+    type is `Artefact Answer` -- deliberately, rather than a second rule about
+    filenames. Two copies of one definition drift, and a drifted copy of THIS
+    one would change which documents get checked without changing any message.
+    """
+    for sibling in sorted(path.parent.glob("*.md")):
+        if sibling.name in ("index.md", "log.md") or sibling == path:
+            continue
+        fm, _ = split_doc(sibling)
+        if str(fm.get("type", "")).strip() == "Artefact Answer":
+            return True
+    return False
 
 
 def check_hub_states_no_rule(rel, body):
