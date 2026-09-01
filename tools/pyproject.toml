@@ -1,8 +1,8 @@
 # The toolkit is the installable unit, not the repo. A pyproject.toml at the
-# repo root would declare that all of Psycho Neurosis is a Python package,
+# repo root would declare that the whole host project is a Python package,
 # which it is not -- the repo is mostly 1994 binaries, Pascal sources and notes.
 #
-# Decided in issue #9 (the tooling boundary) and issue #6 (where things live).
+# Decided when the tooling boundary was drawn, and when the bundle's home was.
 
 [project]
 name = "pascal-re-toolkit"
@@ -10,7 +10,7 @@ version = "0.1.0"
 description = "Reverse-engineering tools for 16-bit DOS binaries built with Borland Pascal"
 requires-python = ">=3.11"
 
-# pyyaml reads the wiki's OKF frontmatter. Issue #8 argued for a real parser
+# pyyaml reads the wiki's OKF frontmatter. A real parser was chosen over a regex
 # rather than a regex over text, and the reason is on the record: a line-based
 # regex in tools/encaudit.py "reported 32 sites of which 16 were artifacts
 # while missing 4 real ones", and only an AST parse was right. There is no
@@ -36,12 +36,14 @@ dependencies = [
 # 'wikitools']" and stops -- so for as long as this file said nothing, the
 # documented editable install FAILED and nobody noticed, because every
 # documented command runs a script by path. Found on 23 Aug 2026 while charting
-# the kit; the history is in issue #39.
+# the kit. Scripts stay path-invoked and there are deliberately NO console
+# entry points: running one on a fresh clone needs no install, and an entry
+# point would add a step where there is currently none.
 #
 # Declaring them keeps the three folders exactly where they are. The two
 # layouts that would satisfy setuptools by CONVENTION -- src-layout, or one
 # top-level package with the tiers beneath it -- both move every file and
-# deepen every documented command, and the three-folder shape is issue #9's
+# deepen every documented command, and the three-folder shape is the boundary decision's
 # decision, not this file's to overturn.
 [build-system]
 requires = ["setuptools>=61"]
@@ -65,7 +67,7 @@ py-modules = ["census", "project"]
 # setup.py in the directory it builds, as the legacy build script -- so the
 # kit's setup WIZARD, sitting here under that name, made every install fail
 # with "No distribution was found" from the day it landed. It is `wizard.py`
-# now (psycho #49). The same reservation applies to setup.cfg and conftest.py:
+# now. The same reservation applies to setup.cfg and conftest.py:
 # this directory is a package root, and a package root is not a free namespace.
 
 [tool.uv]

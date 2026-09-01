@@ -1,6 +1,6 @@
 # The toolkit
 
-Reusable programs with no project facts in them. Three folders, decided in [Draw the tooling package boundary](https://github.com/sweetlilmre/PsychoNeurosis/issues/9).
+Reusable programs with no project facts in them, in three folders. The boundary they draw was decided deliberately and is a path test: a file here that names a target's binary, a segment address or a machine path is in the wrong place.
 
 | folder | what it holds | tier |
 |---|---|---|
@@ -124,7 +124,7 @@ About the kit or the session rather than about any target.
 
 **Every copy carries the finding that produced it in its docstring**, and several carry a correction to what was believed before -- `align.py` names its two location strategies and the candidate positions that failed under them, `rtl.py` names the assumption about smart-linked offsets that does not hold, `x87.py` says out loud that a trap-rewritten file is a disassembly aid and not a variant of the original. The wiki carries the general form: `verifier-blind-to-absence` for the coverage walk, `one-routine-two-units` for shared assembler, `plausible-and-wrong` for the compare rules.
 
-**A NEW generic tool is born here; only a tool that already existed is copied.** Copy-and-adjust exists to keep working originals working, and a tool written today has no original to protect. Writing one in `tools/` and copying it the same day duplicates it from birth -- which happened once, on 23 Aug 2026, and put two rows in the retirement census for one tool before it was collapsed. The project-specific half of such a tool is DATA passed in, not a second script: `shared_asm.py` takes the psycho repository's exemptions from `src/asm/shared-exempt.txt`.
+**A NEW generic tool is born here; only a tool that already existed is copied.** Copy-and-adjust exists to keep working originals working, and a tool written today has no original to protect. Writing one in `tools/` and copying it the same day duplicates it from birth -- which happened once, on 23 Aug 2026, and put two rows in the retirement census for one tool before it was collapsed. The project-specific half of such a tool is DATA passed in, not a second script: `shared_asm.py` takes its exemptions from a file the host repository names, not from a list inside the tool.
 
 ## Two rules that shaped this
 
@@ -137,11 +137,11 @@ About the kit or the session rather than about any target.
     uv venv .venv
     uv pip install --python .venv/Scripts/python.exe pyyaml
 
-**`pyyaml` is the whole dependency, and the kit is NOT installed as a package.** Every tool puts its own directory on `sys.path` and is run by its path, which is what lets a freshly cloned project run one before it has installed anything -- issue #39's deliberate choice, and the reason there are no console entry points either.
+**`pyyaml` is the whole dependency, and the kit is NOT installed as a package.** Every tool puts its own directory on `sys.path` and is run by its path, which is what lets a freshly cloned project run one before it has installed anything -- a deliberate choice, and the reason there are no console entry points either: an entry point would put an install where there is currently no step, which is a real cost for a kit whose whole point is being dropped into a project and used.
 
 `pyproject.toml` beside this file stays, and it is a DECLARATION rather than an instruction: it is where the dependency and the three package folders are written down, and a future consumer that wants `from substrate import align` in a script of its own has what it needs to install it. Nothing does that today, in either consumer.
 
-**So the install is not documented as a step, because nothing tested it and it broke for a day without one check going red** (psycho #49). Measured on 23 Aug 2026: the entire check list runs to identical numbers in a virtual environment holding `pyyaml` and nothing else. If the install becomes load-bearing, it needs a check on the same day, not afterwards.
+**So the install is not documented as a step, because nothing tested it and it broke for a day without one check going red.** The rule that came out of it is worth more than the incident: **a capability documented as working and exercised by nothing is worse than one not offered at all.** That break cost an adopter their first ten minutes, and every check was green throughout. Measured on 23 Aug 2026: the entire check list runs to identical numbers in a virtual environment holding `pyyaml` and nothing else. If the install becomes load-bearing, it needs a check on the same day, not afterwards.
 
 Then, from the repo root:
 

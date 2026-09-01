@@ -52,6 +52,6 @@ A consumer's own scripts are **archived**, not lost. Each project that adopts th
 
 A tag is a permanent named pointer that cannot drift, and it can point at any commit -- so there is no reason to carry superseded scripts through a whole migration. Where each one went is recorded in a generated document in the host repository, together with the measurement that made deleting it safe. `WORKING.md` section 7 has the convention in full, including the check that has to pass before anything is deleted.
 
-Decided in [The kit travels as one folder](https://github.com/sweetlilmre/PsychoNeurosis/issues/43)
-and [Tag the archive, then delete what the toolkit superseded](https://github.com/sweetlilmre/PsychoNeurosis/issues/36),
-on the map [The toolkit and wiki become the RE drivers](https://github.com/sweetlilmre/PsychoNeurosis/issues/29).
+The decisions behind it: *the kit travels as one folder*, and *tag the archive,
+then delete what the toolkit superseded* -- a tag can point at any commit, so
+there is no reason to carry superseded scripts through a whole migration.
