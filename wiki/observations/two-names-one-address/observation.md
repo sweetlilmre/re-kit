@@ -3,6 +3,7 @@ type: Observation
 title: The same bytes answer to two different addresses
 description: A routine shows up at two segment:offset pairs, or two "different" routines are byte-identical -- segment:offset is a many-to-one name for a linear address.
 tags: [segments, addressing, mz, ghidra, charting]
+measured_on: unrecorded
 timestamp: 2026-08-21T00:00:00Z
 ---
 

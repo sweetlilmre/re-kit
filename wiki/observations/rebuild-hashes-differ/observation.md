@@ -3,6 +3,7 @@ type: Observation
 title: The same source builds twice and the files do not hash the same
 description: A Turbo Pascal .TPU and a TASM .OBJ carry a build timestamp, so file hashing cannot answer whether a change altered the output -- the executable can, and it is the only thing that can.
 tags: [verification, comparison, turbo-pascal, tasm, rebuild, tooling]
+measured_on: the demo reconstruction and the toolkit itself
 timestamp: 2026-08-23T00:00:00Z
 ---
 

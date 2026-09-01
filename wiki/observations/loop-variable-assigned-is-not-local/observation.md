@@ -3,6 +3,7 @@ type: Observation
 title: A loop counter the binary assigns to proves nothing about where it lives
 description: RETRACTED AND REPLACED. This page used to say Turbo Pascal refuses assignment to a for-loop control variable declared in the same routine, and that a store into the counter therefore proves the counter is unit-level. A probe says otherwise -- TP7 accepts the assignment for a local counter, with or without an enclosing `with`, and emits the store. The inference was unsound. What survives is the source SHAPE the store points at, which is worth recognising for its own sake.
 tags: [pascal, turbo-pascal, source-shape, loops, variables, reconstruction, retraction, measurement]
+measured_on: the demo reconstruction and the toolkit itself and a compiler probe
 timestamp: 2026-08-26T00:00:00Z
 ---
 

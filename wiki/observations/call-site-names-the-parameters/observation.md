@@ -3,6 +3,7 @@ type: Observation
 title: The call site names the parameter list
 description: A Borland Pascal routine's RET operand gives the total size of its parameter block, and the caller's run of pushes partitions that total into the individual parameters, in declaration order, with their widening idioms naming their types. Between them they recover a signature -- including parameters the callee never reads -- without compiling anything, and reading the caller is cheaper and more direct than probing the compiler.
 tags: [pascal, codegen, turbo-pascal, source-shape, parameters, calling-convention, reconstruction]
+measured_on: the demo reconstruction and the toolkit itself and a compiler probe, part 001
 timestamp: 2026-08-25T00:00:00Z
 ---
 

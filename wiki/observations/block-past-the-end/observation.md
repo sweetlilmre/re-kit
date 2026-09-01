@@ -3,6 +3,7 @@ type: Observation
 title: One block reports a large shift while every block around it is exact
 description: Our segment can be shorter than the original's, so a block near the end has nothing to be compared against -- and both obvious things to do about that report a defect where there is none.
 tags: [comparison, verification, alignment, segments, tooling]
+measured_on: the demo reconstruction and the toolkit itself
 timestamp: 2026-08-23T00:00:00Z
 ---
 

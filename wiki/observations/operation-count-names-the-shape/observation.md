@@ -3,6 +3,7 @@ type: Observation
 title: The byte walk reports the same number either way
 description: A rebuild that computes the same value more times than the original does is invisible to a coverage walk and exact to a count of floating-point sites -- because a trap count measures the source's SHAPE, and no address has to line up for it to be read.
 tags: [turbo-pascal, codegen, x87, measurement, blind-spot, pascal]
+measured_on: the demo reconstruction and the toolkit itself, parts 003, 006
 timestamp: 2026-08-25T00:00:00Z
 ---
 

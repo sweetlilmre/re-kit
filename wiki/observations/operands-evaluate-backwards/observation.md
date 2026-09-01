@@ -3,6 +3,7 @@ type: Observation
 title: The operand it evaluates first is the one written second
 description: Borland Pascal evaluates the two operands of a binary operator RIGHT TO LEFT when both need the accumulator -- the right one is computed first and parked in a spare register, then the left. So the register holding the parked value names the operand written SECOND, and a reconstruction with the terms the natural way round differs by four bytes at every such expression.
 tags: [pascal, turbo-pascal, codegen, source-shape, expressions, reconstruction]
+measured_on: the demo reconstruction and the toolkit itself, part 001
 timestamp: 2026-08-26T00:00:00Z
 ---
 

@@ -3,6 +3,7 @@ type: Observation
 title: A measurement tool reads whatever is on disk, and a failed build leaves the last good answer there
 description: Every instrument that compares a build product against a target opens a file by path. Nothing in that file says which source it was built from, so a build that refuses leaves the previous product in place and every downstream measurement reports the previous verdict -- correctly, for source that no longer exists. The build's own warning is not a guard, because a warning has to be read.
 tags: [tooling, verification, measurement, reverse-engineering, process]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

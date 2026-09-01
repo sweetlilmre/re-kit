@@ -3,6 +3,7 @@ type: Observation
 title: Pair operands by position once the lengths agree
 description: When every routine in a segment is already the right length, two builds can be disassembled in parallel and their displacement operands paired by code offset. A wall of differing bytes collapses into a short list of (their address, our address) with one shift each, and the shifts name declaration order, a per-unit alignment switch, a runtime entry point or a whole missing variable. The precondition is not optional and neither is reading the profile from the lowest address up.
 tags: [layout, dgroup, stack-frame, verification, tooling, measurement, pascal, reconstruction]
+measured_on: unrecorded
 timestamp: 2026-08-27T00:00:00Z
 ---
 

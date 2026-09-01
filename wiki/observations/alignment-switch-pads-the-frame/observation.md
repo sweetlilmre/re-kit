@@ -3,6 +3,7 @@ type: Observation
 title: An odd local offset means data alignment was off
 description: Borland Pascal's $A switch decides whether a variable starts on a word boundary. It leaves a signature nothing else does -- a local at an ODD offset from BP -- and reading it costs one glance at a prologue. A reconstruction compiled with the default when the original was not gains a pad byte per odd-sized variable, which shifts every local below it and looks like a missing declaration.
 tags: [pascal, codegen, turbo-pascal, switches, locals, alignment, reconstruction]
+measured_on: the demo reconstruction and the toolkit itself
 timestamp: 2026-08-24T00:00:00Z
 ---
 

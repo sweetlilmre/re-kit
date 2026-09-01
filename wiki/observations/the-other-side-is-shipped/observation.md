@@ -3,6 +3,7 @@ type: Observation
 title: If the program has clients, look for their bindings before deciding a structure is unknowable
 description: A structure the target PUBLISHES is documented somewhere, because something had to consume it. Header files, include files and language bindings shipped alongside the binary declare it field for field, in the author's own names -- and they are evidence of a completely different class from anything recoverable by disassembly. Search the distribution for the client side before writing a filler.
 tags: [reverse-engineering, naming, documentation, evidence, verification]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

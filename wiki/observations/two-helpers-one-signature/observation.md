@@ -3,6 +3,7 @@ type: Observation
 title: Two runtime helpers with one signature, and the difference is a fixup
 description: Borland's `Move` and its whole-array assignment copy take the same three arguments in the same order and differ only in which runtime routine the call names. That target is a relocation fixup, so a unit comparison that forgives pending fixups cannot see the difference at all -- it appears for the first time in the linked image, after the unit has been reported identical.
 tags: [codegen, rtl, comparison, verification, linking, reconstruction]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

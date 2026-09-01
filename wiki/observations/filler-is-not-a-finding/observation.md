@@ -3,6 +3,7 @@ type: Observation
 title: A filler declaration records what you have not looked at, not what is not there
 description: Naming an unidentified run `Filler` and moving on is right, and it quietly converts an open question into a settled-looking one. Three times in one reconstruction a filler run sitting beside a newly added field turned out to BE a field, each found by an instruction read long after the filler was written. Re-read every filler adjacent to anything new.
 tags: [reconstruction, measurement, dgroup, verification, naming]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

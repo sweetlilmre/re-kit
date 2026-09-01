@@ -3,6 +3,7 @@ type: Observation
 title: A one-byte difference between two builds is two different findings
 description: Diff two builds of one program and the single-byte gaps are ambiguous -- a ModRM displacement whose record field moved, or the low half of a 16-bit data reference whose high half happened not to change. Read as a signed displacement, the second kind manufactures a record-shrink finding at dozens of sites, in units whose source is identical. The two readings are congruent modulo 256, and that congruence is the test.
 tags: [comparison, verification, tooling, measurement, codegen, reconstruction, dgroup]
+measured_on: unrecorded
 timestamp: 2026-08-28T00:00:00Z
 ---
 

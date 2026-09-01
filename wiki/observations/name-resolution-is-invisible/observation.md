@@ -3,6 +3,7 @@ type: Observation
 title: Every instrument reads clean and the screen is blank
 description: A local declaration that shadows a unit-level one of the same name compiles, links, measures identical on every static instrument, and produces a program that does nothing. Coverage walks, initialised-image compares and reference maps all measure bytes; none of them can see WHICH object a name resolved to. On this class of defect a watched run is not a formality after the measurement -- it is the only instrument that works.
 tags: [verification, measurement, blind-spot, pascal, scoping, reconstruction, tooling, behaviour]
+measured_on: the demo reconstruction and the toolkit itself, part 001
 timestamp: 2026-08-26T00:00:00Z
 ---
 

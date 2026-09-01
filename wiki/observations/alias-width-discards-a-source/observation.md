@@ -3,6 +3,7 @@ type: Observation
 title: Resolve every type alias before ruling a sibling implementation's record misaligned
 description: Comparing another implementation's declarations against measured offsets means adding up its field widths, and one aliased type assumed to be the wrong size shifts everything after it. The failure is silent and self-confirming -- the record looks misaligned, so it gets rejected as a naming source, and the rejection is never revisited because it explains what you saw.
 tags: [reverse-engineering, naming, evidence, verification, measurement]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

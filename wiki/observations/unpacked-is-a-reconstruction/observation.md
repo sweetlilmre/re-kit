@@ -3,6 +3,7 @@ type: Observation
 title: An unpacked binary is the unpacker's reconstruction, and only its load image is evidence
 description: Unpack a compressed executable and you get a file, not an artefact. The packer discarded the header fields and the relocation encoding it did not need, so the unpacker had to invent them -- and a rebuild that matches the program perfectly will still differ there. Compare the load image, and prove the rest by re-packing.
 tags: [reverse-engineering, comparison, verification, tooling, reconstruction, linking]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

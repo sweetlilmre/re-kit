@@ -3,6 +3,7 @@ type: Observation
 title: Borland Pascal emits one instruction per operator, so `+ 3 + 5` is not `+ 8`
 description: The compiler walks an expression tree and codes each operator as it goes; it does not fold two adjacent integer constants first. So `X + 3 + 5` is ADD AX,3 / ADD AX,5, `X + 3 + 1 + 1` ends in two INC AX, and `Y - 9 - 0` really does emit SUB AX,0. Transcribing the arithmetic instead of the operators produces the right numbers and the wrong bytes.
 tags: [pascal, turbo-pascal, borland, codegen, transcription, expressions]
+measured_on: the demo reconstruction
 timestamp: 2026-08-25T00:00:00Z
 ---
 

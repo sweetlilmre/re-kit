@@ -3,6 +3,7 @@ type: Observation
 title: The original contains code that does nothing, and you have to put it back
 description: Real programs carry statements with no effect -- a loop of self-assignments, a test whose branches are identical, an addition of zero. A reconstruction will never invent them, and leaving them out is a hole of exactly their size that no amount of re-reading the source will find. They are only ever found by reading the original's bytes and refusing to explain away what is there.
 tags: [reconstruction, decompilation, verification, dead-code, source-shape, measurement]
+measured_on: the demo reconstruction and the toolkit itself, part 001
 timestamp: 2026-08-26T00:00:00Z
 ---
 

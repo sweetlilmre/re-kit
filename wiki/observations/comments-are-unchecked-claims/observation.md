@@ -3,6 +3,7 @@ type: Observation
 title: The addresses written in comments are the only claims nothing checks
 description: A reconstruction records where each variable lives by writing the address beside the declaration, and those comments become the map everybody reads. The compiler never sees them, no comparison reads them, and a byte-exact rebuild is silent about them -- so an address carried forward from a previous version survives every instrument and goes on being quoted. They can be checked against each other without linking, and a checker that does it must model the compiler's padding or it invents findings instead.
 tags: [tooling, verification, documentation, dgroup, measurement]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

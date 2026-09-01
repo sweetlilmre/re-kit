@@ -3,6 +3,7 @@ type: Observation
 title: The data segment is laid out in reverse of the uses clause
 description: Borland Pascal emits each unit's typed constants into DGROUP in the REVERSE of the order the units are named, while code segments follow that order forwards. So a reconstruction whose data segment is back to front has its uses clause back to front -- and until it is fixed, every absolute data reference in the program carries a wrong displacement and correct code measures as wrong.
 tags: [pascal, turbo-pascal, dgroup, linking, source-shape, units, reconstruction]
+measured_on: the demo reconstruction and the toolkit itself, parts 001, 003, 005
 timestamp: 2026-08-25T00:00:00Z
 ---
 

@@ -3,6 +3,7 @@ type: Observation
 title: A var parameter shares one load where a pointer cannot
 description: Turbo Pascal keeps a var parameter's address in ES:DI across a run of adjacent statements that name it, and needs no hidden slot to do so. A pointer parameter must be re-loaded for every mention, and the one construct that would share a load -- a nested with -- is allocated its own four-byte slot regardless. So a routine whose frame and whose single pointer load both have to match can be reachable with a var parameter and unreachable with a pointer, and no amount of re-spelling the statements will find it.
 tags: [pascal, codegen, stack-frame, with, parameters, reconstruction, measurement]
+measured_on: unrecorded
 timestamp: 2026-08-27T00:00:00Z
 ---
 

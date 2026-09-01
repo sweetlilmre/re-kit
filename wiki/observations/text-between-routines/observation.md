@@ -3,6 +3,7 @@ type: Observation
 title: Readable text sits between the routines
 description: Gaps between a Turbo Pascal program's routines hold its string literals, length-prefixed and walkable -- the program's menus, messages and filenames, before any instruction is read.
 tags: [strings, code-segment, turbo-pascal, charting]
+measured_on: the demo reconstruction
 timestamp: 2026-08-21T00:00:00Z
 ---
 

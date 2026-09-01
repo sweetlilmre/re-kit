@@ -3,6 +3,7 @@ type: Observation
 title: A tool that is wrong is useless; a tool that BECOMES right is worth re-asking every open question
 description: The instruments in a layered reconstruction have a dependency order -- unit sizes need the link order, the data layout needs the sizes, the variable half needs the data layout. A tool downstream of a broken one produces noise, and the moment the upstream one comes right, every question that was parked for want of it is answerable at once.
 tags: [tooling, verification, measurement, reconstruction, workflow]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

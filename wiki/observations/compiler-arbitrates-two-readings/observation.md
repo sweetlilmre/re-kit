@@ -3,6 +3,7 @@ type: Observation
 title: When two declarations both fit the bytes, build both -- the compiler decides
 description: Two adjacent immediate stores read naturally as one 32-bit assignment and equally as two 16-bit ones. The site itself cannot distinguish them. Building each way does -- one breaks the arithmetic downstream, the other breaks the store, and only one shape satisfies both. Peephole behaviour is not something to reason out from a disassembly.
 tags: [codegen, reconstruction, verification, measurement]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

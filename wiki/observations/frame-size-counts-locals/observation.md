@@ -3,6 +3,7 @@ type: Observation
 title: The frame is bigger than your locals account for
 description: A Borland Pascal routine's prologue is two measurements. The ENTER operand is the declared locals plus the code generator's temporaries, so it measures the source's variable list; whether there is an ENTER at all names the whole unit's $G switch. A reconstruction whose prologue is the wrong size has the wrong declarations, and one of the wrong FORM has the wrong switch, however well the statements match.
 tags: [pascal, codegen, turbo-pascal, source-shape, locals, x87, switches, reconstruction]
+measured_on: the demo reconstruction and the toolkit itself, parts 001, 005
 timestamp: 2026-08-24T00:00:00Z
 ---
 

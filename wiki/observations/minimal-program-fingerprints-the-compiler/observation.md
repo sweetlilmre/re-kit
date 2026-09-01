@@ -3,6 +3,7 @@ type: Observation
 title: A hello-world names the compiler that built a stranger
 description: Which compiler built an unknown binary is usually argued from file dates and folklore. Compile a four-line program with each installed candidate, take its runtime library's head, and search for it in the unknown with relocations masked -- the one that is found is the answer, and the ones that are not are excluded. It costs one build per candidate and it is a measurement.
 tags: [toolchain, runtime, pascal, turbo-pascal, verification, measurement, reconstruction]
+measured_on: unrecorded
 timestamp: 2026-08-28T00:00:00Z
 ---
 

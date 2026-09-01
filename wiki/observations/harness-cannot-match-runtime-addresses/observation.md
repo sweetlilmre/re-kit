@@ -3,6 +3,7 @@ type: Observation
 title: A harness can never match the original's runtime call addresses, and the coverage number quietly pays for it
 description: Building a test harness around a reconstructed unit puts a different main program ahead of the runtime, so every far call into the runtime differs in its segment word by construction. Most of those 4-byte differences a coverage walk absorbs; where they cluster it cannot, and the walk reports them as a code defect. Measure the deltas before treating any of it as reconstruction work.
 tags: [reconstruction, measurement, linking, turbo-pascal, dos, coverage, harness, blind-spot]
+measured_on: the demo reconstruction and the toolkit itself, parts 001, 004
 timestamp: 2026-08-26T00:00:00Z
 ---
 

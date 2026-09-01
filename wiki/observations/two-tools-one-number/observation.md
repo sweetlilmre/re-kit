@@ -3,6 +3,7 @@ type: Observation
 title: Two tools measure one thing and one number is lower
 description: A tool that adds two classes of permitted byte counts anything in both of them twice; measure the overlap, and the discrepancy stops being an opinion.
 tags: [comparison, verification, fixups, relocation, tooling]
+measured_on: the tracker reconstruction and the toolkit itself
 timestamp: 2026-08-23T00:00:00Z
 ---
 

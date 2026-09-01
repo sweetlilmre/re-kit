@@ -3,6 +3,7 @@ type: Observation
 title: Writing a routine is not enough to emit it
 description: Borland omits a routine nothing references. A stub that only a published function pointer ever reaches produces no bytes at all until the line that publishes it exists -- and the hole it leaves sits exactly where the routine belongs, which reads as a transcription that has not been done rather than one that has.
 tags: [codegen, reconstruction, verification, linking]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

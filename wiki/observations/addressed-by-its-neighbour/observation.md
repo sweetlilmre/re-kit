@@ -3,6 +3,7 @@ type: Observation
 title: A block reached through its neighbour's symbol is invisible to every search for its own address
 description: The standard question about an unexplained region is "what reads or writes these bytes". A downward-growing stack answers that question with nothing, truthfully -- the code loads the address ABOVE the block and lets the hardware walk down through it. So the region looks dead to every instrument, and the instruction that proves it alive names a different variable.
 tags: [reverse-engineering, dgroup, verification, measurement, naming]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

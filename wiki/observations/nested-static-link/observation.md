@@ -3,6 +3,7 @@ type: Observation
 title: Every element read costs fourteen bytes and goes through the frame twice
 description: A routine that reaches its data through [BP+4] and then a far load out of that frame is NESTED, and the data belongs to the routine enclosing it -- which fixes the source's shape, not just its instructions.
 tags: [pascal, codegen, nesting, basm, turbo-pascal, source-shape]
+measured_on: the demo reconstruction and the toolkit itself, parts 001, 003
 timestamp: 2026-08-23T00:00:00Z
 ---
 

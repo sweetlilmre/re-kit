@@ -3,6 +3,7 @@ type: Observation
 title: Code past the initialisation section came from an object file
 description: A unit's initialisation code is the last thing Borland Pascal emits into its code segment, and nothing can be declared after it. So a routine at a HIGHER offset than the init section did not come from the Pascal source at all -- it came in through {$L file.OBJ}. The position is the proof, not the instructions; and because an object is linked whole, a dead routine in one ships where a dead Pascal routine would be smart-linked away.
 tags: [pascal, turbo-pascal, linking, smart-linking, object-file, segment-layout, identification, reconstruction]
+measured_on: the demo reconstruction and the toolkit itself, parts 003, 005
 timestamp: 2026-08-26T00:00:00Z
 ---
 

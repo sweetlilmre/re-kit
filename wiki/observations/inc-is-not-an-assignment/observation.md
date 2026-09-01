@@ -3,6 +3,7 @@ type: Observation
 title: Inc(v, n) and v := v + n compile to different code
 description: Borland Pascal's Inc emits a read-modify-write instruction against memory; the equivalent assignment loads the target into a register pair, adds, and stores back. For a LongInt that is twelve bytes against eighteen. Both are correct Pascal and neither is an optimisation of the other, so a reconstruction that picks the shorter one shifts every byte after it in the segment -- and the coverage walk blames somewhere else.
 tags: [pascal, codegen, turbo-pascal, source-shape, statements, reconstruction, blind-spot]
+measured_on: the demo reconstruction and the toolkit itself, part 001
 timestamp: 2026-08-25T00:00:00Z
 ---
 

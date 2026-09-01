@@ -3,6 +3,7 @@ type: Observation
 title: Every routine is present, aligned, and in the wrong place
 description: Definition order is segment order, and a coverage walk that locates each routine by content scores a fully permuted segment at 99.9%. The sequence of routine LENGTHS is the fingerprint that sees it -- the same multiset in a different order -- and matching it against the original's recorded address map names the permutation, after which most routines match to the byte. Two units wrong by the same amount in opposite directions can make the walk read exactly 100.0%.
 tags: [layout, code-segment, verification, tooling, reconstruction, measurement, pascal]
+measured_on: the demo reconstruction and the toolkit itself, part 003
 timestamp: 2026-08-26T00:00:00Z
 ---
 

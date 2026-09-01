@@ -3,6 +3,7 @@ type: Observation
 title: A sibling's constants name your literals, and uniqueness is what makes the search usable
 description: A reconstruction writes a number because a number is what the instruction holds. A sibling implementation wrote the same number as a name. Pairing every literal against every named constant finds them -- and returns mostly noise, because a small number is named by many things. Keeping only the values exactly one constant claims inverts the ratio.
 tags: [reverse-engineering, naming, tooling, evidence, measurement]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

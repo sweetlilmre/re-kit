@@ -3,6 +3,7 @@ type: Observation
 title: A total quietly drops a component and stays plausible
 description: One instrument read a number out of another's printed output; the other was gone, so the pattern matched nothing and the count fell back to zero -- and a missing tool is indistinguishable from a tool that measured nothing.
 tags: [verification, tooling, measurement, coverage]
+measured_on: the toolkit itself
 timestamp: 2026-08-23T00:00:00Z
 ---
 

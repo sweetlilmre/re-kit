@@ -3,6 +3,7 @@ type: Observation
 title: An initialiser that changes no byte means the declaration is at the wrong address
 description: Set a typed constant's initial value to the one the original's image holds, rebuild, and compare. If nothing moved, the value did not land where you thought -- the declaration is somewhere else in its unit's block. Within a unit, the ORDER of declarations is as measurable as their sizes, and this is the cheapest probe for it.
 tags: [dgroup, measurement, verification, reconstruction, tooling]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

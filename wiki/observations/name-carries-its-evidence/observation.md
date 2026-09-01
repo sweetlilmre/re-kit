@@ -3,6 +3,7 @@ type: Observation
 title: A name is a claim, and it should be no stronger than the evidence that produced it
 description: Reconstruction names things from USE -- a writer and a reader together say what a byte means. Some things have no use to name them after -- a variable written and never read, a structure field the program never touches. The temptation is a behavioural name anyway, and a wrong name is the only wrong thing in a reconstruction that no build, no comparison and no verifier can ever fail. Name it for its provenance instead, and shape the name so a reader can see which kind it is.
 tags: [reverse-engineering, naming, documentation, verification, measurement]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

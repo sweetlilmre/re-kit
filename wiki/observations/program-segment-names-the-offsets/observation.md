@@ -3,6 +3,7 @@ type: Observation
 title: The main program is a list of every unit's entry-point offsets
 description: "A part's own program segment calls each unit's routines by absolute offset, so comparing it byte for byte checks every entry point at once -- and it catches what a coverage walk and a segment-size check both miss: routines in the wrong order inside a right-sized segment, a unit displaced by whole paragraphs, and bytes the rebuild has that the original does not. Prologue offsets then localise the defect to one routine, and separate two errors that cancel."
 tags: [layout, code-segment, verification, tooling, reconstruction, measurement, pascal]
+measured_on: the demo reconstruction
 timestamp: 2026-08-27T00:00:00Z
 ---
 

@@ -3,6 +3,7 @@ type: Observation
 title: A compare tool's number is plausible, and it is wrong
 description: The offset is right and the length is too short, or the length looks reasonable and the position is nowhere near the thing -- the density gate and the location strategy are both properties of the artefact, not of the tool.
 tags: [comparison, verification, tooling, fixups, alignment]
+measured_on: the toolkit itself
 timestamp: 2026-08-23T00:00:00Z
 ---
 

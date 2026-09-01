@@ -3,6 +3,7 @@ type: Observation
 title: The direction bit tells hand assembler from compiled Pascal
 description: Borland's built-in assembler emits every register-to-register op in the store direction (MOV AX,BX as 89 D8), while the Pascal code generator is mixed. So the ratio over a routine separates a BASM block from compiled Pascal in the same binary -- and it works where an ENTER-framed prologue makes the two look identical.
 tags: [pascal, turbo-pascal, basm, hand-assembler, identification, encoding, disassembly]
+measured_on: the demo reconstruction
 timestamp: 2026-08-24T00:00:00Z
 ---
 

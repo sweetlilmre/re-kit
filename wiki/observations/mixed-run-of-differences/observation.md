@@ -3,6 +3,7 @@ type: Observation
 title: Two implementations of one comparison differ by two bytes
 description: A run of differing bytes is not homogeneous, so a rule that answers yes-or-no about the whole run is wrong at one end of it; a rule that returns a count is not.
 tags: [comparison, verification, fixups, tooling]
+measured_on: the tracker reconstruction and the toolkit itself
 timestamp: 2026-08-23T00:00:00Z
 ---
 

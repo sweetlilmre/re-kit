@@ -3,6 +3,7 @@ type: Observation
 title: A field nothing in the image writes is an input, not a switch that was never wired up
 description: Search a binary for writes to a variable, find none, and the conclusion "nothing can set it" only follows if the binary is the whole system. A field inside a structure the program PUBLISHES for other programs is written from outside, and no-writer-inside is exactly what that looks like. The test is the address -- convert it to an offset within every published structure before concluding anything.
 tags: [reverse-engineering, dgroup, naming, verification, measurement]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

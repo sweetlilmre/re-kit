@@ -3,6 +3,7 @@ type: Observation
 title: A pointer costs four bytes where the array cost four thousand
 description: A reconstruction that puts a buffer on the heap where the original declared it inline leaves DGROUP short by the whole array, which displaces every variable after it and makes correct code measure as wrong. No code-level instrument can see it -- the routines differ by one indirection. The gaps between the addresses a project's own comments have accumulated price every declaration and find it.
 tags: [pascal, turbo-pascal, dgroup, source-shape, variables, heap, reconstruction, blind-spot]
+measured_on: the demo reconstruction and the toolkit itself, part 001
 timestamp: 2026-08-25T00:00:00Z
 ---
 

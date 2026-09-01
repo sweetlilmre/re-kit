@@ -3,6 +3,7 @@ type: Observation
 title: The total balances and the layout is still wrong
 description: Two errors of the same size in opposite directions leave every total exact -- the image byte-for-byte identical, the header's allocation matching to the paragraph -- while a block sits in the wrong place and every absolute reference into it carries a wrong displacement. Instruments that measure totals cannot produce the signal at all; a per-reference shift map can, and a bounded run of one shift with zero either side is its exact signature.
 tags: [layout, dgroup, data-segment, verification, tooling, reconstruction, measurement]
+measured_on: the demo reconstruction and the toolkit itself, part 005
 timestamp: 2026-08-26T00:00:00Z
 ---
 

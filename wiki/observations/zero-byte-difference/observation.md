@@ -3,6 +3,7 @@ type: Observation
 title: A zero byte where the original has something else
 description: Your byte is 0x00, theirs is a real value -- and the rule for what to do inverts by artefact.
 tags: [comparison, fixups, relocation, zero-rule]
+measured_on: unrecorded
 timestamp: 2026-08-19T00:00:00Z
 ---
 

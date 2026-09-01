@@ -3,6 +3,7 @@ type: Observation
 title: A prologue scan finds every routine, and one thing that is not a routine
 description: Scanning for ENTER or PUSH BP recovers a segment's routines with no misses, but data matches too -- and the dangerous part is not the false candidate, it is the SECOND measurement that then agrees with it. Only a call reference proves a candidate; withhold everything else you would say about one.
 tags: [pascal, turbo-pascal, disassembly, verification, blind-spot, instruments]
+measured_on: the demo reconstruction and the toolkit itself, part 002
 timestamp: 2026-08-24T00:00:00Z
 ---
 

@@ -3,6 +3,7 @@ type: Observation
 title: The line table advances one line per instruction
 description: In Borland debug info, a run of line-number entries stepping one instruction each marks a BASM asm block -- the compiler maps each assembler line to its own instruction.
 tags: [debug-info, basm, hand-assembler, identification, pascal]
+measured_on: the demo reconstruction and the toolkit itself
 timestamp: 2026-08-21T00:00:00Z
 ---
 

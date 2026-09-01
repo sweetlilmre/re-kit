@@ -3,6 +3,7 @@ type: Observation
 title: Every declared routine matches, and the rebuild still behaves differently
 description: A byte check that walks a list of declared routines cannot see a routine nobody declared; align every byte of the original's user segments instead, and read the spans that will not align.
 tags: [verification, coverage, hand-assembler, tooling, pascal, rebuild]
+measured_on: the demo reconstruction and the toolkit itself
 timestamp: 2026-08-23T00:00:00Z
 ---
 

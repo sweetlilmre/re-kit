@@ -3,6 +3,7 @@ type: Observation
 title: The comment already said so, and the code did not do it
 description: In a long reconstruction, the commonest place a defect hides is a comment that states the right answer beside code that does something else. The note was written while somebody was reading the binary; the code was written from a guess, or was written first and never revisited. Grepping your own comments for claims the code does not honour is a search strategy with a measured hit rate, not a curiosity.
 tags: [reconstruction, method, source-shape, blind-spot, comments]
+measured_on: the demo reconstruction and the toolkit itself, part 001
 timestamp: 2026-08-25T00:00:00Z
 ---
 

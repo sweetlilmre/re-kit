@@ -3,6 +3,7 @@ type: Observation
 title: A tool reports a shortfall and blames something plausible for it
 description: Two instruments each held a copy of one measurement; the copies drifted, and the drift did not go quiet -- it manufactured a finding that read like an observation about the code.
 tags: [verification, tooling, measurement, drift, segments]
+measured_on: the tracker reconstruction and the toolkit itself
 timestamp: 2026-08-23T00:00:00Z
 ---
 

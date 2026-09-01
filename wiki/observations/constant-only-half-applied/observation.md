@@ -3,6 +3,7 @@ type: Observation
 title: A named constant that only some of its uses go through is worse than no constant at all
 description: Change the constant and the uses that go through it move; the ones written as literals do not. Three times in one file of one reconstruction, and the cost lands somewhere other than the defect -- once sixteen percentage points of a unit's agreement, once fourteen entirely correct units reading variables the short array had displaced.
 tags: [reconstruction, codegen, measurement, verification]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

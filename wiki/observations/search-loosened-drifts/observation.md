@@ -3,6 +3,7 @@ type: Observation
 title: A believable percentage about a position nowhere near the thing
 description: When the search runs under a looser rule than the comparison, the search slides to wherever the loose rule scores best -- and a positional rule and a sliced buffer must share one coordinate frame.
 tags: [comparison, verification, alignment, relocation, tooling]
+measured_on: the tracker reconstruction and the toolkit itself
 timestamp: 2026-08-23T00:00:00Z
 ---
 

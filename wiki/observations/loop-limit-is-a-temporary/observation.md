@@ -3,6 +3,7 @@ type: Observation
 title: A loop limit that is not a constant is a frame slot you must not declare
 description: Borland Pascal evaluates a `for` loop's upper bound once into a stack temporary and then compares against it every iteration, so the slot is written once and read often -- indistinguishable from a declared local. Transcribing it as one produces both it and the compiler's, and the frame lands over.
 tags: [pascal, turbo-pascal, borland, frame-layout, transcription, blind-spot, instruments]
+measured_on: the demo reconstruction
 timestamp: 2026-08-24T00:00:00Z
 ---
 

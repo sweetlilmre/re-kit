@@ -3,6 +3,7 @@ type: Observation
 title: A variable nothing reads can still be named, by matching a sibling's declaration order
 description: Reverse engineering names a variable from what uses it, so a variable with no readers looks unnameable and gets a filler. But a compiler emits per-routine statics in source declaration order, and that order survives into the image. Line the run up against a sibling implementation's declaration block and the dead ones are named by their position between the live ones.
 tags: [reverse-engineering, naming, dgroup, measurement, evidence]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

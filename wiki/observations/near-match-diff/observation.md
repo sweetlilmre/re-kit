@@ -3,6 +3,7 @@ type: Observation
 title: The rebuild nearly matches, and the last bytes name their causes
 description: A handful of differing bytes between a rebuilt image and the original -- each diff pattern is a fingerprint of one source-level or switch-level fact.
 tags: [comparison, turbo-pascal, codegen, byte-diff]
+measured_on: the demo reconstruction
 timestamp: 2026-08-21T00:00:00Z
 ---
 

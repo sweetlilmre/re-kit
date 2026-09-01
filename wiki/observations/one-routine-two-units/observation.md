@@ -3,6 +3,7 @@ type: Observation
 title: The same routine sits mid-unit in one binary and at a segment head in another
 description: Identical code in two parts was shared as SOURCE, not as a unit, when it sits surrounded by one unit's own routines -- and rebuilding it as a shared unit turns the callers' near calls into far ones.
 tags: [pascal, segments, source-shape, include, rebuild, hand-assembler]
+measured_on: the demo reconstruction and the toolkit itself, parts 001, 006
 timestamp: 2026-08-23T00:00:00Z
 ---
 

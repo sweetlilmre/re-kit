@@ -3,6 +3,7 @@ type: Observation
 title: A typed constant nothing reads is invisible to every comparison that follows an instruction
 description: A declared constant that no instruction names still occupies bytes. Every verification instrument here works by following code -- a decoder, a fixup map, an operand pairing -- so all of them are blind to it by construction, and a unit can compare byte-for-byte identical while carrying data the original does not have or missing data it does. Only a LAYOUT comparison sees it.
 tags: [comparison, verification, dgroup, reconstruction, measurement, tooling]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

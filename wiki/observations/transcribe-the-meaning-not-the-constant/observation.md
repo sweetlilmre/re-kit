@@ -3,6 +3,7 @@ type: Observation
 title: A hardcoded address copied from the original is right by coincidence
 description: Transcribing hand assembler verbatim is the correct discipline for instructions, and wrong for the addresses inside them. A displacement in the original encodes where that build put a variable; copied as a literal into a rebuild whose layout differs by two bytes, the instruction is byte-perfect and reads the wrong memory. Every static instrument passes, because the bytes are what you asked for. Write what the number MEANS -- OFFSET Var minus the stride -- and it survives the next reorder.
 tags: [hand-assembler, transcription, addressing, reconstruction, verification, blind-spot, measurement]
+measured_on: the demo reconstruction and the toolkit itself, part 001
 timestamp: 2026-08-26T00:00:00Z
 ---
 

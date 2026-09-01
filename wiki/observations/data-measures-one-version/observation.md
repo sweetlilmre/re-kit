@@ -3,6 +3,7 @@ type: Observation
 title: A table carried forward from the previous version has no witness in this one
 description: Reconstructing version N+1 from version N's source, the code gets checked against the new binary on every build and the DATA does not. A table nothing computes is only ever confirmed by the image it was read out of -- so a retuned table survives every code comparison intact, in a unit that verifies byte-for-byte, until the layout is exact enough to compare the initialised image itself.
 tags: [reconstruction, comparison, verification, dgroup, measurement]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

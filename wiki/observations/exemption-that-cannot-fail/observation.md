@@ -3,6 +3,7 @@ type: Observation
 title: An exemption list is where a check goes to die
 description: Four entries in an exemption file each carried a reason that was false, and the one that remained could not fail because the tool was blind to its case -- an exemption is a claim, and a claim about two texts can be diffed.
 tags: [verification, tooling, measurement, coverage]
+measured_on: unrecorded
 timestamp: 2026-08-28T00:00:00Z
 ---
 

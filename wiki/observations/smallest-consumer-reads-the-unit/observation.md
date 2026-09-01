@@ -3,6 +3,7 @@ type: Observation
 title: Read a shared unit in the binary that uses least of it
 description: A library unit linked into eight programs appears at eight different sizes, because the smart linker keeps only what each one references. The smallest of those is the place to read the unit's routine order and its near/far split -- sixty-four bytes and four items instead of two thousand bytes and forty -- and every correction found there pays out in all eight. Two one-byte tells settle near versus far -- a near return in a routine you put in the interface, and PUSH CS before a near CALL.
 tags: [linking, smart-linking, pascal, units, reconstruction, method, measurement, near-far]
+measured_on: the demo reconstruction and the toolkit itself
 timestamp: 2026-08-26T00:00:00Z
 ---
 

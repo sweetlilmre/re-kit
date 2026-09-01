@@ -3,6 +3,7 @@ type: Observation
 title: An uninitialised variable has no witness anywhere, and link order is the only thing that brackets it
 description: A typed constant is in the image, so a comparison sees it. A public symbol is in the linker map, so an absolute check names it. A variable that is neither holds no bytes and carries no symbol, so nothing in a reconstruction can reach its address. Link order can still bracket it -- every unit's variables sit above those of every unit linked before it -- which detects a stale address without computing the right one.
 tags: [reverse-engineering, dgroup, verification, measurement, naming]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

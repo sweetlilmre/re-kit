@@ -3,6 +3,7 @@ type: Observation
 title: Documentation defects are invisible to every check and visible on the first read-through
 description: A comment cannot fail a build, a comparison or a self-check, so a documentation pass ends with every instrument green and no evidence about the thing it was for. The defects are real and they have shapes -- the right words in the wrong place, a rule stated as complete when it is not, an explanation that assumes something said three units away -- and the only instrument that finds them is a person following the path a reader would take.
 tags: [documentation, verification, process, reverse-engineering]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

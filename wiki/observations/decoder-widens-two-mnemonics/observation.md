@@ -3,6 +3,7 @@ type: Observation
 title: The decoder names two 16-bit opcodes with their 32-bit mnemonics
 description: capstone 5.0.7 in CS_MODE_16 prints 0x98 as `cwde` and 0x99 as `cdq`, where a 16-bit decode is CBW and CWD. Only the mnemonic is wrong -- every operand around them decodes correctly -- so the listing reads as plausible 386 code, and copying it into an assembler source silently adds an operand-size prefix.
 tags: [disassembly, instruments, blind-spot, capstone, encoding, transcription]
+measured_on: the demo reconstruction and the toolkit itself
 timestamp: 2026-08-24T00:00:00Z
 ---
 

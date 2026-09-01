@@ -3,6 +3,7 @@ type: Observation
 title: Two bytes the compiler cannot emit
 description: A probe that tries every plausible spelling of a construct and produces the original's bytes in NONE of them has identified hand-written assembler -- and it does so from compiled-looking code, where the usual tells (string instructions, LOOP, register conventions) are absent. The negative result is the finding, and it is only worth anything if the spellings were exhaustive.
 tags: [pascal, turbo-pascal, hand-assembler, identification, probe, codegen, reconstruction]
+measured_on: the demo reconstruction and the toolkit itself and a compiler probe, part 003
 timestamp: 2026-08-26T00:00:00Z
 ---
 

@@ -3,6 +3,7 @@ type: Observation
 title: To know what an instrument cannot see, break the tree on purpose and check that it complains
 description: Every instrument has a blind spot and none of them announces it. A passing report is compatible with the check working and with the check being structurally unable to see the thing you are trusting it for, and those two states look identical. Constructing the failure takes minutes and settles it -- and on this corpus it changed a decision that would otherwise have rested on ninety edits and a hope.
 tags: [verification, tooling, measurement, process, reverse-engineering]
+measured_on: unrecorded
 timestamp: 2026-08-29T00:00:00Z
 ---
 

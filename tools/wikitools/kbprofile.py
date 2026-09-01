@@ -41,6 +41,14 @@ import project                                    # noqa: E402
 # halves of that rule come from the decision that made a blind spot a mechanism.
 OVERRIDES = []
 
+# Observations whose witness is `unrecorded`. Counted and printed, never
+# gated: 32 pages name no target anywhere, several of them written
+# deliberately generic, and inventing a witness for those would be a claim
+# formatted like a measurement -- which nothing downstream can catch, because
+# it reads exactly like one that was measured. `unrecorded` is the honest
+# value and this counter is what stops it becoming invisible.
+UNRECORDED = []
+
 # The tag vocabulary, loaded from the bundle's own tags.txt. Empty means the
 # file is absent, and then the check does not run -- a bundle without the file
 # is not failed, because the vocabulary is this profile's convention and not
@@ -66,7 +74,8 @@ END = "<!-- /generated:discriminator -->"
 
 # Frontmatter keys, by document type.
 REQUIRED_FRONTMATTER = {
-    "Observation": ("type", "title", "description", "tags", "timestamp"),
+    "Observation": ("type", "title", "description", "tags", "measured_on",
+                    "timestamp"),
     "Procedure": ("type", "title", "description", "tags", "timestamp"),
     "Artefact Answer": ("type", "title", "description", "identify", "holding",
                         "order", "artefact", "tier", "ladder_node", "tags",
@@ -163,6 +172,10 @@ def check_doc(path, rel):
         if block is not None and not block.strip():
             problems.append("%s: `Example` is blank -- write `none yet` if there is none"
                             % rel)
+
+    if kind == "Observation":
+        if str(fm.get("measured_on", "")).strip() == "unrecorded":
+            UNRECORDED.append(rel)
 
     if kind == "Observation" and is_hub(path):
         allowed = [str(a) for a in (fm.get("hub_rule_allow") or [])]
@@ -411,6 +424,10 @@ def main(argv):
 
     changed = generate(root, write)
 
+    if UNRECORDED:
+        sys.stdout.write("  %d observation(s) have measured_on: unrecorded -- "
+                         "a finding with no witness anybody can re-check\n"
+                         % len(UNRECORDED))
     for rel, excused in OVERRIDES:
         sys.stdout.write("  %s: rule sentence allowed by hub_rule_allow (%r)\n"
                          % (rel, excused[:60]))

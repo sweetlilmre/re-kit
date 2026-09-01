@@ -3,6 +3,7 @@ type: Observation
 title: The code is full of INT 34h and you conclude something about the coprocessor
 description: Two Borland switches get conflated because their effects meet in the same bytes -- $N chooses whether 80x87 instructions are emitted at all, $E chooses how they ship, and a trap in a binary tells you about the second and nothing about the first.
 tags: [turbo-pascal, codegen, x87, switches, pascal]
+measured_on: the demo reconstruction
 timestamp: 2026-08-23T00:00:00Z
 ---
 

@@ -3,6 +3,7 @@ type: Observation
 title: One runtime call serves div and mod, and the call cannot tell you which
 description: Borland compiles LongInt div and LongInt mod to the same runtime routine. It returns the quotient in one register pair and the remainder in the other, so which operator the source used is not in the call at all -- it is in the two instructions that may or may not follow it. A reconstruction that reads the call and stops gets the operator wrong half the time, and both spellings compile, run, and produce plausible-looking output.
 tags: [pascal, runtime, codegen, reconstruction, longint, measurement, arithmetic]
+measured_on: the demo reconstruction and the toolkit itself, part 006
 timestamp: 2026-08-26T00:00:00Z
 ---
 

@@ -3,6 +3,7 @@ type: Observation
 title: The file is bigger than its load image
 description: The MZ header accounts for fewer bytes than the file holds -- something is appended, and the one measured cause so far is Borland debug info.
 tags: [mz, debug-info, container, substrate]
+measured_on: the demo reconstruction and the toolkit itself
 timestamp: 2026-08-21T00:00:00Z
 ---
 
