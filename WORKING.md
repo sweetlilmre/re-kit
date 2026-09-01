@@ -330,6 +330,14 @@ inherits them on day one.
 
   So: **prose with a `$` in it goes to a tool through a file, never through an argument.** Single quotes also protect it, but they are one edit away from failing and they cannot hold a single quote, so the file is the habit worth having -- and it is the same habit section 9's first entry already asks for, for the same reason.
 
+- **The FIX for all three above is one habit: write the text to a file and hand the tool the path.** A script goes in a file and is run; prose goes in a file and is passed with `--body-file` or its equivalent; a pattern goes in a file, or the tool is asked to print what it received. Everything below is a reason that habit exists.
+
+  **A quoting form can leave a search with an EMPTY pattern, which matches every line of every file.** Measured on 1 Sep 2026: the same pattern that correctly found nothing as a bare argument reported the condition present in EVERY file when written inside a nested substitution, because the quoting that builds it is not applied there and the search received zero bytes.
+
+  **This is the one in this section that fabricates rather than breaks.** A halved backslash and a substituted `$NAME` damage the thing you are writing; an empty pattern damages what you are READING, and it fails OPEN -- reporting the condition found, everywhere, which is an actionable answer rather than an obviously empty one. It cost a session a near-miss: two groups of files scanned with the two different forms appeared to divide cleanly along a property, the division agreed with a theory already held, and it justified a bulk rewrite of four documents that turned out to have nothing wrong with them. **The corpus had divided along which command measured it.**
+
+  So, positively: **give a scan its pattern as a plain argument or out of a file, ask it to print what it matched on when the answer matters, and confirm any surprising split with a tool that answers by a different route.** Re-running the same command more carefully returns the same wrong answer forever. The general form is in the wiki as `destroyed-pattern-matches-everything`.
+
 - **Something in this environment has twice multiplied every line break in a markdown file** -- 91% blank lines in one document, 58% in another. The cause was never found. `tools/repairdoc.py` in a host repo diagnoses and repairs it, and proves content preservation before writing.
 
 **Two of these have mechanisms rather than warnings, which is the only thing that has ever stopped a blind spot recurring**: an encoding auditor that PARSES rather than pattern-matches -- a line-based regex reported 32 sites of which 16 were artefacts while missing 4 real ones -- and a linter that refuses non-ASCII bytes in a DOS source.
