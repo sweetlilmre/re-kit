@@ -17,6 +17,8 @@ You are comparing a segment block by block, because a prefix comparison would fr
 
 The honest answer is to compare nothing and report the shortfall in bytes -- and to put the count of such blocks in the summary line, because a segment where one block was never measured is not the same run as one where every block was.
 
+There is a third thing to check, and it prevents the whole situation rather than diagnosing it: **a position may already be known.** Searching for a block whose start you know -- a segment that sits at offset 0, a unit at the head of its file -- is not merely wasted work. It is an opportunity for the search to find a better-scoring coincidence somewhere else, and then report it with the same confidence. Where the position is a fact, assert it; a search is for when you do not have one.
+
 ## Why it works
 
 A block's range is a fact about the *original*. Our build's length is a separate fact, and nothing keeps the two in step while a unit is being transcribed. So "this block extends past the end of our segment" is a third outcome alongside agreement and disagreement, and it needs its own name: not measured. Collapsing it into either of the other two is what makes the tool point at the wrong place.
@@ -33,12 +35,16 @@ The failure is also self-disguising in the direction that matters most. A headli
 
 Two lengths and a subtraction, before the search runs.
 
+The subtraction needs our segment's length, and **that number is measured -- it comes out of the build's own map -- so it belongs on the command line and not in a config.** A config is for what somebody decided; a measurement put in one is a value that goes quietly stale while continuing to look authoritative. Reported honestly the summary reads *11 of 11 comparable blocks agree*, with the twelfth named as running 12 bytes past the end of ours: the same run as before, with the unmeasurable block moved out of the denominator instead of into the failures.
+
 ## Example
 
 `PSYCHO NEUROSIS`, 23 Aug 2026: our program segment was **1,604 bytes against the original's 1,616**, so the last block ran 12 bytes past the end of ours. Clipping and searching anyway reported a shift of **-195 with 149 real differences** for 368 bytes that are **byte-for-byte identical at shift 0** -- and the headline *11 of 12 block(s) exact* named the wrong culprit. The other tool of the pair took the second wrong option: it compared 12 bytes past its own segment, and they happened to agree. [1] [2]
+
+One consequence is worth stating because it looks like a regression and is not. Eleven of that tool's twelve rows reproduce exactly, on shift and on real-difference count; **the twelfth cannot be reproduced at all, because the number it reported was an artefact of the clip.** The choice is between matching a figure nobody can explain and recording why it is gone, and the second is worth more -- the same reasoning as a pending-fixup count that fell because two overlapping rules had been double-counting it. [2]
 
 # Citations
 
 [1] `kit/tools/pascal/blockcmp.py` -- the branch that reports a block as running past the end of our segment, and the `short` count in its summary.
 
-[2] The resolution of [progcmp is a blockcmp case, not a fourth instrument](https://github.com/sweetlilmre/PsychoNeurosis/issues/45), where the figures were measured.
+[2] The merge that produced these figures, in which a fourth compare tool turned out to be this instrument carrying a different allowed-difference rule -- see [A compare tool's number is plausible, and it is wrong](../plausible-and-wrong/observation.md). Its measurements: 1,604 against 1,616, shift -195 with 149 real differences, 368 bytes identical at shift 0.
