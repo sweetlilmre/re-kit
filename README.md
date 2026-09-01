@@ -30,9 +30,18 @@ if that happens.
 
 ## Reading order
 
-`tools/README.md` says what each program is for and which tier it belongs to.
-`wiki/index.md` lists what has been learnt about reading these binaries, and
-`wiki/CONTEXT.md` holds the METHOD's vocabulary and travels with this folder; a host repository's own `CONTEXT.md` keeps only the words for its target. Read both before arguing about any of them.
+**[`WORKING.md`](WORKING.md) first, and it is the only one of these you read at the start of a session.** It is the method: where things are, what to work on, the loop, the checks, the standing rules, and the environment traps. Sections 1, 2, 2a and 4 are about a page.
+
+The rest are reached when you have a question:
+
+| when you want | read |
+|---|---|
+| the instrument that answers one question | [`INSTRUMENTS.md`](INSTRUMENTS.md) -- a lookup table, not reading |
+| what a given program is and what it claims to do | [`tools/README.md`](tools/README.md) -- generated from the tools themselves |
+| what has been learnt about reading these binaries | [`wiki/index.md`](wiki/index.md) |
+| what a word means | [`wiki/CONTEXT.md`](wiki/CONTEXT.md), the METHOD's vocabulary, which travels with this folder. A host repository's own `CONTEXT.md` keeps only the words for its target -- read both before arguing about any of them |
+| why a decision that looks wrong was made | [`docs/adr/`](docs/adr/) |
+| how to install this into a project | [`SETUP.md`](SETUP.md) |
 
 ## Where the scripts this replaced went
 

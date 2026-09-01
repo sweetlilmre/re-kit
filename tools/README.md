@@ -120,7 +120,7 @@ About the kit or the session rather than about any target.
 
 <!-- /generated:inventory -->
 
-`WORKING.md` section 3 groups the ones a session reaches for by the question you actually have, which is the useful way in. **It is a selection and not a census** -- it named 55 of 73 when this was written, which is the right shape for a routing table and the wrong shape for an inventory. The table above is the inventory, and it is generated: run `toolindex.py --write` after adding a tool, and `--check` fails if it was not.
+`INSTRUMENTS.md` groups the ones a session reaches for by the question you actually have, which is the useful way in. **It is a selection and not a census** -- it named 55 of 73 when this was written, which is the right shape for a routing table and the wrong shape for an inventory. The table above is the inventory, and it is generated: run `toolindex.py --write` after adding a tool, and `--check` fails if it was not.
 
 **Every copy carries the finding that produced it in its docstring**, and several carry a correction to what was believed before -- `align.py` names its two location strategies and the candidate positions that failed under them, `rtl.py` names the assumption about smart-linked offsets that does not hold, `x87.py` says out loud that a trap-rewritten file is a disassembly aid and not a variant of the original. The wiki carries the general form: `verifier-blind-to-absence` for the coverage walk, `one-routine-two-units` for shared assembler, `plausible-and-wrong` for the compare rules.
 
