@@ -2,7 +2,7 @@
 type: Observation
 title: A check written for one document's role, aimed at its type, goes quiet rather than wrong
 description: A rule that only makes sense for a hub was applied to every document of type Observation, which on this corpus is 77 documents of which 3 are hubs. It could therefore fail 74 pages for doing exactly what they exist to do, and it failed two. It looked like a working check with two findings, because a misaimed check is quiet in proportion to how little it looks for -- so the narrowness of the pattern, not the correctness of the scope, is what kept the false-positive rate low. The fix is to derive the ROLE rather than read the type, from the same definition the generator already uses.
-tags: [verification, tooling, measurement, wiki]
+tags: [verification, tooling, measurement, drift]
 measured_on: the kit's own wiki bundle, 86 documents
 timestamp: 2026-09-01T00:00:00Z
 ---

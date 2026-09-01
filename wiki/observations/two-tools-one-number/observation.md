@@ -38,4 +38,4 @@ One set intersection per artefact, and the willingness to publish a number that 
 
 [1] `kit/tools/pascal/units.py`, which reports the union, and `kit/tools/substrate/omf.py`, which reads the relocation set out of the object module.
 
-[2] The resolution of [One compare tool, and every caller passes its rule](https://github.com/sweetlilmre/PsychoNeurosis/issues/33), under *One deliberate difference, and it is the frozen tool that is wrong*.
+[2] The resolution of *One compare tool, and every caller passes its rule*, under *One deliberate difference, and it is the frozen tool that is wrong*.

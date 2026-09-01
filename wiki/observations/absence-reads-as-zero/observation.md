@@ -45,4 +45,4 @@ It refuses now, naming the tool it ran and printing what came back. Repointed at
 
 [1] `kit/tools/pascal/coverage.py` -- the branch that measures the program, and the comment on why it refuses rather than falling back.
 
-[2] The resolutions of [progcmp is a blockcmp case, not a fourth instrument](https://github.com/sweetlilmre/PsychoNeurosis/issues/45), which found the clipping, and [The thirty-two scripts still outside the kit](https://github.com/sweetlilmre/PsychoNeurosis/issues/50), which found the silence.
+[2] The resolutions of *progcmp is a blockcmp case, not a fourth instrument*, which found the clipping, and *The thirty-two scripts still outside the kit*, which found the silence.

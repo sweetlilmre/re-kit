@@ -38,4 +38,4 @@ Exactly two bytes of one unit's prefix in the `VangeliSTracker` repository, on 2
 
 [1] `kit/tools/substrate/align.py`, `walk()` -- the contract is stated on the rule signature: the rule is handed the run's length and both byte strings and returns how many bytes it passes; zero ends the walk, and a count short of the run ends it there.
 
-[2] The resolution of [One compare tool, and every caller passes its rule](https://github.com/sweetlilmre/PsychoNeurosis/issues/33), finding 2 of 5.
+[2] The resolution of *One compare tool, and every caller passes its rule*, finding 2 of 5.

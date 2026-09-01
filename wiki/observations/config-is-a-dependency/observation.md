@@ -39,7 +39,7 @@ Running each surviving tool once, per deletion, and reading the output rather th
 
 ## Example
 
-A toolkit migration across two repositories, 23 Aug 2026. Fifty-nine scripts were retired; **four surviving ones were broken by those deletions**, and the four failed in four different ways:
+A toolkit migration across two repositories, 23 Aug 2026. Forty-nine scripts were archived and ten kept back with a written reason; **four surviving ones were broken by those deletions**, and the four failed in four different ways:
 
 | what broke | how it depended | how it failed |
 |---|---|---|
