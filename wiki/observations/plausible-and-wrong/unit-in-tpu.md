@@ -42,6 +42,8 @@ The gate has to come off because Turbo Pascal leaves every unresolved reference 
 
 A freshly compiled `.TPU`, so DOSBox and a working period toolchain -- the unit has to be built from the current source to be comparable at all, and a stale build reports a number that looks like an answer. No disassembler.
 
+**Check that freshness by CONTENT, not by timestamp.** The obvious test -- is the `.TPU` older than the `.PAS` -- does not work here: an emulated DOS writes DOS timestamps that do not compare reliably against the host's, and an mtime check reported a FRESH build as stale. A stale-build guard that cries wolf is worse than none, because the first thing anybody does with one is stop believing it. Compare what the build was made from instead. [3]
+
 ## Example
 
 26 units in the `VangeliSTracker` repository, 23 Aug 2026. With the density gate left on, **14 of the 26 reported a prefix shorter than the truth, one of them 38 bytes instead of 1,617** -- and the offset was right in every single case. The offset being right is the tell: a wrong offset gives nonsense, a wrong gate gives a plausible number. [3]
@@ -59,4 +61,4 @@ A freshly compiled `.TPU`, so DOSBox and a working period toolchain -- the unit 
 
 [2] `kit/tools/pascal/objcheck.py`, and `kit/tools/substrate/omf.py` for reading the relocations out of the object module.
 
-[3] `kit/tools/pascal/units.py`, and the resolution of [One compare tool, and every caller passes its rule](https://github.com/sweetlilmre/PsychoNeurosis/issues/33) for the differential run against `verify.py`.
+[3] `kit/tools/pascal/units.py`. Verified against the frozen tool it replaced by a differential run, matching it on every row; the frozen tool's own docstring is where the two rejected location strategies are recorded, and its content-based staleness check is where the timestamp finding above comes from.

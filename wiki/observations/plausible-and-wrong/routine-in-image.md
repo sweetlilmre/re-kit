@@ -38,6 +38,8 @@ The gate works here because the legitimate differences are sparse by nature. Wha
 
 **It cannot see a routine nobody declared.** This measures a routine you named; the complementary measurement is [Every declared routine matches, and the rebuild still behaves differently](../verifier-blind-to-absence/observation.md).
 
+**When the lock moves out of the tool, migrate it -- do not re-derive it.** This instrument's matched lengths used to live in a dict inside the tool it replaced, and moving them into the register is the right change; re-MEASURING them while moving is not. Writing the measurement would have silently locked three routines that are deliberately left unlocked, converting an open question into a settled one with no decision anywhere. A lock is a record of what somebody accepted, so a migration copies it verbatim and a fresh measurement is a separate act. [2]
+
 ## Cost
 
 Two images and the list of code segments. No disassembler until you read a span that will not align.
@@ -54,4 +56,4 @@ Two images and the list of code segments. No disassembler until you read a span 
 
 [1] `kit/tools/substrate/align.py` -- `locate()`, `walk()`, and the `DENSITY_WINDOW` / `DENSITY_LIMIT` constants, whose comments carry the 37-against-64 measurement.
 
-[2] `kit/tools/pascal/routines.py`, and the resolution of [One compare tool, and every caller passes its rule](https://github.com/sweetlilmre/PsychoNeurosis/issues/33) for the differential run against `asmverify.py`, archived under the psycho repository's `archive/pre-kit-scripts` tag and succeeded by that same `routines.py`.
+[2] `kit/tools/pascal/routines.py`. Verified against the frozen tool it replaced by a differential run -- all 77 rows identical, 74 locked, 3 not locked, 0 failing -- and the 74 lengths moved from that tool's own dict into the register, migrated verbatim. The frozen tool is recoverable from the `archive/pre-kit-scripts` tag.

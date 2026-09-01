@@ -38,6 +38,12 @@ Neither came out of reading the code. Both came out of running a new instrument 
 
 **This also corrects the premise the consolidation began from**, which held that the four compare tools differed only in which differences they permit. They differ in how they locate as well, and the tool that had the location right carries two earlier strategies that failed, written down in its own docstring. [3] [4]
 
+The two locators answer different questions and neither is a better version of the other. One anchors on a unique ten-byte run and scores each candidate by how far the walk gets, which is what finding one ROUTINE inside a whole executable needs. The other anchors on the FIRST BYTE and takes the candidate whose forgiving prefix reaches furthest, which is what comparing a whole unit against the segment it rebuilds needs. Its two rejected predecessors are instructive in opposite directions: ranking by *fewest real differences* scores a run of zeros as a perfect match, and let two units pass that should not have; ranking by *most exact matches* is not fooled that way but drifts when the unit and the segment are different lengths, so it lands nowhere near the start and then reports a first-divergence offset that means nothing.
+
+**So the seam is not one tool but one ENGINE and several INSTRUMENTS.** The engine holds the two comparison shapes -- a prefix walk whose rule is about a RUN, and a positional compare whose rule is about ONE BYTE. The instrument supplies the allowed-difference rule **and** the location strategy, because both belong to the artefact rather than to the comparison. That is a widening rather than a reversal: the rule is still passed in and never built in, and four scripts still become one engine. What changed is the count of things that get passed in -- and the count of things a caller can therefore get wrong, which is why this page exists. [4]
+
+Naming the rule also shrank the family. A fourth member of it turned out not to be a fourth instrument at all: it was the positional compare's shape carrying the window rule, so once the rule was something you passed in rather than something you wrote a program around, it stopped needing a program. **An instrument count is a claim about how many rules you have, and it is wrong in the same direction every time** -- a rule buried in a tool looks like a tool. [3]
+
 ## If you are not sure which you have
 
 Ask what produced the file, not what the number looks like. A plausible number is the failure mode here, so the number cannot referee. The two artefacts differ in one visible way -- a `.TPU` still holds unresolved references and a linked image does not -- which is the same discriminator as [A zero byte where the original has something else](../zero-byte-difference/observation.md).
@@ -48,6 +54,6 @@ Ask what produced the file, not what the number looks like. A plausible number i
 
 [2] `kit/tools/substrate/align.py`, `locate()` and `anchor_first()` -- the two location strategies, side by side.
 
-[3] The resolution of [One compare tool, and every caller passes its rule](https://github.com/sweetlilmre/PsychoNeurosis/issues/33), which records all five differential findings and the measurements behind them.
+[3] The differential run that produced all five findings: a new instrument run beside each frozen tool it replaced, with every disagreeing row read. The five were the density gate belonging to the artefact, a walk rule having to say how many bytes it forgives rather than whether, locating unmasked before re-measuring masked, the mask and the walk being in different coordinate frames, and the fourth instrument that was a rule.
 
-[4] [Draw the tooling package boundary](https://github.com/sweetlilmre/PsychoNeurosis/issues/9), whose premise this corrects, with the correction recorded on the ticket itself.
+[4] The consolidation decision this widens -- *one compare tool, not four; the allowed-difference rule is passed in, never built in*. Its premise, that the four tools differed only in which differences they permit, is the thing corrected above; the restatement to one engine and several instruments is recorded here rather than only where it was argued.
