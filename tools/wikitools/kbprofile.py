@@ -217,11 +217,22 @@ def check_index_lists_everything(root):
     so it drifted exactly as predicted: four observations were absent from it
     for four days, which for a reader is the same as their not existing.
 
-    It is a CHECK and not a generator, deliberately. The top-level index is
-    ordered by argument -- related observations sit together, and that order
-    carries meaning no frontmatter field holds -- so generating it would throw
-    away editorial work to fix a coverage problem. What can be mechanical is
-    the coverage: no document may be missing.
+    It is a CHECK and not a generator, deliberately -- but the reason stated
+    here was overstated, and measuring it is what corrected it. The claim was
+    that the index is "ordered by argument". Measured across 83 entries: it is
+    chronological in 88% of adjacent pairs, with TEN deliberate inversions
+    where related observations were pulled together -- identifying assembler
+    beside reading the line table, the two switches with a frame signature, the
+    two cases of a second measurement agreeing wrongly.
+
+    So the order is chronological WITH local grouping, and the grouping is the
+    part worth protecting: generating this file would flatten those ten
+    decisions and nothing would report the loss. The overstatement mattered
+    because a reader told the file is "ordered by argument" goes looking for an
+    organising scheme that is not there, and concludes the index is broken
+    rather than that the description was.
+
+    What can be mechanical is the coverage: no document may be missing.
 
     A missing entry is reported WITH the line to add, because the reason this
     goes unnoticed is that writing the entry means opening the document again
