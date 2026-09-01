@@ -2,13 +2,7 @@
 type: Orientation
 title: The wiki
 description: What this bundle is, how to check it, and what is deliberately missing from it.
-tags: [prototype, orientation]
-glossary_allow:
-  # "Where the knowledge base lives" is the verbatim title of issue #6.
-  # A quoted title cannot be reworded without misquoting it, so the avoid
-  # rule is overridden here rather than bent. This is the documented
-  # override from issue #15, not an exemption.
-  - knowledge base
+tags: [orientation, verification]
 timestamp: 2026-08-19T00:00:00Z
 ---
 
@@ -16,20 +10,24 @@ timestamp: 2026-08-19T00:00:00Z
 
 An [OKF v0.1](https://okf.md/spec/) bundle. It grows every time somebody reads a binary; `index.md` lists what it holds.
 
-It began as the prototype for [Write one technique page as the pattern](https://github.com/sweetlilmre/PsychoNeurosis/issues/10) and was moved here by [Where the knowledge base lives](https://github.com/sweetlilmre/PsychoNeurosis/issues/6), which also put the tools in `kit/tools/wikitools/` rather than inside the bundle. The rename kept the file history, which matters: two of the corrections below are lessons these files themselves demonstrate.
+It began as a single page written end to end, as the pattern every later page would be cut against, and it was moved here by the decision that settled where the bundle sits -- which also put the tools in `kit/tools/wikitools/` rather than inside the bundle, because OKF governs the knowledge documents and says nothing about Python. The move kept the file history, which matters: two of the corrections below are lessons these files themselves demonstrate.
 
 ## What is in it
 
-One observation, chosen because it exercises every decision made in tickets [#7](https://github.com/sweetlilmre/PsychoNeurosis/issues/7), [#14](https://github.com/sweetlilmre/PsychoNeurosis/issues/14) and [#8](https://github.com/sweetlilmre/PsychoNeurosis/issues/8) at once:
+Observations, one directory each, all listed in `index.md`. Most are a single page: it opens with what somebody saw, and states its rule, because there is nowhere else for the rule to go.
+
+A few are **hubs**, and those are the shape worth understanding before writing one. A hub is a DISCRIMINATOR and never states a rule, because its children hold rules that **invert** -- what you must forgive in one artefact is exactly what convicts in another, so a rule stated in the hub is a rule stated for the wrong half of the corpus.
 
     observations/zero-byte-difference/
         observation.md      the hub -- a DISCRIMINATOR, never a rule
         tpu.md              artefact answer, Pascal tier
         obj-tasm.md         artefact answer, substrate tier
         linked-image.md     artefact answer, substrate tier
-        index.md            generated
+        index.md            generated, and says so
 
-Three artefacts whose rules **invert**. Two tiers inside one hub. A caveat and a withdrawn conclusion belonging to different children. And a third child, `linked-image.md`, that **neither source entry states outright** -- the shape found a missing case.
+That one was written first and deliberately, because it exercises every decision the template makes at once: three artefacts whose rules invert, two tiers inside one hub, a caveat and a withdrawn conclusion belonging to different children -- and a third child, `linked-image.md`, that **neither source entry states outright**. The shape found a missing case, which is the argument for the shape.
+
+An earlier version of this section said the bundle held *one* observation. That was true on the day it was written and had not been touched since; the count is in `index.md`, which is checked, and is deliberately not repeated here.
 
 ## Two validators, deliberately separate
 
@@ -44,10 +42,12 @@ Three artefacts whose rules **invert**. Two tiers inside one hub. A caveat and a
 
 ## Known gaps, recorded rather than hidden
 
-- **It needs a virtual environment.** Both tools import `pyyaml` from PyPI, installed with `uv` into `.venv` at the repo root, because #8 argued for a real YAML parser rather than a regex -- this project has been burned by regex-over-text before. Run them with `.venv/Scripts/python.exe`, not the system Python. **This was the toolkit's first third-party dependency**, and [Draw the tooling package boundary](https://github.com/sweetlilmre/PsychoNeurosis/issues/9) has since allowed it, with `kit/tools/pyproject.toml` as the manifest.
-- **`tools/encaudit.py` does not scan this directory.** Its `DEFAULT_DIRS` is `('tools', 'tools/dosbox')` and the map forbids adjusting the originals, so run it explicitly: `python tools/encaudit.py kit/tools/wikitools`.
+- **It needs a virtual environment.** Both tools import `pyyaml` from PyPI, installed with `uv` into `.venv` at the repo root, because the template's fields are real frontmatter read by a real YAML parser rather than matched out of text -- this project has been burned by regex-over-text before. Run them with `.venv/Scripts/python.exe`, not the system Python. **This was the toolkit's first third-party dependency**, and the decision that drew the toolkit's package boundary has since allowed it, with `kit/tools/pyproject.toml` as the manifest.
+- **The encoding auditor once did not scan this directory**, because its default directories were a constant naming one repository's folders. It reads the project's own answer now and covers the toolkit's own programs, which it had never audited. The general form is in [An exemption list is where a check goes to die](observations/exemption-that-cannot-fail/observation.md): a list at least admits what it skips, while a constant scope claims to have checked everything.
 - **A README is a concept document.** OKF reserves only `index.md` and `log.md`, so `okfcheck.py` correctly refused this very file until it grew frontmatter and a `type`. The spec has no notion of a README, so anything else in a bundle must declare a type or be reserved.
 - **The hub was still answering, via the generator.** The first version generated a `summary` column holding each artefact's *rule*, which put rules back into the hub -- the exact thing the design forbids. Worse, `check_hub_states_no_rule` deliberately strips the generated block before looking, so **the one place rules ended up was the one place exempt from the check.** Fixed twice over: the column is now `identify` ("how to tell you are holding this"), which serves discrimination and gives nothing away, and the check now also reads the `identify` and `description` keys that feed the table. Verified by injecting a rule and watching it fail.
-- **The hub's no-rule check is a text heuristic and it produced a false positive on its first run** -- it flagged the sentence *A rule phrased as "forgive zeros" silently assumes the first case*, which is the hub doing its job. Stripping quoted spans fixed that case on a principled basis: a rule verb inside quotation marks is a rule being *discussed*, not stated. But the check remains a heuristic over prose, which is the exact disease `encaudit.py` was rewritten to cure. **The most important guardrail in the design is the one that resists automation**, and that belongs to [Decide how a blind spot becomes a mechanism](https://github.com/sweetlilmre/PsychoNeurosis/issues/15).
-- **`ladder_node` earned its keep as evidence, not as an index.** All three answers are R7, so the ladder cross-index would file them together and tell a reader nothing -- which is what #8 predicted when it put the ladder index last.
+- **The hub's no-rule check is a text heuristic and it produced a false positive on its first run** -- it flagged the sentence *A rule phrased as "forgive zeros" silently assumes the first case*, which is the hub doing its job. Stripping quoted spans fixed that case on a principled basis: a rule verb inside quotation marks is a rule being *discussed*, not stated. But the check remains a heuristic over prose, which is the exact disease `encaudit.py` was rewritten to cure. **The most important guardrail in the design is the one that resists automation.**
+
+  The rule that settles what such a check may do: a heuristic may only REPORT, unless it offers an explicit, recorded override -- an overridable gate beats a warning, because a warning gets ignored -- and it must never fail silently or pass silently, so every override is printed. This check gated without an override for its whole life, which was a live inconsistency written on a ticket and nowhere in the code. It now takes `hub_rule_allow` in a hub's frontmatter, prints every override it grants, and counts them in the summary line.
+- **`ladder_node` earned its keep as evidence, not as an index.** All three answers are R7, so the ladder cross-index would file them together and tell a reader nothing -- which is what the template's own design predicted when it ordered the three cross-indexes and put the ladder one last.
 - **OKF v0.1 appears to contradict itself on `index.md` frontmatter**: section 6 says index files carry none, section 11 says the root `index.md` declares `okf_version` in frontmatter. This bundle follows section 11 for the root and section 6 everywhere else.
