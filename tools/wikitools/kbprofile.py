@@ -36,6 +36,11 @@ import yaml
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 import project                                    # noqa: E402
 
+# Overrides taken this run, printed at the end. A heuristic may gate only if it
+# offers an explicit override, and an override must never pass SILENTLY -- both
+# halves of that rule come from the decision that made a blind spot a mechanism.
+OVERRIDES = []
+
 BEGIN = "<!-- generated:discriminator -->"
 END = "<!-- /generated:discriminator -->"
 
@@ -127,7 +132,13 @@ def check_doc(path, rel):
                             % rel)
 
     if kind == "Observation" and is_hub(path):
-        problems.extend(check_hub_states_no_rule(rel, body))
+        allowed = [str(a) for a in (fm.get("hub_rule_allow") or [])]
+        for problem, sentence in check_hub_states_no_rule(rel, body):
+            excused = next((a for a in allowed if a.lower() in sentence.lower()), None)
+            if excused is None:
+                problems.append(problem)
+            else:
+                OVERRIDES.append((rel, excused))
 
     if kind == "Artefact Answer":
         # The hub's table is GENERATED from these two keys, so a rule verb
@@ -222,7 +233,25 @@ def is_hub(path):
 
 
 def check_hub_states_no_rule(rel, body):
-    """Refuse a hub sentence that gives an instruction without an artefact."""
+    """Refuse a hub sentence that gives an instruction without an artefact.
+
+    Returns (problem, sentence) pairs rather than strings, because the caller
+    may excuse one and needs the sentence to match an override against.
+
+    THIS IS A HEURISTIC OVER PROSE, and the standing rule for those is that a
+    heuristic may only REPORT unless it offers an explicit, recorded override --
+    an overridable gate beats a warning, because a warning gets ignored. This
+    check gated without one for its whole life, which was a known inconsistency
+    written on a ticket and nowhere in the code, so nothing in a checkout could
+    tell you the rule was being broken. A page may now carry `hub_rule_allow`
+    in its frontmatter, listing substrings of the sentences it is permitted to
+    state, with the reason in prose beside them.
+
+    Every override is PRINTED and counted in the summary. This check has
+    produced a false positive before, so an override that accumulated quietly
+    would turn each one into a permanent exemption nobody re-reads -- which is
+    what an exemption list does to a check.
+    """
     outside = body
     if BEGIN in outside and END in outside:
         head, rest = outside.split(BEGIN, 1)
@@ -241,9 +270,9 @@ def check_hub_states_no_rule(rel, body):
             continue
         if any(w in low for w in ARTEFACT_WORDS):
             continue
-        problems.append(
+        problems.append((
             "%s: the hub states a rule without naming an artefact -- %r"
-            % (rel, s[:70]))
+            % (rel, s[:70]), s))
     return problems
 
 
@@ -335,15 +364,19 @@ def main(argv):
 
     changed = generate(root, write)
 
+    for rel, excused in OVERRIDES:
+        sys.stdout.write("  %s: rule sentence allowed by hub_rule_allow (%r)\n"
+                         % (rel, excused[:60]))
     for p in problems:
         sys.stdout.write("  " + p + "\n")
     for path, why in changed:
         verb = "regenerated" if write else "STALE"
         sys.stdout.write("  %s: %s (%s)\n"
                          % (path.relative_to(root).as_posix(), why, verb))
-    sys.stdout.write("%d profile problem(s) in %d document(s); %d generated file(s) %s\n"
+    sys.stdout.write("%d profile problem(s) in %d document(s); %d generated file(s) %s"
                      % (len(problems), docs, len(changed),
                         "rewritten" if write else "out of date"))
+    sys.stdout.write(("; %d override(s)\n" % len(OVERRIDES)) if OVERRIDES else "\n")
     return 1 if problems or (changed and not write) else 0
 
 
