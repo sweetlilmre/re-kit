@@ -52,11 +52,11 @@ Note what the search does NOT find, as well. In the same two trees there was no 
 
 * **A binding is a sibling artefact, not this binary.** It describes the interface as the author intended it. Where it disagrees with the instructions, the instructions win -- and the disagreement is itself worth recording.
 * **Check the version.** A binding for a later or earlier release may describe a layout the target does not have.
-* **Names from a binding should be marked as such** at the point of use, so a later reader can tell which fields are documentation and which are inference. See [name-carries-its-evidence](../name-carries-its-evidence/observation.md).
+* **Names from a binding should be marked as such** at the point of use, so a later reader can tell which fields are documentation and which are inference. See [A name is a claim, and it should be no stronger than the evidence that produced it](../name-carries-its-evidence/observation.md).
 
 ## See also
 
-* [name-carries-its-evidence](../name-carries-its-evidence/observation.md)
-* [no-writer-means-input](../no-writer-means-input/observation.md)
-* [filler-is-not-a-finding](../filler-is-not-a-finding/observation.md)
-* [dead-data-has-no-witness](../dead-data-has-no-witness/observation.md)
+* [A name is a claim, and it should be no stronger than the evidence that produced it](../name-carries-its-evidence/observation.md)
+* [A field nothing in the image writes is an input, not a switch that was never wired up](../no-writer-means-input/observation.md)
+* [A filler declaration records what you have not looked at, not what is not there](../filler-is-not-a-finding/observation.md)
+* [A typed constant nothing reads is invisible to every comparison that follows an instruction](../dead-data-has-no-witness/observation.md)

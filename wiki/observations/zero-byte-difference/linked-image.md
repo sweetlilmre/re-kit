@@ -45,6 +45,5 @@ The linked executable and a byte comparator. But note the prerequisite, inherite
 
 None recorded.
 
-# Citations
-
+## Citations
 [1] `CONTINUATION.md`, the seven-measures table, in the VangeliSTracker repository. **Quoted inline** because that document is in a different repository: the `dgroup.py` row compares "the INITIALISED DGROUP image, byte for byte" and cannot see "plain `var`s, which are never written to the EXE. **And a boundary inside a run of zeros** -- it read 100% identical while `SelfName` was six bytes too long."

@@ -83,8 +83,7 @@ With the routine extracted and that signature written, the part's coverage walk 
 
 Two details carry. **The by-value point removed locals rather than adding them**: because `P` is the twelve-byte copy at `[BP-0C]`, the reconstruction's `X, Y, Z` locals were a second copy the original does not make, and the model's array had to become an `array of` a *named* record type before it could be passed at all -- a change of type, not of size, so the data image confirmed it as layout-neutral. **And the same call site named the caller's own signature on the way past**: `LES DI,[BP+0A]` twice, and `RET $A`, say the caller takes the object as a far pointer parameter where the reconstruction reads unit-level variables -- with `ADD DI,$4B0` fixing the record's translation field at offset 1200, which is exactly one hundred twelve-byte points and so names an array bound the reconstruction had as sixty-four. [2]
 
-# Citations
-
+## Citations
 [1] `src/P1VECTOR.PAS`, part 001 segment `12c5`, in the psycho repository; measured with `kit/tools/pascal/spans.py`, `dgimage.py` and `fpusites.py --diff` against the shipped binary on 25 Aug 2026.
 
 [2] The same call site, `12c5:0317` and `12c5:0361`. Recorded as an open investigation rather than acted on, because the array bound also sizes a second array and moving it shifts DGROUP -- a layout bundle, which that target has learned to land in one step.

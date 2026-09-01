@@ -55,8 +55,7 @@ A freshly compiled `.TPU`, so DOSBox and a working period toolchain -- the unit 
 - *Fewest real differences.* A run of zeros scores as a perfect match, and **two units passed that should not have.**
 - *Most exact matches.* Not fooled by zeros, but it drifts when the two sides are different lengths, sliding to whatever alignment shares the most bytes -- "which can be nowhere near the start, and then reports a first-divergence offset that means nothing." [1]
 
-# Citations
-
+## Citations
 [1] `kit/tools/substrate/align.py` -- `anchor_first()` and `pending()`, whose docstrings carry both failed rankings and the 29-byte measurement.
 
 [2] `kit/tools/pascal/objcheck.py`, and `kit/tools/substrate/omf.py` for reading the relocations out of the object module.

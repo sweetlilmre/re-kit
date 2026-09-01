@@ -41,7 +41,7 @@ An untyped constant is a compile-time value: it emits nothing, so naming ninety 
 
 ## See also
 
-* [constant-only-half-applied](../constant-only-half-applied/observation.md)
-* [name-carries-its-evidence](../name-carries-its-evidence/observation.md)
-* [data-measures-one-version](../data-measures-one-version/observation.md)
-* [sequence-names-what-nothing-reads](../sequence-names-what-nothing-reads/observation.md)
+* [A named constant that only some of its uses go through is worse than no constant at all](../constant-only-half-applied/observation.md)
+* [A name is a claim, and it should be no stronger than the evidence that produced it](../name-carries-its-evidence/observation.md)
+* [A table carried forward from the previous version has no witness in this one](../data-measures-one-version/observation.md)
+* [A variable nothing reads can still be named, by matching a sibling's declaration order](../sequence-names-what-nothing-reads/observation.md)

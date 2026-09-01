@@ -71,8 +71,7 @@ Writing the three as `P.X := P.X + TX` brought the routine to **305 bytes with 2
 
 Worth noting what the gain was *not*. The same session had just landed a much larger and fully measured restructuring of the same unit -- a record type, two pointer parameters, and an array bound corrected from 64 to 100 on the evidence of a `$4B0` displacement -- and that bundle moved the walk **nine bytes**. The statement-length defects it exposed were worth eight times as much. A correct structural change that does not pay is not evidence the structure was wrong; it is often the thing that makes the next defect legible. [2]
 
-# Citations
-
+## Citations
 [1] `src/P1VECTOR.PAS`, part 001 segment `12c5`, in the psycho repository; measured with `kit/tools/pascal/spans.py` and `spanwhy.py` against the shipped binary on 25 Aug 2026.
 
 [2] The same file and date. The bundle is recorded as `part1-object-record` and the residual as `part1-dgroup-placement`, which is the unit's whole data block sitting some 26KB from the original's -- the reason the routine's remaining 24 bytes are displacements rather than instructions.

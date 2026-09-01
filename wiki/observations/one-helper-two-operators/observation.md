@@ -82,6 +82,5 @@ Part 006 of a 1994 VGA demo. Four copies of one statement, each carrying a two-b
 
 A guess had been tried on the same spans one tick earlier -- that the operands of the multiply were the wrong way round, by analogy with a genuine operand-order finding elsewhere in the same part. It measured nothing and was reverted. The helper's tail was two minutes of disassembly and settled it.
 
-# Citations
-
+## Citations
 [1] `src/P6FIRE.PAS`, part 006 in the psycho repository; the runtime routine read at its own offset via `kit/tools/pascal/rtl.py`, measured with `spans.py` on 26 Aug 2026.

@@ -51,7 +51,7 @@ So the addresses were **left as they were and marked**, with the reasoning writt
 
 ## See also
 
-* [comments-are-unchecked-claims](../comments-are-unchecked-claims/observation.md)
-* [name-carries-its-evidence](../name-carries-its-evidence/observation.md)
-* [dead-data-has-no-witness](../dead-data-has-no-witness/observation.md)
-* [dgroup-order-reverses-uses](../dgroup-order-reverses-uses/observation.md)
+* [The addresses written in comments are the only claims nothing checks](../comments-are-unchecked-claims/observation.md)
+* [A name is a claim, and it should be no stronger than the evidence that produced it](../name-carries-its-evidence/observation.md)
+* [A typed constant nothing reads is invisible to every comparison that follows an instruction](../dead-data-has-no-witness/observation.md)
+* [The data segment is laid out in reverse of the uses clause](../dgroup-order-reverses-uses/observation.md)

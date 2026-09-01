@@ -66,6 +66,5 @@ The shift pattern refuted that in one reading: locals *above* the record moved b
 
 Swept across the rest of the target, the same switch was kept on two further units and reverted on nineteen. On the compiler's command line it gained thirty-one bytes in one part and thirty in another -- and broke a third binary's byte-identical rebuild, proving the switch was never global. [1]
 
-# Citations
-
+## Citations
 [1] `src/P2SOLID.PAS`, `src/P1VECTOR.PAS`, `src/P5PATCH.PAS`, `build.toml` and `status.toml`, in the psycho repository; measured with `kit/tools/pascal/spans.py` and `kit/tools/pascal/artefact.py` on 24 Aug 2026. The byte-exact control that refuted the global switch is that target's start-up part, `NEUR0` (built as `TPART0` when this was measured).

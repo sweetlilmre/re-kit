@@ -71,6 +71,5 @@ Two things worth carrying. **The right address was in the file all along, and so
 
 **It resolved to 2,048 rather than 2,008**, and to a defect of a different kind: eight row buffers that the original holds at unit level and the reconstruction declared as locals inside a procedure. The shift moved to `-17710`, exactly 2,048 further. So the gap was real and its estimated size was 40 bytes out, for the reason in the blind spot above -- a difference of two addresses is not a size. **And the unit still does not tile**: the same font's two candidate addresses turn out to be exactly 2,048 apart, which is the row buffers' size, so either they share storage with the font or one of the two readings is wrong. That is left open rather than guessed, because it changes no measurement until the order inside the unit is worth fixing. [1]
 
-# Citations
-
+## Citations
 [1] `src/P1BALLS.PAS` and `src/P1VECTOR.PAS`, part 001, in the psycho repository; measured with `kit/tools/pascal/dsmap.py`, `spans.py`, `dgimage.py` and `fpusites.py --diff` against the shipped binary on 25 Aug 2026. Recorded as `part1-unit-sizes`, with the residual as `part1-p1s4-hole`.

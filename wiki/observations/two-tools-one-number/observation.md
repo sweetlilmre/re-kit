@@ -34,8 +34,7 @@ One set intersection per artefact, and the willingness to publish a number that 
 
 `VangeliSTracker`, 23 Aug 2026. The frozen tool reported `PLAYMOD` **1187** and `SOUNDDEV` **1024** outstanding fixups; the replacement reported **1178** and **839**. The two classes were "a zero on our side" and "a byte the object module recorded as a relocation", and the overlaps measured **exactly 9 and 185** -- the two discrepancies, to the byte. A byte that is both a zero and a recorded relocation is one debt, counted twice. [1] [2]
 
-# Citations
-
+## Citations
 [1] `kit/tools/pascal/units.py`, which reports the union, and `kit/tools/substrate/omf.py`, which reads the relocation set out of the object module.
 
 [2] The resolution of *One compare tool, and every caller passes its rule*, under *One deliberate difference, and it is the frozen tool that is wrong*.

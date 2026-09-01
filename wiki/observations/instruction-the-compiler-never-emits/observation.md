@@ -74,6 +74,5 @@ Part 003's morph scene, segment `1139`, in a 1994 VGA demo. Four countdown loops
 
 The routine had been read as compiled Pascal for the whole of the project's life, on good grounds: its body is constant stores and near calls, it has no string instructions, no `LOOP`, no register-passed arguments, and the reconstruction of it as Pascal already aligned for most of its length. The two tells that were there -- `OR DX,DX` and the absent prologue -- had both been seen and neither had been believed, because each on its own had a plausible innocent reading. [1]
 
-# Citations
-
+## Citations
 [1] `probe/DECLOOP.PAS` and `src/P3MORPH.PAS`, part 003 segment `1139`, in the psycho repository; measured with `kit/tools/pascal/codegen.py` and `kit/tools/pascal/spans.py` on 26 Aug 2026.

@@ -40,6 +40,6 @@ Two other costs, both real here:
 
 ## See also
 
-* [filler-is-not-a-finding](../filler-is-not-a-finding/observation.md)
-* [absence-reads-as-zero](../absence-reads-as-zero/observation.md)
-* [plausible-and-wrong](../plausible-and-wrong/observation.md)
+* [A filler declaration records what you have not looked at, not what is not there](../filler-is-not-a-finding/observation.md)
+* [A total quietly drops a component and stays plausible](../absence-reads-as-zero/observation.md)
+* [A compare tool's number is plausible, and it is wrong](../plausible-and-wrong/observation.md)

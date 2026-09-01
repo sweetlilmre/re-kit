@@ -40,7 +40,7 @@ It stops being sound at exactly the point the rigidity goes:
 
 * **A short run proves nothing.** Two `Word`s in a row match almost any two `Word`s. Anchor the run at both ends on something with a reader, and count the members.
 * **The versions must be close enough that the routine did not change shape.** A declaration added or removed in the newer version breaks the alignment, and a run that "almost" matches has been fitted rather than measured.
-* **The name is the sibling's, and it should say so** at the point of use. It is a real source and a different one from an instruction. See [name-carries-its-evidence](../name-carries-its-evidence/observation.md).
+* **The name is the sibling's, and it should say so** at the point of use. It is a real source and a different one from an instruction. See [A name is a claim, and it should be no stronger than the evidence that produced it](../name-carries-its-evidence/observation.md).
 * **Order is not layout.** This says which declaration a region belongs to. It does not independently confirm the widths -- the byte-exactness of the surrounding code does that, and the two have to agree before either is worth trusting.
 
 ## The habit worth taking from it
@@ -51,8 +51,8 @@ The corollary is worth stating too: **when the search comes back empty, record t
 
 ## See also
 
-* [name-carries-its-evidence](../name-carries-its-evidence/observation.md)
-* [dead-data-has-no-witness](../dead-data-has-no-witness/observation.md)
-* [filler-is-not-a-finding](../filler-is-not-a-finding/observation.md)
-* [length-sequence-names-the-order](../length-sequence-names-the-order/observation.md)
-* [dgroup-order-reverses-uses](../dgroup-order-reverses-uses/observation.md)
+* [A name is a claim, and it should be no stronger than the evidence that produced it](../name-carries-its-evidence/observation.md)
+* [A typed constant nothing reads is invisible to every comparison that follows an instruction](../dead-data-has-no-witness/observation.md)
+* [A filler declaration records what you have not looked at, not what is not there](../filler-is-not-a-finding/observation.md)
+* [Every routine is present, aligned, and in the wrong place](../length-sequence-names-the-order/observation.md)
+* [The data segment is laid out in reverse of the uses clause](../dgroup-order-reverses-uses/observation.md)

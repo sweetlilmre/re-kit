@@ -28,4 +28,4 @@ A seven-byte far entry, `PUSH AX / CALLF Dispatch`, published into a control blo
 
 ## See also
 
-* [dead-data-has-no-witness](../dead-data-has-no-witness/observation.md)
+* [A typed constant nothing reads is invisible to every comparison that follows an instruction](../dead-data-has-no-witness/observation.md)

@@ -71,8 +71,7 @@ Numbers three and four were that day's two largest data findings, and both had b
 
 Worth noting what the pass is *not* competing with. The same day's instruments were working correctly and reporting real, quantified damage -- a data-reference map gave the shortfall to the byte and a triage tool named the exact address a dozen spans traced back to. What they could not do was say *which declaration*. The comments could, because somebody had already worked it out and written it down. [2]
 
-# Citations
-
+## Citations
 [1] `src/P1BALLS.PAS` and `src/P1VECTOR.PAS`, part 001, in the psycho repository, 25 Aug 2026; each measured with `kit/tools/pascal/spans.py` and `dsmap.py` against the shipped binary and recorded in that project's register.
 
 [2] The same day. The instruments were `dsmap.py`, `spanwhy.py` and `prologue.py`; the shortfall they quantified went from 23,530 bytes to 17,710 on the two comment-derived findings alone.

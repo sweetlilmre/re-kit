@@ -37,5 +37,5 @@ Any pair of runtime routines with the same signature and different guarantees ha
 
 ## See also
 
-* [one-helper-two-operators](../one-helper-two-operators/observation.md)
-* [instruments-have-an-order](../instruments-have-an-order/observation.md)
+* [One runtime call serves div and mod, and the call cannot tell you which](../one-helper-two-operators/observation.md)
+* [A tool that is wrong is useless; a tool that BECOMES right is worth re-asking every open question](../instruments-have-an-order/observation.md)

@@ -46,8 +46,7 @@ Two addresses and the routine boundaries either side of them, which you have alr
 
 An earlier session kept the two copies duplicated instead, on the stated grounds that a shared include would drop the routine out of the byte check. That was a **withdrawn conclusion**: the byte-check marker had always allowed a name of its own, precisely so the declaration could live elsewhere. The tool had not been read before it was worked around. [2]
 
-# Citations
-
+## Citations
 [1] `src/asm/BLITCLIP.INC` in the psycho repository -- the shared text -- and `kit/tools/pascal/shared_asm.py`, the check that no verbatim assembler is duplicated between units instead of shared, with that repository's unshareable cases in `src/asm/shared-exempt.txt`.
 
 [2] Commits `d6e0882` and `ed0314c` in the psycho repository: the reasoning, and its correction.

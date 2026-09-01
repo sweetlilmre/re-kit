@@ -40,8 +40,7 @@ Charting `PSYCHO.EXE` (1,936 bytes), the trap fired twice in one session: the `E
 
 The original conclusion this page corrects: "the original simply duplicated small routines across units", argued from the double listing. Withdrawn when the extents were computed -- four such artefacts fell in one sweep, and one had been hiding a real error underneath. [2]
 
-# Citations
-
+## Citations
 [1] `docs/29-psycho-launcher.md`, the chart's segment table, in the psycho repository.
 
 [2] `docs/continuation.md` (untracked working register in the psycho repository), section "Ghidra's segment ranges OVERLAP, and I read the overlap as duplication". **Gist restated here** because the file is deliberately untracked: a unit's real extent is `(next base - base) * 16`, both "duplicates" sat exactly one byte past an end, and the rule written there is the one this page carries -- convert to LINEAR and compare before believing duplication.

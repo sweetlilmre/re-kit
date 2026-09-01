@@ -81,6 +81,5 @@ One declaration, or one transcription. Finding it is the work, and the tell abov
 
 Part 005 of a 1994 VGA demo. Three sites: a texture sampler's clip-and-read, and two copies of a dot-interpolation loop's pixel write. The clip-and-read also held both coordinates in registers across four bounds tests with no store, which no Pascal local can do -- so all three were hand assembler, and transcribing them took the part's coverage walk from 99.0% to 99.8%. The remaining three bytes in that part are far-call targets into the runtime, which no edit to a routine can change. [1]
 
-# Citations
-
+## Citations
 [1] `src/P5ROTO.PAS`, `src/P5PATCH.PAS` and `probe/MULSIGN.PAS`, part 005 in the psycho repository; measured with `kit/tools/pascal/spans.py` and `codegen.py` on 26 Aug 2026.

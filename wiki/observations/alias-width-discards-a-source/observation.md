@@ -45,7 +45,7 @@ An implementation that ran is stronger evidence than a specification for anythin
 
 ## See also
 
-* [name-carries-its-evidence](../name-carries-its-evidence/observation.md)
-* [the-other-side-is-shipped](../the-other-side-is-shipped/observation.md)
-* [plausible-and-wrong](../plausible-and-wrong/observation.md)
-* [data-measures-one-version](../data-measures-one-version/observation.md)
+* [A name is a claim, and it should be no stronger than the evidence that produced it](../name-carries-its-evidence/observation.md)
+* [If the program has clients, look for their bindings before deciding a structure is unknowable](../the-other-side-is-shipped/observation.md)
+* [A compare tool's number is plausible, and it is wrong](../plausible-and-wrong/observation.md)
+* [A table carried forward from the previous version has no witness in this one](../data-measures-one-version/observation.md)

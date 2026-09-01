@@ -27,5 +27,5 @@ Because the author edited the declaration list. A version that adds three variab
 
 ## See also
 
-* [balanced-total-hides-order](../balanced-total-hides-order/observation.md)
-* [dgroup-order-reverses-uses](../dgroup-order-reverses-uses/observation.md)
+* [The total balances and the layout is still wrong](../balanced-total-hides-order/observation.md)
+* [The data segment is laid out in reverse of the uses clause](../dgroup-order-reverses-uses/observation.md)

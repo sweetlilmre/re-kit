@@ -53,8 +53,7 @@ The `verify.py` comparison of a `.TPU`'s CODE section against the original's seg
 
 None recorded for this artefact. The withdrawn conclusions attached to this observation belong to the `.OBJ` case -- see [obj-tasm](./obj-tasm.md).
 
-# Citations
-
+## Citations
 [1] `06-transcription.md`, sections on the zero rule and on pending fixups, in the VangeliSTracker repository. **Quoted inline above** because that document is in a different repository and cannot be resolved from this one.
 
 [2] `CONTINUATION.md`, the seven-measures table, in the VangeliSTracker repository. Its row for `verify.py` reads: compares "a `.TPU`'s CODE against its segment", and cannot see "every DGROUP address and inter-unit call -- they are pending fixups it excuses. Also cannot see whether a routine is an init section or a named procedure."

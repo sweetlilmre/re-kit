@@ -13,7 +13,7 @@ Most naming in a reconstruction is safe because it is measured. A byte with one 
 **Some things have no use to name them after**, and they are common:
 
 * a variable a command-line switch sets and **nothing anywhere reads**
-* a published structure's field the program only reads (see [no-writer-means-input](../no-writer-means-input/observation.md))
+* a published structure's field the program only reads (see [A field nothing in the image writes is an input, not a switch that was never wired up](../no-writer-means-input/observation.md))
 * an on-disk record's field the loader skips over -- present in the layout, absent from the code
 
 These are the ones to be careful with, because the pressure to name them is highest exactly where the evidence is weakest. A `Filler2 : array[1..14] of Byte` is an eyesore and an `Rut_0bc6` looks unfinished, and both are honest.
@@ -51,7 +51,7 @@ Two corollaries worth stating:
 
 ## See also
 
-* [no-writer-means-input](../no-writer-means-input/observation.md)
-* [filler-is-not-a-finding](../filler-is-not-a-finding/observation.md)
-* [plausible-and-wrong](../plausible-and-wrong/observation.md)
-* [two-names-one-address](../two-names-one-address/observation.md)
+* [A field nothing in the image writes is an input, not a switch that was never wired up](../no-writer-means-input/observation.md)
+* [A filler declaration records what you have not looked at, not what is not there](../filler-is-not-a-finding/observation.md)
+* [A compare tool's number is plausible, and it is wrong](../plausible-and-wrong/observation.md)
+* [The same bytes answer to two different addresses](../two-names-one-address/observation.md)

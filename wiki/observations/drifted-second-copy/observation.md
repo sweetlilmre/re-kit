@@ -57,8 +57,7 @@ Read once, that line is a finding about how a 1994 linker treated a runtime unit
 
 **Not every changed number is this, and telling them apart matters.** The same consolidation moved one coverage figure by 24 bytes because two implementations had formulated a density gate differently -- and there the SAME spans were reported, two of them shorter, with none lost. A drifted copy manufactures a finding; a reformulated rule moves a number without hiding work. The question to ask of a changed measurement is not how far it moved but **whether anything it used to report has gone missing.**
 
-# Citations
-
+## Citations
 [1] `kit/tools/pascal/mapcmp.py` and `linkorder.py`, and `v1.31b/link.toml` in the `VangeliSTracker` repository -- the one list both now read, whose header records the drift.
 
 [2] The migration sweep that found it, which also consolidated three diverged readers of one comment format into one, and which recorded every instrument whose answer changed and why -- see [The successor reproduces the headline number and quietly drops the diagnostic](../successor-keeps-the-headline/observation.md) for the deletions that pass stopped.

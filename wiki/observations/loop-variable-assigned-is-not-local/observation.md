@@ -72,6 +72,5 @@ One probe unit, three procedures, one build.
 
 Part 004 of a 1994 VGA demo. `Spawn` opens `ENTER $06` with its counter at `[BP-$02]` -- provably a local -- and 1005:07c4 stores `$19` into that slot, which the old rule declared impossible. Writing `N := MaxLem` in place of `Exit` compiled without complaint and emitted the original's instruction exactly, taking the part from 99.3% to 99.4%. [1]
 
-# Citations
-
+## Citations
 [1] `probe/FORASGN.PAS` and `src/P4LEMS.PAS` in the psycho repository; driven with `kit/tools/pascal/codegen.py` on 26 Aug 2026.

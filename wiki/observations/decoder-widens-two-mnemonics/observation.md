@@ -51,6 +51,5 @@ Two lines. Finding it cost one moment of disbelief at a listing.
 
 Reading `NEUROSIS.002`'s polygon scan converter at `108b:0513`, where the original's floored-division idiom is `MOV CX,AX / CWD / IDIV BX / CMP CX,0 / JGE / DEC AX / ADD DX,BX`. The listing said `cdq`, and the routine was being transcribed verbatim into a BASM block at the time. [1]
 
-# Citations
-
+## Citations
 [1] `kit/tools/substrate/disasm.py`, the `NARROW` table above `walk()`, and `src/P2SOLID.PAS`'s `TriFill` transcription in the psycho repository.

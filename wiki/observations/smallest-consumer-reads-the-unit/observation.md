@@ -64,6 +64,5 @@ One dump and one reading, and the payout multiplies by the number of consumers. 
 
 A 1994 DOS demo in eight parts sharing one VGA unit. The smallest part's copy was 64 bytes and four items; the largest was over two thousand. Reading the small one gave three corrections — `BuildRowTable` out of the interface (its `C3` said so), `SetTextMode` as a six-byte `assembler` routine instead of a framed Pascal procedure wrapping an `asm` block, and those two swapped into the original's order — which moved two parts at once, 99.0% to 99.4% and 99.3% to 99.4%, with three byte-exact artefacts still matching. The same afternoon, `CB` ending a routine nothing outside its unit calls, plus `0E E8` at two call sites, said a *different* unit was `{$F+}`; adding the directive took that part to 99.7%. [1]
 
-# Citations
-
+## Citations
 [1] `src/VGA.PAS` and `src/P7FLIC.PAS`, parts 006 and 007 in the psycho repository; measured with `kit/tools/pascal/spans.py` and `artefact.py` on 26 Aug 2026.

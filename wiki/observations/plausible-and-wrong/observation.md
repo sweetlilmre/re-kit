@@ -48,8 +48,7 @@ Naming the rule also shrank the family. A fourth member of it turned out not to 
 
 Ask what produced the file, not what the number looks like. A plausible number is the failure mode here, so the number cannot referee. The two artefacts differ in one visible way -- a `.TPU` still holds unresolved references and a linked image does not -- which is the same discriminator as [A zero byte where the original has something else](../zero-byte-difference/observation.md).
 
-# Citations
-
+## Citations
 [1] `kit/tools/substrate/align.py`, `walk()` and its `density` argument, and the `DENSITY_WINDOW` / `DENSITY_LIMIT` constants above it.
 
 [2] `kit/tools/substrate/align.py`, `locate()` and `anchor_first()` -- the two location strategies, side by side.

@@ -62,6 +62,5 @@ One pass over each image collecting `9A` sites, grouped by delta pair.
 
 Psycho Neurosis, seven reconstructed parts. 558 far calls differ across five of them and 1 is identical in the whole set; the segment deltas are +18, +22, +30, +40 paragraphs -- one per target, matching each harness's size. The parts that rebuild BYTE-IDENTICAL in the same repository are the three that are whole programs rather than harnesses, which is the same observation from the other side. [1]
 
-# Citations
-
+## Citations
 [1] `spans.toml`, `kit/tools/pascal/spans.py`, and the far-call tabulation in the psycho repository, 26 Aug 2026.

@@ -30,5 +30,5 @@ Corollary: **a reading that fits the bytes at the site you are looking at is not
 
 ## See also
 
-* [plausible-and-wrong](../plausible-and-wrong/observation.md)
-* [instruction-the-compiler-never-emits](../instruction-the-compiler-never-emits/observation.md)
+* [A compare tool's number is plausible, and it is wrong](../plausible-and-wrong/observation.md)
+* [Two bytes the compiler cannot emit](../instruction-the-compiler-never-emits/observation.md)

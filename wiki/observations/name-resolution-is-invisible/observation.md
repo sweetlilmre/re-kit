@@ -91,6 +91,5 @@ Removing one declaration fixed it. Coverage after the fix: 99.0%, unchanged to t
 
 The same disassembly, read at the same sitting, also gave up two ordinary findings the byte instruments *could* see -- an argument pair the wrong way round, and a declaration order that the routine's own recorded addresses tiled out exactly -- which is the usual return on reading a segment rather than re-reading the reconstruction.
 
-# Citations
-
+## Citations
 [1] `src/P1LOGO.PAS`, part 001 in the psycho repository; measured with `kit/tools/pascal/spans.py`, `dgimage.py`, `dsmap.py` and `fpusites.py`, and detected by a watched DOSBox-X run on 26 Aug 2026.

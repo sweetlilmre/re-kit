@@ -51,8 +51,7 @@ The divide is called four times from the segment, on the projection path of ever
 
 The same rule had already been written down in another part of the same target, from the other direction: a note in part 005's third scene records that its dead externals survive "because an external OBJ is linked whole, not per procedure". That note was in the tree while the star-field unit was being read as though its uncalled routine could not exist. [2]
 
-# Citations
-
+## Citations
 [1] `src/P3STARS.PAS` and `src/asm/STARMATH.ASM`, part 003 segment `10b8`, in the psycho repository; measured with `kit/tools/pascal/spans.py` on 26 Aug 2026.
 
 [2] `src/P5PATCH.PAS`, same repository, dated 24 Aug 2026.

@@ -34,4 +34,4 @@ So a run of units all reporting the same data-address delta is not a run of defe
 
 ## See also
 
-* [transcribe-the-meaning-not-the-constant](../transcribe-the-meaning-not-the-constant/observation.md)
+* [A hardcoded address copied from the original is right by coincidence](../transcribe-the-meaning-not-the-constant/observation.md)

@@ -49,6 +49,5 @@ Two cases in `PSYCHO NEUROSIS`, both on 23 Aug 2026.
 
 Part 003's globe scene had its structure wrong for weeks. `Globe_LoadTables`, `Palette_FadeIn` and `Globe_RenderFrame` are all nested inside `Demo_Scene4` in the original -- `119d:019a` is `MOV DI,[BP+4]` / `LES DI,SS:[DI-$0A]`, and `119d:00a9` reads the target palette as `SS:[DI+$FCF6]`. Ours held the tables and the palette as unit variables, which made every one of those a DGROUP read. Once nested, `RenderFrame` matched for all **121** bytes of it, ending on its real `LEAVE` / `RET 2`. The `asm`-block trap in the blind spot above was found in that same routine. [1]
 
-# Citations
-
+## Citations
 [1] `docs/23-deviations.md` in the psycho repository -- the depth-sort entry and the part 003 globe-scene entry, with the addresses, the 121-byte result and the `LES DI, SrcOfs` trap. The span was found by `shapediff.py 001`, which lists it as `1107:0287..039a`; that script is archived under the psycho repository's `archive/pre-kit-scripts` tag and its measurement is `kit/tools/pascal/spans.py`.

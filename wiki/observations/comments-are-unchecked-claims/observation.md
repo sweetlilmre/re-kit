@@ -94,8 +94,8 @@ The last row is the one worth generalising. Faced with a name it could not size,
 
 ## See also
 
-* [name-carries-its-evidence](../name-carries-its-evidence/observation.md)
-* [artefact-outlives-its-source](../artefact-outlives-its-source/observation.md)
-* [verifier-blind-to-absence](../verifier-blind-to-absence/observation.md)
-* [dead-data-has-no-witness](../dead-data-has-no-witness/observation.md)
-* [two-names-one-address](../two-names-one-address/observation.md)
+* [A name is a claim, and it should be no stronger than the evidence that produced it](../name-carries-its-evidence/observation.md)
+* [A measurement tool reads whatever is on disk, and a failed build leaves the last good answer there](../artefact-outlives-its-source/observation.md)
+* [Every declared routine matches, and the rebuild still behaves differently](../verifier-blind-to-absence/observation.md)
+* [A typed constant nothing reads is invisible to every comparison that follows an instruction](../dead-data-has-no-witness/observation.md)
+* [The same bytes answer to two different addresses](../two-names-one-address/observation.md)

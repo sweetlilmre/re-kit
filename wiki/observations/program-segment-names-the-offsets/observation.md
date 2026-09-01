@@ -87,6 +87,5 @@ One byte comparison of a segment that is typically 80 to 350 bytes. It should ru
 
 Psycho Neurosis (Asphyxia, 1994), seven parts in Borland Pascal 7. Comparing each part's segment 1000 against the 1994 file found the doubled exit in five programs, the missing 286 switch in three, a 240-byte program that had been built at 256 with no check reporting it, and one unit's routine eighteen bytes out of place. Six of the seven program segments then rebuilt byte-identical and all ten targets reached 100% of every user byte. The seventh is two bytes, localised by prologue offsets to two routines that cancel. [1]
 
-# Citations
-
+## Citations
 [1] src/NEUR1.PAS through src/NEUR7.PAS, src/P3MORPH.PAS and src/P1BALLS.PAS in the psycho repository; measured against work/split/NEUROSIS_00n.exe with the compiler's map file on 27 Aug 2026.

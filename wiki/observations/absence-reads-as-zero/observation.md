@@ -41,8 +41,7 @@ A coverage instrument for a 16-bit DOS rebuild, 23 Aug 2026. It shelled out to a
 
 It refuses now, naming the tool it ran and printing what came back. Repointed at the successor, the figure is 99.8% -- and **12 bytes higher than the one on record**, because the archived tool had been clipping a block that ran past the end of the rebuild. [1] [2]
 
-# Citations
-
+## Citations
 [1] `kit/tools/pascal/coverage.py` -- the branch that measures the program, and the comment on why it refuses rather than falling back.
 
 [2] The resolutions of *progcmp is a blockcmp case, not a fourth instrument*, which found the clipping, and *The thirty-two scripts still outside the kit*, which found the silence.

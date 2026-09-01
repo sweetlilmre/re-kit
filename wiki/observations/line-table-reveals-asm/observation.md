@@ -30,6 +30,5 @@ The line table exists so a debugger can step by source line. For Pascal, a line 
 
 `NEUROSIS.009`'s main: lines 300-302 cover the entry, `ClrScr` and a pointer assignment at normal density, then lines 304-334 advance one instruction each -- the scroll loop is a BASM block, and the missing numbers inside the run (303, 305, 308-309, ...) are its blank lines. Confirmed against the disassembly: `PUSH DS` through `POP DS`, `REP MOVSW` included. [1]
 
-# Citations
-
+## Citations
 [1] `docs/30-byebye.md`, the chart's line-table section, in the psycho repository.

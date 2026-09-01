@@ -114,8 +114,7 @@ The order turned out to be fully determined, and the check on it is that **it cl
 
 Reordering collapsed three different shifts into one shift of `-23530` held across all three variables. **The coverage walk moved three bytes.** That is the honest result and it is not a disappointment: every address was still wrong, now wrong by the same amount, and the remaining defect -- a genuine size shortfall in the units below -- was only visible once the order stopped hiding it. [3]
 
-# Citations
-
+## Citations
 [1] `src/NEUR3.PAS`, `src/gen/P3PAL.INC` and `spans.toml`, part 003 in the psycho repository; the original's layout read from Ghidra's decompilation of `1139:03b4` and from byte searches over `work/split/NEUROSIS_003_fpu.exe`, measured with `kit/tools/pascal/spans.py` on 25 Aug 2026.
 
 [2] `src/NEUR5.PAS` and `src/P5PATCH.PAS`, part 005 in the same repository, 25 Aug 2026. The clause carries the measurement as a comment so nobody tidies it back into scene order. Measured with `kit/tools/pascal/dgimage.py` for the initialised image, `kit/tools/substrate/segmap.py` for the segment sizes, and `spans.py` for the number that did not move.

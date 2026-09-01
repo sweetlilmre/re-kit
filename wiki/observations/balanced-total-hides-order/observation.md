@@ -60,6 +60,5 @@ The shift map said +32 across `$63CA..$63D0` with +0 either side. The cause was 
 
 Correcting the first number and reading the second off its two addresses (128, a file record) and finding one further two-byte gap took the part's coverage walk from 98.1% to 98.8% and its data-reference pairing from 144 to 181. [1]
 
-# Citations
-
+## Citations
 [1] `src/P5MESH.PAS` and `src/P5ROTO.PAS`, part 005 in the psycho repository; measured with `kit/tools/pascal/dsmap.py`, `dgimage.py` and `spans.py` on 26 Aug 2026.

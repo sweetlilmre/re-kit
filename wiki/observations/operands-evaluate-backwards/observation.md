@@ -60,6 +60,5 @@ Reading one `MOV` per expression. The fix is textual.
 
 A lens-table builder at `1012:0008` in a 1994 VGA demo. Sixteen index and value expressions of the form `(row + 20) * 40 + (col + 20)`, all written the natural way round, all four bytes displaced from the original, and five separate fifteen-byte spans in the coverage walk to show for it -- one per quadrant plus the identity case. `1012:0043` puts `(Y + 20) * 40` into `DX`, which names it the second term; rewritten as `(X + 20) + (Y + 20) * BounceW` throughout, the routine aligned and the part went 96.2% to 96.9%. [1]
 
-# Citations
-
+## Citations
 [1] `src/P1LOGO.PAS`, part 001 segment `1012`, in the psycho repository; measured with `kit/tools/pascal/spans.py` on 26 Aug 2026.

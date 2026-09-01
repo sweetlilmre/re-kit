@@ -54,8 +54,7 @@ The same migration found the other half of this, which is that **the documents d
 
 None of those is a missing import and none would be caught by running anything -- each was a true-looking sentence in a document somebody was working from. Two of the five are worse than wrong: the unrunnable-script claim had **already been corrected in the tool's own header**, and a *generated* document downstream reproduced the stale version anyway. A document being generated is what stops anybody re-reading it, so a generator carrying a stale input launders the error rather than fixing it. [1]
 
-# Citations
-
+## Citations
 [1] The two migration efforts that produced these -- the archive-then-delete pass and the final sweep of what remained outside the kit -- which record each of the four breakages and each of the five false claims, with what each cost.
 
 [2] [The successor reproduces the headline number and quietly drops the diagnostic](../successor-keeps-the-headline/observation.md) -- the same migration's other structural blindness, and the reason three deletions were stopped.

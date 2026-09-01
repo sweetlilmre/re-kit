@@ -35,5 +35,5 @@ Anything between the shipped bytes and the bytes you compare is a transform with
 
 ## See also
 
-* [file-bigger-than-image](../file-bigger-than-image/observation.md)
-* [instruments-have-an-order](../instruments-have-an-order/observation.md)
+* [The file is bigger than its load image](../file-bigger-than-image/observation.md)
+* [A tool that is wrong is useless; a tool that BECOMES right is worth re-asking every open question](../instruments-have-an-order/observation.md)

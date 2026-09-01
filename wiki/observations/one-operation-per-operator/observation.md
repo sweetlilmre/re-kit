@@ -57,6 +57,5 @@ Reading the arithmetic instruction by instruction rather than evaluating it. No 
 
 `NEUROSIS.004` segment `1005`, the diagonal digger at `0df5`. Nine drawing calls, every one of them with folded constants in the reconstruction and every one of them differing. Rewriting the nine as the original's operators -- and nothing else in the routine -- took the part's coverage walk from 70.4% to 75.6%, 529 bytes. `1005:0EAE` is the `SUB AX,9` / `SUB AX,0` pair and `1005:0ED2` the `ADD AX,3` / `ADD AX,3`. The same rule fixed the walker's column bounds at `1005:15B8` in the same part. [1]
 
-# Citations
-
+## Citations
 [1] `src/P4LEMS.PAS`, `Digger` and `Walker` and the notes in them, in the psycho repository.

@@ -71,6 +71,5 @@ Reading the disassembly of the span, which is being done anyway. The transcripti
 
 Part 001 of a 1994 VGA demo, in the same session: eighty-three bytes in a loader and two dead tests in a lens gather, found within an hour of each other, in units that had been read a dozen times. The loader's span had been the largest in its segment for weeks. Neither routine's reconstruction was *wrong* about what the code achieves; both were missing what the code contains. Putting them back moved the part's coverage walk 93.0% to 95.1% together with three other findings, and changed the running program not at all. [1]
 
-# Citations
-
+## Citations
 [1] `src/P1BALLS.PAS` and `src/P1LOGO.PAS`, part 001 segments `1107` and `1012`, in the psycho repository; measured with `kit/tools/pascal/spans.py` on 26 Aug 2026.

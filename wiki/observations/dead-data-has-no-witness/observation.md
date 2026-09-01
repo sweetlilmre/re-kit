@@ -38,6 +38,6 @@ Neither can be chased through the disassembly, because there is nothing there to
 
 ## See also
 
-* [verifier-blind-to-absence](../verifier-blind-to-absence/observation.md)
-* [absence-reads-as-zero](../absence-reads-as-zero/observation.md)
-* [filler-is-not-a-finding](../filler-is-not-a-finding/observation.md)
+* [Every declared routine matches, and the rebuild still behaves differently](../verifier-blind-to-absence/observation.md)
+* [A total quietly drops a component and stays plausible](../absence-reads-as-zero/observation.md)
+* [A filler declaration records what you have not looked at, not what is not there](../filler-is-not-a-finding/observation.md)

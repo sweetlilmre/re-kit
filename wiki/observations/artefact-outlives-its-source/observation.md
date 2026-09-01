@@ -45,7 +45,7 @@ In every case the observation is not an error but a *correct answer to a superse
 
 ## See also
 
-* [verifier-blind-to-absence](../verifier-blind-to-absence/observation.md)
-* [instruments-have-an-order](../instruments-have-an-order/observation.md)
-* [rebuild-hashes-differ](../rebuild-hashes-differ/observation.md)
-* [two-tools-one-number](../two-tools-one-number/observation.md)
+* [Every declared routine matches, and the rebuild still behaves differently](../verifier-blind-to-absence/observation.md)
+* [A tool that is wrong is useless; a tool that BECOMES right is worth re-asking every open question](../instruments-have-an-order/observation.md)
+* [The same source builds twice and the files do not hash the same](../rebuild-hashes-differ/observation.md)
+* [Two tools measure one thing and one number is lower](../two-tools-one-number/observation.md)

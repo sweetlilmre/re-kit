@@ -34,8 +34,7 @@ Nothing beyond calling the search and the measurement in that order. One extra w
 
 `PLAYMOD` in the `VangeliSTracker` repository, 23 Aug 2026: located near the end of itself and reported `agrees to +1492 of 1750`. The relocation set that caused it came from the unit's own object module -- and once the search was moved onto the plain rule, the same set applied at the comparison passed nothing at all until it was shifted into the slice's frame. [1] [2]
 
-# Citations
-
+## Citations
 [1] `kit/tools/pascal/units.py`, `measure()` -- the comment beginning *LOCATE ON THE PLAIN RULE, always*, and the shift applied to the relocation set below it.
 
 [2] The resolution of *One compare tool, and every caller passes its rule*, findings 3 and 4 of 5.

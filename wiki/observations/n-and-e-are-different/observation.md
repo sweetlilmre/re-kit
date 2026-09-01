@@ -59,8 +59,7 @@ The reconstruction showed a multi-second black screen where the original moved s
 
 That distinction survived three attempts to lose it. A session in August built an elaborate theory on it; a later one repeated a smaller version, describing the change as making the calls "go through x87"; and a third wrote the corrected account into the record while still calling `{$N+}` *the fix*, which put the performance claim back at the front and invited the same question all over again. The unit's own comment had said *is x87 code* and listed `FILD`, `FDIV`, `FLD`, without mentioning that those ship as traps. **Accurate and incomplete, and the incompleteness was the load-bearing part.** [1] [2]
 
-# Citations
-
+## Citations
 [1] `src/P5ROTO.PAS` in the psycho repository -- the `{$N+}` comment, which now carries the distinction, the 12 traps measured over the loop body `1096:051a..0591`, and the two-build alignment test. An earlier version of that comment put **14** traps "at `1096:051a`"; the number is the count for the whole enclosing routine and the address was the loop's. Right number, wrong extent -- recorded here because a figure that cannot be reproduced from the extent it names is how a measurement quietly becomes a claim.
 
 [2] `docs/23-deviations.md`, *NOT a deviation: the x87 emulator traps, and the `_fpu` files' provenance*, in the same repository.

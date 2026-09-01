@@ -30,6 +30,5 @@ The load image and a ten-line script. No disassembler, no toolchain.
 
 `NEUROSIS.000`'s four pools (`docs/31-startup.md`): the DETECTED box labels, the full menu tree with its `/d:` `/irq:` `/dma:` `/port:` `/f:` config vocabulary, `'neurosis.cfg'`, and the seven-line demo chain — the finding that settled where the part sequence is authored. [1]
 
-# Citations
-
+## Citations
 [1] `docs/31-startup.md`, the ChooseCard section, in the psycho repository.

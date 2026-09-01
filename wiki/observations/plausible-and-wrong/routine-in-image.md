@@ -52,8 +52,7 @@ Two images and the list of code segments. No disassembler until you read a span 
 
 **Anchoring on the first unique run rather than the best-scoring one.** It reports a length measured somewhere else in the image, and the failure presents as a transcription defect in a routine that is in fact correct -- so the time goes into re-reading good bytes. [1]
 
-# Citations
-
+## Citations
 [1] `kit/tools/substrate/align.py` -- `locate()`, `walk()`, and the `DENSITY_WINDOW` / `DENSITY_LIMIT` constants, whose comments carry the 37-against-64 measurement.
 
 [2] `kit/tools/pascal/routines.py`. Verified against the frozen tool it replaced by a differential run -- all 77 rows identical, 74 locked, 3 not locked, 0 failing -- and the 74 lengths moved from that tool's own dict into the register, migrated verbatim. The frozen tool is recoverable from the `archive/pre-kit-scripts` tag.

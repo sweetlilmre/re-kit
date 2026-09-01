@@ -28,5 +28,5 @@ The pattern in all three: **a filler run immediately adjacent to a field that th
 
 ## See also
 
-* [dead-data-has-no-witness](../dead-data-has-no-witness/observation.md)
-* [plausible-and-wrong](../plausible-and-wrong/observation.md)
+* [A typed constant nothing reads is invisible to every comparison that follows an instruction](../dead-data-has-no-witness/observation.md)
+* [A compare tool's number is plausible, and it is wrong](../plausible-and-wrong/observation.md)

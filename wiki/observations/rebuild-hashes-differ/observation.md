@@ -40,8 +40,7 @@ Two builds and a hash of each output file. Minutes, and it only has to be done o
 
 That reference is what made the merge checkable rather than arguable -- the merged tool's 35 executables were compared against it and matched, so the three artefacts already sitting at R7 were not being taken on trust. The equivalent check for the sibling target, whose build produces units rather than programs, had to be the unit instrument's rows instead: 2 byte-identical and 24 identical but for fixups, before and after. [1] [2]
 
-# Citations
-
+## Citations
 [1] `kit/tools/pascal/build.py`, in the psycho repository -- its header records the measurement and why an executable is the unit of the check.
 
 [2] The merge of two repositories' build harnesses into one, where the 38-of-67 run above was measured, along with the switch-line finding recorded separately in [Stack checking is on by default, and it puts seven bytes in front of every framed routine](../stack-check-precedes-the-frame/observation.md).

@@ -28,6 +28,5 @@ An MZ header read and a subtraction -- stdlib Python, no disassembler, no toolch
 
 `NEUROSIS.009`: 10,356 bytes on disk = 7,312 load image + 3,044 debug info, exactly. `NEUROSIS.000`: 17,426 = load image + tail the same way. Both decoded with zero residue bytes. [1]
 
-# Citations
-
+## Citations
 [1] `docs/research/borland-debug-info.md`, in the psycho repository -- the format read against primary sources, the empirical decode of both binaries, and the two published readers that were each measurably wrong once.

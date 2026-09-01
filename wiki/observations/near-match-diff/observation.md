@@ -39,6 +39,5 @@ A built image, the original, and a byte comparison. The period toolchain must al
 
 `PSYCHO.EXE`, rebuilt from a chart: 76 differing bytes fell to 1 by writing the two `goto`s (which also restored every shifted relocation), and to **0 -- SHA256-identical, 1,936 bytes** -- by setting `{$G+}`. Two facts about the 1994 source were recovered from the diff alone. [1]
 
-# Citations
-
+## Citations
 [1] `docs/29-psycho-launcher.md`, the reconstruction section, in the psycho repository.

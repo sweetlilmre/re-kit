@@ -51,6 +51,5 @@ One regex pass per segment, plus a second for the call targets. No disassembler 
 
 The same run's other half checked out completely: the per-routine slot map for `108b:00bf` agrees with Ghidra's stack-variable list slot for slot, once Ghidra's two-byte offset convention is accounted for, **including the two blocks of frame the routine never reads** — which is the finding the technique exists to produce. So the enumeration is trustworthy and the *identification* is not, and it is worth knowing which half of an instrument you are leaning on. [1]
 
-# Citations
-
+## Citations
 [1] `kit/tools/pascal/prologue.py` and its correction; verified against Ghidra's function list and `get_function_variables` for `NEUROSIS_002.exe` in the psycho repository.

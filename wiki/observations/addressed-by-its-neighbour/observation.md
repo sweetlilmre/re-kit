@@ -45,8 +45,8 @@ Three equal, adjacent, suspiciously round quantities are an argument on their ow
 
 ## See also
 
-* [link-order-brackets-the-unanchored](../link-order-brackets-the-unanchored/observation.md)
-* [dead-data-has-no-witness](../dead-data-has-no-witness/observation.md)
-* [filler-is-not-a-finding](../filler-is-not-a-finding/observation.md)
-* [no-writer-means-input](../no-writer-means-input/observation.md)
-* [verifier-blind-to-absence](../verifier-blind-to-absence/observation.md)
+* [An uninitialised variable has no witness anywhere, and link order is the only thing that brackets it](../link-order-brackets-the-unanchored/observation.md)
+* [A typed constant nothing reads is invisible to every comparison that follows an instruction](../dead-data-has-no-witness/observation.md)
+* [A filler declaration records what you have not looked at, not what is not there](../filler-is-not-a-finding/observation.md)
+* [A field nothing in the image writes is an input, not a switch that was never wired up](../no-writer-means-input/observation.md)
+* [Every declared routine matches, and the rebuild still behaves differently](../verifier-blind-to-absence/observation.md)

@@ -60,6 +60,5 @@ Part 002 of a 1994 VGA demo, Borland Pascal 7. `P2S2` held sixteen routines in a
 
 In the same session `P2S1` had four routines transposed -- 152, 145, 270, 127 against the original's 270, 127, 152, 132 -- and part 003 read exactly 100.0% while two of its units were sixteen bytes wrong in opposite directions. [1]
 
-# Citations
-
+## Citations
 [1] `src/P2GARAGE.PAS`, `src/P2SOLID.PAS`, `src/P3STARS.PAS` and `src/P3GLOBE.PAS` in the psycho repository; measured with `kit/tools/pascal/spans.py`, `prologue.py`, `unitorder.py` and the compiler's own map file on 26 Aug 2026.

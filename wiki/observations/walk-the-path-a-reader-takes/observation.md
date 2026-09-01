@@ -43,7 +43,7 @@ A metric is useful while it points at clusters worth investigating, and it becom
 
 ## See also
 
-* [comments-are-unchecked-claims](../comments-are-unchecked-claims/observation.md)
-* [artefact-outlives-its-source](../artefact-outlives-its-source/observation.md)
-* [verifier-blind-to-absence](../verifier-blind-to-absence/observation.md)
-* [name-carries-its-evidence](../name-carries-its-evidence/observation.md)
+* [The addresses written in comments are the only claims nothing checks](../comments-are-unchecked-claims/observation.md)
+* [A measurement tool reads whatever is on disk, and a failed build leaves the last good answer there](../artefact-outlives-its-source/observation.md)
+* [Every declared routine matches, and the rebuild still behaves differently](../verifier-blind-to-absence/observation.md)
+* [A name is a claim, and it should be no stronger than the evidence that produced it](../name-carries-its-evidence/observation.md)

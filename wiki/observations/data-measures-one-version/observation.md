@@ -31,5 +31,5 @@ Say it as a scope rather than a preference: *data transcribed from an image is a
 
 ## See also
 
-* [dead-data-has-no-witness](../dead-data-has-no-witness/observation.md)
-* [transcribe-the-meaning-not-the-constant](../transcribe-the-meaning-not-the-constant/observation.md)
+* [A typed constant nothing reads is invisible to every comparison that follows an instruction](../dead-data-has-no-witness/observation.md)
+* [A hardcoded address copied from the original is right by coincidence](../transcribe-the-meaning-not-the-constant/observation.md)

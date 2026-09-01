@@ -34,8 +34,7 @@ Part 001 of `PSYCHO NEUROSIS` on 23 Aug 2026: the per-routine check reported 73 
 
 The second-largest remainder of that span, `1107:0287..039a`, was the opposite finding: compiled code whose shape genuinely differs, recorded as a deviation rather than transcribed. [2]
 
-# Citations
-
+## Citations
 [1] `shapediff.py`, in the psycho repository -- the coverage differ, and its docstring's account of the two classes a span belongs to. It is archived under that repository's `archive/pre-kit-scripts` tag; `kit/tools/pascal/spans.py` carries the measurement now.
 
 [2] `docs/23-deviations.md`, the depth-sort entry, and commit `c15bd92` in the psycho repository.

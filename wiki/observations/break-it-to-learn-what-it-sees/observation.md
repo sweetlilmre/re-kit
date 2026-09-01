@@ -47,7 +47,7 @@ Write down what each instrument cannot see, beside the instrument. A blind spot 
 
 ## See also
 
-* [artefact-outlives-its-source](../artefact-outlives-its-source/observation.md)
-* [verifier-blind-to-absence](../verifier-blind-to-absence/observation.md)
-* [instruments-have-an-order](../instruments-have-an-order/observation.md)
-* [walk-the-path-a-reader-takes](../walk-the-path-a-reader-takes/observation.md)
+* [A measurement tool reads whatever is on disk, and a failed build leaves the last good answer there](../artefact-outlives-its-source/observation.md)
+* [Every declared routine matches, and the rebuild still behaves differently](../verifier-blind-to-absence/observation.md)
+* [A tool that is wrong is useless; a tool that BECOMES right is worth re-asking every open question](../instruments-have-an-order/observation.md)
+* [Documentation defects are invisible to every check and visible on the first read-through](../walk-the-path-a-reader-takes/observation.md)

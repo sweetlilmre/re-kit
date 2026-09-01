@@ -59,8 +59,7 @@ In part 003, scene 1 converts degrees to radians before each of two trig calls. 
 
 That last point is the one worth keeping. Neither defect was a discovery about the binary; both were already written down. What was missing was an instrument that noticed the source did not say what the comment beside it said.
 
-# Citations
-
+## Citations
 [1] `src/P6WHOOSH.PAS` in the psycho repository, `BuildPath`, and the bracket build recorded against `1095:02ac`. The two-build measurement -- old expression and new, nothing else in the tree moved -- is what establishes the walk's number as unchanged rather than merely unchecked.
 
 [2] `src/P3TUNNEL.PAS`, `UpdateMotion`, against `1015:0708` and `1015:075a` in `NEUROSIS_003_fpu.exe`. The original's two call sites are at `1015:077b` and `1015:07b6`.

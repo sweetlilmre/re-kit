@@ -55,8 +55,7 @@ The four-line classification above, from the DemoVT byte-exact rebuild. See [2].
 
 The lesson generalises past this page, and it is the reason the observation hub refuses to state a general rule: **a tool's idea of an acceptable difference is part of the measurement.** The same excuse-a-zero heuristic is exactly right one artefact over and catastrophically wrong here.
 
-# Citations
-
+## Citations
 [1] `06-transcription.md`, section on reading FIXUPP records, in the VangeliSTracker repository. **Quoted inline above** because that document is in a different repository and cannot be resolved from this one.
 
 [2] `CONTINUATION.md`, the OMF fixup classification, in the VangeliSTracker repository. Also recorded as project memory `demovt-obj-fixups`, whose one-line form is: "a tool's idea of an acceptable difference is part of the measurement; zeros are a `.TPU` rule, not an assembler one."

@@ -33,5 +33,5 @@ When an upstream instrument starts working, **stop and re-ask everything that wa
 
 ## See also
 
-* [two-tools-one-number](../two-tools-one-number/observation.md)
-* [config-is-a-dependency](../config-is-a-dependency/observation.md)
+* [Two tools measure one thing and one number is lower](../two-tools-one-number/observation.md)
+* [A script breaks and nothing in the import graph explains it](../config-is-a-dependency/observation.md)

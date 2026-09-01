@@ -118,8 +118,7 @@ And the arithmetic confirmed it: the array's real address was `$7233`, the displ
 
 The same case supplied the trap above. `$6A2A` had been written into the source as the array's *address*, replacing a correct note that said `$7233`, on the reasoning that the instruction must know better than the comment. The part's coverage walk moved 81.7% to 82.9% once the bound, the local types and the local order were all corrected together. [2]
 
-# Citations
-
+## Citations
 [1] `src/gen/P2OBJ.INC`, `src/P2SOLID.PAS` and `spans.toml`, part 002 segment `108b`, in the psycho repository; the original's shape read from Ghidra's decompilation of `108b:1cf2`, measured with `kit/tools/pascal/spans.py` on 24 Aug 2026.
 
 [2] `src/P1BALLS.PAS`, part 001 segment `1107`, in the psycho repository; measured with `kit/tools/pascal/prologue.py` and `spans.py` on 25 Aug 2026.

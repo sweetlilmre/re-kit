@@ -40,6 +40,5 @@ The MZ relocation table (a header read) and arithmetic. No disassembler needed b
 
 None recorded yet for this artefact.
 
-# Citations
-
+## Citations
 [1] `docs/29-psycho-launcher.md`, the chart's call table, in the psycho repository.

@@ -112,8 +112,7 @@ With the declarations corrected the routine aligned in full, and the part's cove
 
 Two details from that case are worth carrying. **The evidence had been quoted in the unit's own comment for days** -- as the justification for a *different* switch, `{$S-}`, whose note read "opens `ENTER $26,0` with no stack check". The instruction naming `$G` was sitting inside the argument about `$S`, and nobody read it twice. **And two other units were REFUTED by the same test**: their originals carry no `ENTER` at all, so they are correctly `$G-` and adding the switch would have moved them away from the original. A sweep that only ever adds is not a measurement. [2]
 
-# Citations
-
+## Citations
 [1] `src/P1LOGO.PAS` and `spans.toml`, part 001 segment `1012`, in the psycho repository; measured with `kit/tools/pascal/spans.py` against the shipped binary on 24 Aug 2026.
 
 [2] `src/P5ROTO.PAS`, part 005 segment `1096`, in the same repository; measured with `kit/tools/pascal/spans.py` on 24 Aug 2026. The refuted candidates are that target's `FIXMATH` (segments `1483` and `142a`) and its 320x400 video unit (`140c`), none of which contains an `ENTER`.

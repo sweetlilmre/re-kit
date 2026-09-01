@@ -43,8 +43,7 @@ The subtraction needs our segment's length, and **that number is measured -- it 
 
 One consequence is worth stating because it looks like a regression and is not. Eleven of that tool's twelve rows reproduce exactly, on shift and on real-difference count; **the twelfth cannot be reproduced at all, because the number it reported was an artefact of the clip.** The choice is between matching a figure nobody can explain and recording why it is gone, and the second is worth more -- the same reasoning as a pending-fixup count that fell because two overlapping rules had been double-counting it. [2]
 
-# Citations
-
+## Citations
 [1] `kit/tools/pascal/blockcmp.py` -- the branch that reports a block as running past the end of our segment, and the `short` count in its summary.
 
 [2] The merge that produced these figures, in which a fourth compare tool turned out to be this instrument carrying a different allowed-difference rule -- see [A compare tool's number is plausible, and it is wrong](../plausible-and-wrong/observation.md). Its measurements: 1,604 against 1,616, shift -195 with 149 real differences, 368 bytes identical at shift 0.

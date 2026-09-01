@@ -63,6 +63,5 @@ One expression per site, and the sites are only in transcribed assembler. Findin
 
 Part 001 of a 1994 VGA demo. A lens-gather routine, correctly identified as hand assembler and correctly transcribed instruction by instruction, carried `LEA AX,[DI-895]` from the original. The rebuild's array sat two bytes lower, so every one of the ten bouncing sprites gathered its 1,600 pixels from two columns along. Coverage 99.0% before, 99.0% after, same single unaligned span; the initialised image identical both ways; the emulator trap streams identical both ways. The defect was reported from a screenshot. [1]
 
-# Citations
-
+## Citations
 [1] `src/P1LOGO.PAS`, part 001 in the psycho repository; measured with `kit/tools/pascal/spans.py`, `dgimage.py` and `fpusites.py`, and detected by a watched DOSBox-X run on 26 Aug 2026.

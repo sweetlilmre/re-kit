@@ -75,6 +75,5 @@ One pass of a 16-bit decoder over each range, counting opcode bytes where `mod =
 
 `NEUROSIS.002` segment `108b`, the polygon scan converter at `108b:0461` and the fan filler at `108b:09b1` that is its only caller. The first is the 62/0 row above; the second is the 0/0 blind spot. Both rebuild as Borland `assembler` procedures -- the fan filler byte-identical in all 88 bytes -- and the coverage walk's largest single span anywhere, 1,276 bytes, closed. [1]
 
-# Citations
-
+## Citations
 [1] `src/P2SOLID.PAS`, the `TriFill` and `FillFan` transcriptions and the comment block above them, in the psycho repository.

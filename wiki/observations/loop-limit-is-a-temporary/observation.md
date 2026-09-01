@@ -55,6 +55,5 @@ Reading the loop's compare operand, then arithmetic on the frame. Settling it ne
 
 `NEUROSIS.002` segment `108b`: the three renderers at `0a2d`, `0b42` and `0ca1`, and the face sorter at `0e03`. In the renderers `[BP-$1151]` takes `O.FaceCount` at `108b:0bb9` and `[BP-$1153]` takes `Faces[F].Count` at `108b:0be1`; in the sorter `[BP-$1134]` takes `Tmp.FaceCount` at `108b:0e1a` and is REUSED by a second loop at `108b:0ed7`, which is itself a hint -- a declared variable would not be re-initialised from the same expression at two unrelated places. Declaring all four cost 8 bytes of frame in three routines and 2 in the fourth; handing them back to the compiler took the part's coverage walk from 77.4% to 78.3%. [1]
 
-# Citations
-
+## Citations
 [1] `src/P2SOLID.PAS`, the `var` blocks of `RenderA`/`RenderB`/`RenderC` and `ObjSortFaces` and the notes in them, in the psycho repository.
