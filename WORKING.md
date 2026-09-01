@@ -219,16 +219,22 @@ The last flag refuses if the commit this project pins is not on a remote another
 
 ## 8. What to distrust
 
-- **A verifier more than the thing it verifies.** See rule 3. Every instrument in the table above has been wrong at least once, and each time the code it accused was innocent.
-- **A tool's own docstring.** Two here promised a config file that did not exist and a usage line nobody could run; a third described an operand format its own table could not decode, so asking for it by the name the docstring used raised an error. If a docstring claims a mechanism, look for the mechanism.
-- **Prose holding a path or a number.** It goes stale silently. A path belongs in `kit.toml`, a measured number in the register.
-- **A guess that was never asked about.** A wizard proposing a project's sources by file count is confidently wrong on any reconstruction, because a release is complete and a reconstruction is not.
-- **A green check you have not read the output of.** One check here could never pass and said so in a line nobody read; another passed on nothing at all after its path moved -- it reported *0 problem(s) in 0 file(s)* in a repository whose sources sat one directory away.
-- **A SECOND COPY OF ONE MEASUREMENT.** Two instruments each held the original's segment list, both said they came from the layout document, and nothing kept them in step. One was missing a segment -- so that unit was never compared, and because each length is computed as the NEXT segment's address minus its own, the gap also inflated its neighbour by exactly the missing segment's size. The tool reported that neighbour as *"short -- 144 byte(s) of routines nothing references"*, which reads like an observation about the runtime and was entirely an artefact. **A drifted copy does not merely go quiet; it manufactures findings.**
-- **A REGEX OVER ANOTHER TOOL'S OUTPUT.** One instrument shelled out to a second and parsed a number out of what it printed. The second was archived, so the parse matched nothing, the count fell back to zero, and 1,616 verified bytes dropped out of a coverage total in silence. **A pattern that returns nothing on a MISSING TOOL is indistinguishable from a tool that measured nothing.** It refuses now. Where one instrument must read another, it must be able to tell absence from zero.
-- **A MATCH RULE STRICTER THAN THE THING IT MATCHES.** `rtl.py match` finds the runtime in a second binary by taking 256 bytes of the first one's RTL head, zeroing the relocations, and searching for them exactly. It had never once succeeded, and it said `RTL prologue NOT FOUND` -- which reads as *there is no runtime here* rather than *my rule cannot express this*. Measured: two parts' RTL heads diverge at **+0x07**, on a DGROUP OFFSET the relocation mask does not touch because an offset is not a relocation, and again at +0x0c on a near-call displacement the smart linker places differently in every binary. Masking far pointers was the right idea and it does not go far enough. It uses `align.locate` now, which is the engine built for that tolerance, and finds the RTL in all seven. **The tell was that a tool whose whole purpose is cross-binary comparison had no cross-binary result anybody had ever quoted.**
+**Distrust the verifier before the thing it verifies.** Every instrument has been wrong at least once, and each time the code it accused was innocent. That is section 6's rule 3, and it is the frame for everything below.
 
-- **A DELETED CONFIG, as much as a deleted module.** Four surviving scripts were broken by this migration's own deletions, and two of those depended on a `.conf` file rather than on an import -- so nothing about the import graph would have caught them. One had stopped running entirely and its census row still read `carry`.
+**The findings themselves are in the wiki, because each is a measurement with a blind spot, which is what section 5 says an observation is.** They were written out here as well, and three of them existed in both places -- which is this section's own *second copy of one measurement* happening inside the section that names it. What is left here is the index:
+
+| distrust | the finding |
+|---|---|
+| a second copy of one measurement | `drifted-second-copy` -- a drifted copy does not go quiet, it manufactures a finding phrased in the vocabulary of the thing measured |
+| a total that quietly lost a component | `absence-reads-as-zero` -- a pattern matching nothing because its target is gone is indistinguishable from a target that measured nothing |
+| a search that found everything | `destroyed-pattern-matches-everything` -- the inverse, and it fails OPEN, which is the expensive direction |
+| a match rule stricter than its subject | `match-rule-stricter-than-its-subject` -- `NOT FOUND` is a claim about the rule as often as about the binary; ask what the tool has ever found |
+| a tool's own docstring | `docstring-is-an-unrun-claim` -- the only claim about a program that nothing executes, and an omission in one is worse than an error |
+| a green check you have not read | `exemption-that-cannot-fail` -- including a check whose SCOPE is a constant, which claims to have checked everything |
+| a deleted config, as much as a deleted module | `config-is-a-dependency` -- the import graph is the smallest dependency graph and the only one with a tool |
+| a successor that reproduced the headline | `successor-keeps-the-headline` -- a differential test over a passing corpus cannot call the modes that only speak when something fails |
+
+**Two more belong to rules rather than to findings, and are stated where the rule is.** Prose holding a path or a number goes stale silently -- section 4, and a path belongs in `kit.toml` while a measured number belongs in the register or a generated file. And a guess that was never asked about: [`SETUP.md`](SETUP.md) records why the installer ranks nothing by file count, which is confidently wrong on any reconstruction because a release is complete and a reconstruction is not.
 
 ### Where a moved tool's answer CHANGED
 
