@@ -27,6 +27,13 @@ Concretely, the four false entries all said "the declarations differ, so no sing
 
 **A green run is not evidence.** The tool reported zero problems both before and after, and both were true statements about what it had been told to look at. The measurement that mattered was not the tool's output but the diff of the two texts the exemption had told it to leave alone.
 
+**An exemption need not be a list at all.** The same disease arrives whenever a check's SCOPE is a constant rather than an answer, and then it is invisible in a way a file never is -- there is nothing to read. Two measured instances, both from one migration:
+
+- A source linter whose directory was a hardcoded constant. In the second consumer the sources sat one level deeper, so it reported *0 problem(s) in 0 file(s)* **and passed**. It lints 29 files there now. The tell was subtle and worth remembering: a workaround for the defect was already in place -- that consumer's build imported the linter's function directly rather than running the tool -- so **the workaround existed and the defect did not, which is a defect nobody was going to look for.**
+- An encoding auditor whose default directories named one repository's two folders, both since emptied. Given the project's own answer it covers 49 files against 19, including, for the first time, the programs in the toolkit itself. **A tool that audits everything except itself is a shape worth recognising**, and it is the same shape as a hub exempt from the check on hubs.
+
+A list at least admits what it is skipping. A constant scope claims to have checked everything.
+
 **Testing an exemption needs it removed.** The only cheap check for a decorative entry is to delete the line and re-run: if the count does not change, the entry is doing nothing, and either the rule or the entry is wrong. That takes seconds and nobody does it, because the file reads like documentation rather than like code.
 
 **Pair rules cut both ways.** Where an exemption names a pair, requiring BOTH sides to be listed is the right design -- it means an exemption cannot be half-written -- but it also means moving one side of the pair into a new file silently un-exempts it, and that arrives as a new failure rather than as a lost check, which is the safe direction.

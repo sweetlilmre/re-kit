@@ -28,6 +28,8 @@ Two copies also fail asymmetrically, and that is worth knowing when you go looki
 
 **It says nothing about copies that have not drifted yet.** A second copy that currently agrees is a defect waiting rather than a defect, and no measurement can distinguish the two.
 
+That is not a caution about a hypothetical. The same migration consolidated **three readers of one comment format into one, and all three had already diverged** -- so the case above was not the unlucky exception, it was the second of at least two, found because somebody went looking for duplicated tables after the first. Once you have found one drifted copy, the cheap next move is to enumerate every other place the same fact is written down.
+
 ## Cost
 
 A set comparison, once, at the moment you notice two tables that look alike. The expensive version is the one where nobody notices: this pair had a comment asking a person to remember, which is a mechanism only in the sense that a note is one.
@@ -53,8 +55,10 @@ An earlier version of this page recorded the missing segment as **159 bytes**, w
 
 Read once, that line is a finding about how a 1994 linker treated a runtime unit. It was a missing row in a list. [2]
 
+**Not every changed number is this, and telling them apart matters.** The same consolidation moved one coverage figure by 24 bytes because two implementations had formulated a density gate differently -- and there the SAME spans were reported, two of them shorter, with none lost. A drifted copy manufactures a finding; a reformulated rule moves a number without hiding work. The question to ask of a changed measurement is not how far it moved but **whether anything it used to report has gone missing.**
+
 # Citations
 
 [1] `kit/tools/pascal/mapcmp.py` and `linkorder.py`, and `v1.31b/link.toml` in the `VangeliSTracker` repository -- the one list both now read, whose header records the drift.
 
-[2] The resolution of [The thirty-two scripts still outside the kit](https://github.com/sweetlilmre/PsychoNeurosis/issues/50).
+[2] The migration sweep that found it, which also consolidated three diverged readers of one comment format into one, and which recorded every instrument whose answer changed and why -- see [The successor reproduces the headline number and quietly drops the diagnostic](../successor-keeps-the-headline/observation.md) for the deletions that pass stopped.

@@ -26,6 +26,8 @@ This is also why the useful comparison of a `.TPU` is of its **code section** ra
 
 **A stable executable can still hide an unstable input.** If the toolchain embeds nothing, an output that never changes is also what you get from a build that silently did not run -- so the check needs the build to have reported what it compiled, not just the hashes to match.
 
+That is not hypothetical. On the harness this was measured with, the first full run **built 38 targets instead of 67, and every one of them reported success** -- the list of names to build and the list of things to stage had been derived separately, so a target could be known and never reached. Hashing the outputs of that run compares 38 files twice and says nothing at all about the other 29. **A build that quietly does less is the same disease as a gate that quietly measures less**, and the two are indistinguishable from the outside: both produce a clean report faster than usual.
+
 **It is a claim about this toolchain, not all of them.** A linker that stamps a date, or one that pads with uninitialised memory, would not give a stable image. Measure it once on a new toolchain rather than assuming it.
 
 ## Cost
@@ -42,4 +44,4 @@ That reference is what made the merge checkable rather than arguable -- the merg
 
 [1] `kit/tools/pascal/build.py`, in the psycho repository -- its header records the measurement and why an executable is the unit of the check.
 
-[2] The resolution of [One build harness across both repos](https://github.com/sweetlilmre/PsychoNeurosis/issues/35).
+[2] The merge of two repositories' build harnesses into one, where the 38-of-67 run above was measured, along with the switch-line finding recorded separately in [Stack checking is on by default, and it puts seven bytes in front of every framed routine](../stack-check-precedes-the-frame/observation.md).

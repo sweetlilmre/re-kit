@@ -39,6 +39,8 @@ The switch is not a code-generation preference that shows up in some routines an
 
 Reading one routine's opening bytes on each side, once per unit. No disassembler beyond that, and no rebuild: the helper call is recognisable by eye.
 
+**Getting the switch to the compiler is its own trap, and worth knowing before you go looking for a code defect.** A `TPC.CFG` in the CURRENT directory **replaces** the one beside the compiler rather than adding to it. So a build that stages sources into a working directory and puts a config there has silently discarded every switch the installed config supplied, including this one -- and the symptom is identical to never having set it: a clean build whose prologues are all wrong. Check which config the compiler actually read before concluding anything about a switch.
+
 ## Example
 
 A Borland Pascal 7 reconstruction of a real-mode DOS program, whose build harness documents the switch specifically because of this. With `$S` left at its default, **every hand-transcribed routine in the corpus differed from the binary in its opening bytes** -- and the harness's own note records the reason as the thing a merged build script is most likely to get wrong, since a switch line is copied rather than derived.
