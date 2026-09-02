@@ -29,3 +29,9 @@ The two cases fail in opposite directions. A derived segment listing invents a *
 ## If you are not sure which you have
 
 Ask where the printed address came from. If a tool computed it from segment boundaries, it is the listing case. If the bytes of the program contain it, it is the operand case. Then do the same arithmetic either way: linear first, conclusions second.
+## Blind spot
+
+**Two rows are the two situations somebody has been in.** A reader whose case is neither still gets an answer here, and the nearer row will look close enough -- a third naming scheme, an overlay, a segment the loader relocated differently -- with the arithmetic it prescribes quietly assuming the case it was written for.
+
+The safe reading of this page is narrow: it says a `segment:offset` pair is a many-to-one name for a linear address, and that converting to linear before comparing is what makes two such names comparable. Everything past that is one of the two cases below, or unmapped.
+

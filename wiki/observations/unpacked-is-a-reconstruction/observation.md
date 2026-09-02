@@ -34,6 +34,12 @@ That comparison is the real one in both directions. It is the artefact that actu
 
 Anything between the shipped bytes and the bytes you compare is a transform with its own conventions: a self-extracting archive, an overlay loader, an installer that relocates, a decryptor. The rule is the same -- **compare on the far side of the transform, and prove the near side by re-applying it.**
 
+## Blind spot
+
+**The re-pack test proves what the packed format PRESERVES, and nothing about what it discards.** Matching after re-packing with the original's own stub is strictly stronger than comparing unpacked files -- and its strength stops exactly where the packer stopped caring. Header fields the format drops, and any encoding choice it normalises, are unverifiable by this route: they were invented once by the unpacker and would be invented again.
+
+**It also needs the original's stub, which is a piece of somebody else's program.** Where that cannot be used, the fallback is comparing the load image and the LINEAR relocation set -- weaker, because it leaves the packed container itself unmeasured, and worth stating as the weaker result rather than presenting both as the same test.
+
 ## See also
 
 * [The file is bigger than its load image](../file-bigger-than-image/observation.md)

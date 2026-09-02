@@ -30,6 +30,12 @@ Say it as a scope rather than a preference: *data transcribed from an image is a
 * The tell that you are looking at one: a run of differing bytes in the initialised region, in a unit whose code is already exact.
 * Small scalars hide better than tables and matter as much: a default port, a default IRQ, a buffer count. No instruction names them, a command-line switch overwrites them, and only the image says what the default was.
 
+## Blind spot
+
+**Data identical between versions is indistinguishable from data correctly carried forward.** The method compares this version's table against this version's image, which settles the tables that CHANGED. For every table the new release left alone, a match proves the bytes agree and says nothing about whether anybody checked -- so the strongest result this can produce for most of a corpus is *unchanged*, which is exactly the state the failure hides in.
+
+**And it needs the new image to contain the table at all.** A table the new version computes at run time, or drops, leaves nothing to compare; its absence from the image reads the same as a table nobody has transcribed yet.
+
 ## See also
 
 * [A typed constant nothing reads is invisible to every comparison that follows an instruction](../dead-data-has-no-witness/observation.md)

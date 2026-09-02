@@ -49,6 +49,18 @@ OVERRIDES = []
 # value and this counter is what stops it becoming invisible.
 UNRECORDED = []
 
+# Observations with no `Blind spot` section. COUNTED AND NEVER GATED, and the
+# distinction is the whole point. Section 5 requires an observation to carry
+# its blind spot, so a gate would look like the right answer -- but a gate is
+# satisfied by a ritual sentence ("this may not hold for other compilers"),
+# which is a blind spot in form and nothing in substance. That is the shape
+# `exemption-that-cannot-fail` describes, arriving through the rule meant to
+# prevent it. A count cannot be satisfied by writing nothing, so it stays
+# honest as the number falls -- and being unable to name one is diagnostic:
+# either the instrument's range is not understood yet, or the page is a
+# definition rather than an observation.
+NO_BLIND_SPOT = []
+
 # The tag vocabulary, loaded from the bundle's own tags.txt. Empty means the
 # file is absent, and then the check does not run -- a bundle without the file
 # is not failed, because the vocabulary is this profile's convention and not
@@ -176,6 +188,8 @@ def check_doc(path, rel):
     if kind == "Observation":
         if str(fm.get("measured_on", "")).strip() == "unrecorded":
             UNRECORDED.append(rel)
+        if not re.search(r"^#+ *Blind spot", body, re.M):
+            NO_BLIND_SPOT.append(rel)
 
     if kind == "Observation" and is_hub(path):
         allowed = [str(a) for a in (fm.get("hub_rule_allow") or [])]
@@ -435,6 +449,11 @@ def main(argv):
 
     changed = generate(root, write)
 
+    if NO_BLIND_SPOT:
+        sys.stdout.write("  %d observation(s) carry no `Blind spot` section -- "
+                         "reported, not gated, because a gate accepts a"
+                         " ritual one\n"
+                         % len(NO_BLIND_SPOT))
     if UNRECORDED:
         sys.stdout.write("  %d observation(s) have measured_on: unrecorded -- "
                          "a finding with no witness anybody can re-check\n"

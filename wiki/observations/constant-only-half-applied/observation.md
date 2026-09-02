@@ -33,6 +33,12 @@ So a run of units all reporting the same data-address delta is not a run of defe
 * Prefer the arithmetic that found it: when a size is wrong by a whole multiple of something, factor the difference and see which term is short.
 * A unit that improves and then stops improving after a constant change usually has exactly one literal left.
 
+## Blind spot
+
+**A literal equal to the constant is not necessarily a use of it.** This finds numbers that should have gone through the name by changing the name and watching what moves -- so any literal that happens to share the value moves too, and replacing it introduces a coupling that was never there. A screen width of 320 and an unrelated table of 320 entries are the same number and not the same fact.
+
+**It cannot see a use that arithmetic has already absorbed.** Where the source wrote the value into an expression the compiler folded, there is no literal left to find and no site to fix -- and the constant then appears fully applied while a folded copy of the old value survives in the image.
+
 ## See also
 
 * [A hardcoded address copied from the original is right by coincidence](../transcribe-the-meaning-not-the-constant/observation.md)

@@ -53,7 +53,11 @@ Four causes accounted for nearly every row across seven programs.
 
 Restricted to negative displacements off BP, this reads a routine's locals. The shifts there name the same things -- declaration order, the alignment switch, the compiler's own hidden temporaries -- with one addition worth expecting: **two arms of an `if` emitted in the opposite order show up as a block of slots each paired against the other arm's**, all carrying nonsense shifts. That is a branch sense, not a layout defect. One such case was 115 bytes in which not one instruction differed in length or opcode: the same two blocks in the other order, each addressing the slots the other had.
 
-## The floor that hid the defect it was written to find
+## Blind spot: the floor that hid the defect it was written to find
+
+Two of them, and the first is the section above: **pairing by code offset is sound only while the lengths already agree, and this technique cannot check its own precondition.** One wrong length shifts every pairing after it and the output looks the same either way -- a clean list of plausible shifts about the wrong operands. The agreement has to come from another instrument and be taken on its authority.
+
+The second was in this tool rather than in the method.
 
 The first version of this tool carried a lower bound on the addresses it would report, to cut small immediates misread as displacements. Its first validation run -- over a defect deliberately reintroduced, two long integers 12,800 bytes out of place -- reported *every displacement matches*. Both addresses were under the floor.
 

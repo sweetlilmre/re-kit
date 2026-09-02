@@ -46,6 +46,12 @@ Neither was a bug. Both were instruments doing precisely what they were built to
 
 Write down what each instrument cannot see, beside the instrument. A blind spot recorded once is a blind spot the next person does not have to rediscover with ninety edits.
 
+## Blind spot
+
+**A probe proves the check sees THAT defect, not the class.** One injected fault answers one question. Passing it licenses exactly the over-confidence this page exists to correct, one level up: an instrument shown to catch a shifted declaration may still be blind to a shifted declaration of a different type, in a different section, or under a different switch.
+
+**And choosing a representative fault needs the understanding you are missing.** The probe that settles a question is the one you can only design once you know roughly what the instrument does -- so the technique is sharpest where it is least needed, and weakest on an instrument nobody understands yet. Where that bites, inject the SIMPLEST fault rather than the most realistic one: a check that misses a one-line insertion will miss everything subtler.
+
 ## See also
 
 * [A measurement tool reads whatever is on disk, and a failed build leaves the last good answer there](../artefact-outlives-its-source/observation.md)

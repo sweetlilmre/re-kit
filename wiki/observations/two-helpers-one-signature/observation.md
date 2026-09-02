@@ -36,6 +36,12 @@ That is a real cost and worth weighing before assuming the assignment is right: 
 
 Any pair of runtime routines with the same signature and different guarantees has this property -- a checked and an unchecked variant, a signed and an unsigned one, a near and a far one. The operand that separates them is the one an unlinked comparison cannot see.
 
+## Blind spot
+
+**Every per-unit comparison is blind to this by construction, and that is not a defect in them.** The tell is a relocation target, and a unit comparison must forgive relocations because those bytes legitimately differ before linking. So the earliest instrument that can speak is the linked image -- which makes this the LAST thing to be caught, at the point where the most changes are in flight and attribution is hardest.
+
+**And the linked image says the targets differ, not which one is right.** Two calls with identical signatures and different runtime targets tell you a choice was made; deciding which of the two the original made is an argument from the source shape and the surrounding types, not a reading. Where both spellings are type-legal at the site, the image cannot arbitrate.
+
 ## See also
 
 * [One runtime call serves div and mod, and the call cannot tell you which](../one-helper-two-operators/observation.md)

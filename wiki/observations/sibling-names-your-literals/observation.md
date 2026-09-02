@@ -30,7 +30,7 @@ What survived was worth having: **22 hardware register numbers across 72 call si
 * **A literal in hand-written assembler**, where the author was writing bytes. Though not always: the sibling here used its named constant *inside* its own inline assembler, so the transcription follows it there too.
 * **And a literal the sibling also writes as a literal is not a finding.** One extended-command base was flagged, and the release writes the same bare `$11` in the same expression. The number staying a number is the transcription being faithful.
 
-## What the search has to ignore
+## Blind spot: what the search has to ignore
 
 Comments, strings and character codes, stripped before the search. A tree that records every variable's address in prose has hundreds of numbers in it, and leaving them in buries the real matches under commentary.
 

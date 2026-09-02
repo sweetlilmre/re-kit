@@ -44,6 +44,12 @@ This is one instance of a general hazard: **an instrument whose input is address
 
 In every case the observation is not an error but a *correct answer to a superseded question*, and that is what makes it survive review. Nothing looks wrong. The numbers are real. They are about a file nobody is thinking about any more.
 
+## Blind spot
+
+**Freshness by timestamp is the wrong instrument on this toolchain, and this guard uses it.** An emulated DOS writes timestamps that do not compare reliably against the host's, so the check can call a fresh build stale -- and a guard that cries wolf gets switched off, which returns you to the failure it was written for. Comparing what the build was MADE FROM is the sound form, and it costs more.
+
+**It only knows the sources it was told about.** A build also depends on a config, a generated include, a staged copy of a source rewritten on the way in. An artefact newer than every file the guard watches is not an artefact built from current inputs, and the guard cannot tell the difference.
+
 ## See also
 
 * [Every declared routine matches, and the rebuild still behaves differently](../verifier-blind-to-absence/observation.md)

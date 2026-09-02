@@ -93,6 +93,14 @@ The last row is the one worth generalising. Faced with a name it could not size,
 * **Trust the claim going forward even when it disagrees.** Resetting the cursor to what the comment says makes one bad address report once; computing forward from the correct value drags every later claim into the report and buries the second real error.
 * **Validate the checker against known-good input before believing its output**, and expect the first run to be mostly its own bugs.
 
+## Blind spot
+
+**A run of addresses copied forward together stays internally consistent, and this check is relative.** Consecutive claims are verified against each other, so a whole block carried from a previous version -- every address wrong by the same constant -- passes without a single disagreement. The blind spot is not a corner case here: on one corpus it described almost the entire body of claims, and what broke it open was an absolute anchor from the linker rather than any refinement of the relative rule.
+
+**A stated blind spot is a prediction about where the errors are.** Having written this one down, the cheapest next move is to go and look there.
+
+**And no rule pairs a mention with the wrong subject.** A note whose subject is one address and which then names a different variable cannot be paired by any pattern; the answer is not a cleverer rule but writing the subject next to its address.
+
 ## See also
 
 * [A name is a claim, and it should be no stronger than the evidence that produced it](../name-carries-its-evidence/observation.md)

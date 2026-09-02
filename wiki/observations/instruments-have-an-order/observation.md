@@ -32,6 +32,12 @@ When an upstream instrument starts working, **stop and re-ask everything that wa
 * When an instrument's own verdict changes -- especially from "cannot run" to a number -- re-run every other one before doing any new work.
 * Suspect a stalled measurement of being downstream of something else before suspecting the code it measures. The stalled unit above was correct the whole time.
 
+## Blind spot
+
+**The order is itself a claim, and a wrong one is self-confirming.** If an instrument is believed to be downstream of a broken one, its output is dismissed as noise -- including the part of it that was a real finding. That is the failure this page invites, and it is worse than the one it prevents: a defect explained away by a dependency is a defect nobody will look at again until the upstream tool comes right, and possibly not then.
+
+**Nothing here tells you the upstream instrument is actually broken**, only that it is upstream. An instrument that is fine and reporting an uncomfortable answer occupies the same position in the chain as one that is wrong.
+
 ## See also
 
 * [Two tools measure one thing and one number is lower](../two-tools-one-number/observation.md)

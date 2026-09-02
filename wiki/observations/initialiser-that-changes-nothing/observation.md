@@ -26,6 +26,12 @@ A ring buffer's consumer cursor starts at 1 in the original -- the image holds `
 
 Because the author edited the declaration list. A version that adds three variables usually adds them where they belong logically, not at the end -- so a reconstruction carried forward from the previous release has the old order and the new sizes, and every address after the insertion point is wrong by the same amount. That reads as one unit being the wrong size and is not.
 
+## Blind spot
+
+**The probe needs its value to be UNIQUE in the block.** Setting a constant to what the image already holds at the position you expect, and seeing nothing move, is only evidence of a misplaced declaration when the value was not already there. Where it was -- a zero, a common size, a repeated flag -- nothing moves for the opposite reason, and the two outcomes are identical.
+
+**It also assumes the build is otherwise unchanged.** Any edit that shifts the block for a different reason during the same rebuild makes the probe unreadable, so it is one probe per build, which is what makes it expensive rather than what makes it hard.
+
 ## See also
 
 * [The total balances and the layout is still wrong](../balanced-total-hides-order/observation.md)

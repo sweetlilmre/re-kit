@@ -36,7 +36,7 @@ Two rules make it work:
 * **Write the paths down first.** An entry document that names two or three reading orders is worth having for its own sake, and it also turns "read the docs" into a repeatable procedure with a beginning and an end.
 * **Suspect the files you have already finished.** Two of the three defects above were in files marked done, and one was introduced BY the documentation pass itself — the port map that misleads by omission did not exist before the pass that wrote it. **A documentation pass creates defects of exactly the kind it is looking for**, and finishing a file is the moment it becomes invisible.
 
-## And the count that measures the pass will lie
+## Blind spot: the count that measures the pass will lie
 
 The obvious progress measure — routines with no comment above them — went from 81 to 75 across a sweep that materially documented four subsystems. It counts every routine covered by a GROUP header as undocumented, so satisfying it means writing "sets the flag" above `Flag := f` scores of times.
 

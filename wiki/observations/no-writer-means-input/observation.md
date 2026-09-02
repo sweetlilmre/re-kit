@@ -39,6 +39,12 @@ Two other costs, both real here:
 * A vector, a callback pointer, or a procedural-type variable assigned only by an external installer behaves identically.
 * Inside a published structure, **a run of consecutive fields with no writer is a request block**, and identifying one member usually names the rest.
 
+## Blind spot
+
+**It needs the published structures to be known.** Subtracting a structure's base before concluding a field is vestigial only works for the structures somebody has already identified -- and an unidentified published structure produces exactly the evidence this page warns about, with nothing to subtract it against.
+
+**Some writers are not instructions.** A field set by an interrupt handler in another program, by a device writing into a shared buffer, or by the loader before the program runs, has no writing instruction anywhere in the image. The search returns the same empty result for those as for a field genuinely nothing sets, and the difference is not in the binary.
+
 ## See also
 
 * [A filler declaration records what you have not looked at, not what is not there](../filler-is-not-a-finding/observation.md)

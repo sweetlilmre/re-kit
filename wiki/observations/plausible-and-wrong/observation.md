@@ -45,6 +45,12 @@ The two locators answer different questions and neither is a better version of t
 
 Naming the rule also shrank the family. A fourth member of it turned out not to be a fourth instrument at all: it was the positional compare's shape carrying the window rule, so once the rule was something you passed in rather than something you wrote a program around, it stopped needing a program. **An instrument count is a claim about how many rules you have, and it is wrong in the same direction every time** -- a rule buried in a tool looks like a tool. [3]
 
+## Blind spot
+
+**Two rows are the two artefacts somebody has held.** A reader whose file is neither still gets an answer here: the nearer row will look close enough, and its density gate and its location strategy were both chosen for a different artefact -- which is the situation this page describes, reached through this page.
+
+The discriminator names what each artefact IS, and that is deliberate. The question *what produced this file* has a right answer for every artefact, where *which of these two is it more like* has a plausible answer for all of them.
+
 ## If you are not sure which you have
 
 Ask what produced the file, not what the number looks like. A plausible number is the failure mode here, so the number cannot referee. The two artefacts differ in one visible way -- a `.TPU` still holds unresolved references and a linked image does not -- which is the same discriminator as [A zero byte where the original has something else](../zero-byte-difference/observation.md).

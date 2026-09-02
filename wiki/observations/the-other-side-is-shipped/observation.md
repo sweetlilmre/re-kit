@@ -49,7 +49,7 @@ Before writing a filler for anything with an external consumer, search the whole
 
 Note what the search does NOT find, as well. In the same two trees there was no description whatever of two on-disk file formats the program loads, and the absence is a finding: it says those names must come from elsewhere, and it stops the search from being repeated.
 
-## Caveats
+## Blind spot
 
 * **A binding is a sibling artefact, not this binary.** It describes the interface as the author intended it. Where it disagrees with the instructions, the instructions win -- and the disagreement is itself worth recording.
 * **Check the version.** A binding for a later or earlier release may describe a layout the target does not have.

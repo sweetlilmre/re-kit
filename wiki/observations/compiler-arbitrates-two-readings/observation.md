@@ -29,6 +29,12 @@ Only one shape satisfies both: a LongInt assigned whole, narrowed with an explic
 
 Corollary: **a reading that fits the bytes at the site you are looking at is not confirmed.** Confirmation is the whole unit still matching after the declaration changes -- which is exactly what a use site seventy bytes away tests and the site itself cannot.
 
+## Blind spot
+
+**It needs the two readings to differ SOMEWHERE, and it cannot say when they do not.** Two declarations that emit identical bytes at every site are indistinguishable by construction, and building both returns two passes rather than an answer. That is a real outcome and it reads like an unfinished experiment: the honest conclusion is that the source shape is not recoverable from this evidence, which is worth recording rather than deciding on preference.
+
+**It arbitrates between the readings you thought of.** A third shape neither candidate covers is never tested, and both candidates failing looks like a transcription problem rather than a missing hypothesis.
+
 ## See also
 
 * [A compare tool's number is plausible, and it is wrong](../plausible-and-wrong/observation.md)

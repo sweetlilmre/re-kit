@@ -37,6 +37,12 @@ Get the layout comparison working, and treat a size disagreement in a unit whose
 
 Neither can be chased through the disassembly, because there is nothing there to chase. Reading the original's own bytes at the address is the only move.
 
+## Blind spot
+
+**A size comparison says the total is wrong, never which declaration is.** Reaching dead data at all means leaving the code-following instruments for one that measures the region as a whole, and that trades precision for coverage: it reports that the block is long or short by N bytes and leaves N unattributed.
+
+**And dead data of the RIGHT size is invisible even to that.** A declaration nothing reads, whose width happens to match what the original had there, agrees on every measurement available -- image, size, order -- while holding different bytes for a different purpose. The instruments can price the gap and cannot read the intent.
+
 ## See also
 
 * [Every declared routine matches, and the rebuild still behaves differently](../verifier-blind-to-absence/observation.md)

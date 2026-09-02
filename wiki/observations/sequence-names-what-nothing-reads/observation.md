@@ -33,7 +33,7 @@ Eleven declarations, every width matching in sequence with no slack anywhere. Fo
 
 **The dead ones were dead in the sibling too.** Each of `incr`, `NoteHzFreq`, `j` and `FBCount` occurs exactly once in the whole of the sibling's unit -- its own declaration. They are leftovers of an earlier version of the routine, and they were already leftovers when that source was written. That is not a coincidence to explain away; **it is why the technique was needed.** A variable that had a reader would have been named years ago by the ordinary method.
 
-## Why it is sound, and where it stops being sound
+## Blind spot: where it stops being sound
 
 The strength is that the match is *rigid*. A run of eleven declarations with no spare bytes has no freedom in it: get one width wrong and every field after it is displaced, and the mismatch is visible immediately. That is a much stronger constraint than naming one isolated field from a plausible-looking neighbour.
 

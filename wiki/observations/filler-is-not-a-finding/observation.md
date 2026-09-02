@@ -27,6 +27,12 @@ The pattern in all three: **a filler run immediately adjacent to a field that th
 * Prefer a filler with a stated WIDTH over one with a guessed name, and state in the note what would identify it -- "an instruction that names this address" is usually enough to make the search obvious later.
 * When the layout comparison comes out exact except for one run, look at the fillers before looking anywhere else.
 
+## Blind spot
+
+**`Filler` does not record whether anybody looked.** That is the defect this page is about, and it survives the fix: a run named after examination and a run named to move on are the same label. Adjacency to something new is a good prompt for re-reading, and it is a prompt rather than a test -- a field far from any recent change is exactly as unexamined and gets no signal at all.
+
+**A filler that is genuinely padding is indistinguishable from one that is not, by construction.** Both are bytes nothing references. The only thing that ever separates them is an instruction found later, so the honest state of a filler is *not yet explained* rather than *explained as padding*, and a naming convention that cannot express the difference will keep converting the first into the second.
+
 ## See also
 
 * [A typed constant nothing reads is invisible to every comparison that follows an instruction](../dead-data-has-no-witness/observation.md)

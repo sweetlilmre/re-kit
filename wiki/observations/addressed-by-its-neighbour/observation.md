@@ -44,6 +44,12 @@ Three equal, adjacent, suspiciously round quantities are an argument on their ow
 * **Is the size equal to a neighbour's size?** Two adjacent blocks of the same length usually means two of the same thing.
 * **Count the stack switches against the re-entrancy guards.** They come in pairs. This program grew a second guard in the version under reconstruction, and the second guard existed because a second routine needed a second stack — the guard was documented years before the stack it implied was found.
 
+## Blind spot
+
+**The arithmetic inherits the neighbour's size.** This finds a block by reading the symbol above it and subtracting, so it is only as good as the declaration it counts back from. A neighbour whose own size is wrong yields a block boundary that is wrong by exactly that amount -- and it will look measured, because it was computed rather than guessed.
+
+**And a downward walk does not prove a stack.** Anything filled from a top pointer downwards presents the same evidence: a buffer written backwards, a heap that grows down, a decompressor's output window. What the technique establishes is that the region is REACHED from above, which is weaker than what it is tempting to conclude, and the difference matters when naming it.
+
 ## See also
 
 * [An uninitialised variable has no witness anywhere, and link order is the only thing that brackets it](../link-order-brackets-the-unanchored/observation.md)

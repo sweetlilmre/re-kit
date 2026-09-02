@@ -50,6 +50,12 @@ Two corollaries worth stating:
 * **Do not name a large unread region field by field.** A 768-byte published control block with three unread stretches got three fillers, not thirty invented names -- inventing them would put guesses into precisely the part other programs depend on. Fillers there are the accurate record.
 * **A name derived from an address is a placeholder and should look like one.** `Rut_0bc6` is ugly on purpose: it cannot be mistaken for a finding, and it sorts every remaining unknown together.
 
+## Blind spot
+
+**Recording the provenance does not make the name right.** A writer and a reader together are the strongest evidence available here and they are still an inference: they establish what the byte is USED for, and a name asserts what it IS. A counter incremented and tested is unmistakably a counter and could be counting anything.
+
+**And an imported name carries evidence this cannot grade.** Where a name comes from a sibling implementation or a published specification, its authority is the source's rather than the measurement's -- worth more than a guess and not comparable with a writer/reader pair. The declaration can say where it came from; nothing here ranks the two.
+
 ## See also
 
 * [A field nothing in the image writes is an input, not a switch that was never wired up](../no-writer-means-input/observation.md)

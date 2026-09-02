@@ -58,3 +58,9 @@ and both give the same frame arithmetic. So a note recording the entry sequence,
 When several spellings of one statement have each been measured and each failed, the constraint is probably not in the statement. **Look up one level, at the declaration the statement depends on** -- a parameter's passing mode, a field's type, a variable's scope. Those change what the compiler is *able* to do, where a re-spelling only changes what it is asked to do.
 
 The evidence for this case had already been collected on another part of the same target, where a routine taking `var O : TObj` did exactly the sought-after thing -- one load feeding three adds -- and had been fixed days earlier without the general fact being drawn out of it. **Two instances of the same shape are worth comparing before either is re-derived.**
+## Blind spot
+
+**The distinction rests on register allocation, and a switch can move it.** The shared load is the compiler choosing to keep an address live across adjacent statements; that choice is not part of the language and a different switch line -- or a different Borland release -- can spend the register elsewhere and emit the re-loads anyway. So a run of re-loads is weaker evidence than a shared load: one shape rules a pointer out, the other does not rule it in.
+
+**And a single mention proves nothing either way.** The whole tell is what happens ACROSS adjacent statements naming the same thing. A parameter used once has no run to read, so the frame is the only remaining evidence and the declaration stays open.
+

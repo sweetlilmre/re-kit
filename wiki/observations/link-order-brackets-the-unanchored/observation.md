@@ -50,6 +50,12 @@ So the addresses were **left as they were and marked**, with the reasoning writt
 * **Look for a structural invariant when no instrument reaches a value.** Ordering, adjacency and containment are cheap, they need no build, and they are enough to detect an error even when they cannot repair it.
 * **Say "stale, and I cannot compute the right one" in the source.** The alternative is not honesty deferred; it is a wrong number that keeps its authority.
 
+## Blind spot
+
+**A bracket refutes, it does not locate.** An address falling outside the bracket is shown to be wrong; one falling inside is shown only to be not-yet-refuted, and every address in a unit's range satisfies the same test. This detects a stale claim without producing a replacement, which is the honest limit and also the reason it is worth running -- but a run of nine claims all inside their brackets is not nine confirmations.
+
+**And the bracket is another instrument's output.** It is only as sound as the link order it is built from, so a wrong link order yields brackets that are confidently placed and wrong together -- the same failure mode as the relative address check this complements, one level up.
+
 ## See also
 
 * [The addresses written in comments are the only claims nothing checks](../comments-are-unchecked-claims/observation.md)

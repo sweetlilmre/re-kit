@@ -44,6 +44,12 @@ Before concluding a sibling's record is misaligned:
 
 An implementation that ran is stronger evidence than a specification for anything it actually reads, and weaker for everything it skips. Both statements matter: the fields a sibling names are the ones it consumed, and the fields it leaves as `fill1` are the ones only a document can name. A correct alignment lets you take each half from the right source, and a wrong one costs you the choice entirely.
 
+## Blind spot
+
+**It detects a misalignment, not a wrong meaning.** A record that lines up on every field after the aliases are resolved has been shown to have the right SHAPE. Nothing here shows the fields mean what their names say -- a sibling implementation can have the widths right and the semantics drifted, and this method reports that as a clean match.
+
+**Resolution needs the alias to be reachable.** Where the sibling's type comes from a unit you do not have, the width cannot be resolved at all -- and the method cannot then distinguish *unresolvable* from *wrong*, which is the state that produced the original error. An unreachable alias should stop the comparison rather than default to an assumed width.
+
 ## See also
 
 * [A name is a claim, and it should be no stronger than the evidence that produced it](../name-carries-its-evidence/observation.md)
