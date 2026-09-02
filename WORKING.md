@@ -277,6 +277,14 @@ inherits them on day one.
 
   So, positively: **give a scan its pattern as a plain argument or out of a file, ask it to print what it matched on when the answer matters, and confirm any surprising split with a tool that answers by a different route.** Re-running the same command more carefully returns the same wrong answer forever. The general form is in the wiki as `destroyed-pattern-matches-everything`.
 
+- **A shell reports the exit status of the LAST command in a pipeline, not of the one you care about.** `tool | tail -1` exits with `tail`'s status, which is 0 whether the tool passed or failed. So a loop that runs each check, pipes it through `tail` to show a summary line, and reads the status afterwards reports every check as passing.
+
+  Measured on 2 Sep 2026: a close-out ran thirteen checks that way and reported *0 non-zero exits*. One of them was exiting 1 throughout, and the whole check list was declared clean on that basis. **The output lines were true and the verdict was invented** -- which is why it survived a read-through: every printed summary said zero problems, because the failing tool's complaint was on a line `tail -1` had discarded.
+
+  So, positively: **read the status of the tool, not of the pipe.** Capture it into a variable on the line that runs the tool, before anything else touches it, and print the summary separately -- or run the tool twice, once for its output and once for its status, which is cheap for a check and needs no shell subtlety at all.
+
+  It is the same disease as this section's other entries, one level out: the apparatus answered instead of the subject. When a whole list of checks passes for the first time in a session, suspect the runner before believing the run.
+
 - **Something in this environment has twice multiplied every line break in a markdown file** -- 91% blank lines in one document, 58% in another. The cause was never found. `tools/repairdoc.py` in a host repo diagnoses and repairs it, and proves content preservation before writing.
 
 **Two of these have mechanisms rather than warnings, which is the only thing that has ever stopped a blind spot recurring**: an encoding auditor that PARSES rather than pattern-matches -- a line-based regex reported 32 sites of which 16 were artefacts while missing 4 real ones -- and a linter that refuses non-ASCII bytes in a DOS source.
