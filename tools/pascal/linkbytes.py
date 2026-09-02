@@ -132,7 +132,15 @@ def main(argv):
 
     first = project.get("target.first_para")
     orig = load_image((root / project.get("target.image")).read_bytes())
-    text = (build / "VTMAIN.MAP").read_text() if (build / "VTMAIN.MAP").exists() else None
+    # The map's name is `link.toml`'s `map_file`, which dgroup.py and mapcmp.py
+    # both read from there. This tool held its own copy of the value, which is a
+    # second copy of one answer -- and the copy named one target's map, so the
+    # tool was silently mapless in any other project.
+    named = cfg.get("map_file")
+    mapfile = (root / named) if named else None
+    if mapfile is not None and not mapfile.exists():
+        mapfile = build / named.replace(chr(92), '/').rsplit('/', 1)[-1]
+    text = mapfile.read_text() if mapfile is not None and mapfile.exists() else None
     exe = exe_path = None
     for p in build.glob("*.EXE"):
         exe_path = p

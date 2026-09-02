@@ -60,8 +60,14 @@ def uses_graph(src, unitname):
     return g
 
 
-def predict(g, root='DEMOVT'):
-    """Reverse DFS post-order. `grey` is what makes a back edge a no-op."""
+def predict(g, root):
+    """Reverse DFS post-order. `grey` is what makes a back edge a no-op.
+
+    `root` is the main program unit and is REQUIRED. It used to default to one
+    target's, and the single caller never passed it -- so the default was not a
+    fallback, it was the value, and this tool answered a documented question
+    wrongly in any project that was not that one.
+    """
     finished, grey, order = set(), set(), []
 
     def walk(u):
@@ -105,9 +111,18 @@ def read_link(path):
     """
     with io.open(path, "rb") as fh:
         cfg = tomllib.load(fh)
+    main_unit = cfg.get("main_unit")
+    if not main_unit:
+        raise SystemExit(
+            "%s does not answer `main_unit` -- the program unit the dependency\n"
+            "walk starts from. It was a default parameter in this tool naming one\n"
+            "target's main program, and the only caller never passed it, so the\n"
+            "default was always the answer. Add it as a top-level key."
+            % path)
     return (cfg["unitname"],
             set(cfg["lists"]["noseg"]),
-            [s["name"] for s in cfg["segments"]])
+            [s["name"] for s in cfg["segments"]],
+            main_unit)
 
 
 def main(argv=()):
@@ -115,7 +130,7 @@ def main(argv=()):
     if not args:
         sys.stdout.write("usage: linkorder.py LINK.toml" + chr(10))
         return 2
-    unitname, noseg, order = read_link(args[0])
+    unitname, noseg, order, main_unit = read_link(args[0])
     try:
         src = project.path("layout.src")
     except project.Missing as exc:
@@ -135,7 +150,7 @@ def main(argv=()):
 
     print()
     print("=== PREDICTED order vs the ORIGINAL'S ===")
-    ours = [u for u in predict(g) if u not in noseg]
+    ours = [u for u in predict(g, main_unit) if u not in noseg]
     print("%-4s %-16s %-16s" % ("", "predicted", "original"))
     for i in range(max(len(ours), len(order))):
         a = ours[i] if i < len(ours) else ''
