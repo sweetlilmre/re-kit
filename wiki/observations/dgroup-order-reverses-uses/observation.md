@@ -76,6 +76,18 @@ DGROUP is built by allocating each unit's data as the linker walks its list of u
 
 Three byte-searches and a sort. No disassembly.
 
+## Three examples, and what each one adds
+
+They are not three tellings of the same case. **Each shows the shift's SIZE pointing at the wrong kind of defect**, which is the lesson the section above states and the reason all three are kept:
+
+| | what the number looked like | what it was |
+|---|---|---|
+| first | three units located in exactly reversed order | the order itself, read directly |
+| second | a shift of `+4`, small enough to read as one misplaced block | two typed constants, in a region where 5,182 of 11,648 bytes differed |
+| third | a shift of `-26018`, big enough to read as a unit in the wrong place | not a placement problem at all |
+
+A reader who has recognised their own case can stop at it.
+
 ## Example
 
 Part 003 of a 1994 megademo has ten code segments and three units carrying generated typed constants. Located by content, those three came out as Sprite, Morph, Tunnel where the shipped binary has Tunnel, Morph, Sprite -- an exact reversal.

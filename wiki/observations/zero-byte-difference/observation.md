@@ -36,3 +36,9 @@ A rule phrased as "forgive zeros" silently assumes the first case. That assumpti
 ## If you are not sure which you have
 
 Check what produced the file, not what the bytes look like. The bytes cannot tell you: `0x00` is a legal value everywhere, and it means something different in each case.
+
+## Blind spot
+
+**A discriminator enumerates the artefacts somebody has held, and a reader holding a fourth one still gets an answer.** Three rows are three cases that came up; nothing here reports that a file is none of them. The nearest row will look close enough -- a library member, a packed image, an object from a different assembler -- and the reader inherits a rule chosen for a different point in the linking process, which is the exact failure this page exists to prevent, arriving through the page itself.
+
+So the question above is worth taking literally. *What produced this file* has a right answer for every artefact; *which of these three is it most like* has a plausible answer for all of them.
