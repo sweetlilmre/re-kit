@@ -140,11 +140,14 @@ def main(argv):
     mapfile = (root / named) if named else None
     if mapfile is not None and not mapfile.exists():
         mapfile = build / named.replace(chr(92), '/').rsplit('/', 1)[-1]
-    text = mapfile.read_text() if mapfile is not None and mapfile.exists() else None
+    text = (mapfile.read_text(encoding='ascii', errors='replace')
+            if mapfile is not None and mapfile.exists() else None)
     exe = exe_path = None
     for p in build.glob("*.EXE"):
         exe_path = p
-        exe, text = load_image(p.read_bytes()), text or (p.with_suffix(".MAP")).read_text()
+        exe, text = (load_image(p.read_bytes()),
+                     text or p.with_suffix(".MAP").read_text(encoding='ascii',
+                                                             errors='replace'))
     if exe is None or text is None:
         raise SystemExit("need a linked .EXE and its .MAP in %s -- build with /GD" % build)
     project.fresh(exe_path)
