@@ -101,7 +101,17 @@ def ladder(orig, ours, win=12):
 
 def main(argv=()):
     verbose = '-v' in argv
-    args = [a for a in argv if not a.startswith('-')]
+    # project.positionals, NOT the naive filter this used. Adding a flag that
+    # carries a value to `[a for a in argv if not a.startswith('-')]` puts the
+    # VALUE in the positionals -- `--part 003` would have made "003" the config
+    # path. That is the bug project.positionals was written for, recorded in
+    # its own docstring from ratchet.py reading "76" as the register's name.
+    args = project.positionals(argv, ("--part",))
+    part = next((argv[i + 1] for i, a in enumerate(argv)
+                 if a == "--part" and i + 1 < len(argv)), None)
+    if part is None:
+        part = next((a.split("=", 1)[1] for a in argv
+                     if a.startswith("--part=")), None)
     if not args:
         sys.stdout.write("usage: dgroup.py LINK.toml [-v]" + chr(10))
         return 2
@@ -111,7 +121,10 @@ def main(argv=()):
     with io.open(args[0], 'rb') as fh:
         link = tomllib.load(fh)
     try:
-        image = project.path("target.image")
+        # One image, so one part. This tool is narrow twice over -- the
+        # map and the segment cap below still come from a one-target
+        # config -- so resolving the image is necessary and not enough.
+        image = project.original(part)
         first = project.get("target.first_para", quiet=True)
     except project.Missing as exc:
         return project.complain(exc)

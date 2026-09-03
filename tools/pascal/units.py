@@ -148,7 +148,7 @@ def measure(orig, image, mask=frozenset()):
 
 def main(argv):
     args = project.positionals(argv[1:], ("--only", "--build", "--original",
-                                          "--sources"))
+                                          "--sources", "--part"))
 
     def opt(name, default=None):
         flag = "--" + name
@@ -167,7 +167,11 @@ def main(argv):
         # it is passed through rather than second-guessed.
         products = (pathlib.Path(opt("build")) if opt("build")
                     else project.products(build))
-        original = opt("original") or project.path("target.image")
+        # BOTH through the resolver rather than `or`: an explicit
+        # --original wins there, and putting that rule in one place
+        # keeps it beside the reasoning for it. --part names which
+        # original where the project has more than one.
+        original = project.original(opt("part"), opt("original"))
         first = project.get("target.first_para", quiet=True)
     except project.Missing as exc:
         return project.complain(exc)

@@ -103,7 +103,8 @@ def constant_pair(a_bytes, b_bytes, i, lo):
 
 
 def main(argv):
-    args = project.positionals(argv[1:], ("--only", "--build", "--original"))
+    args = project.positionals(argv[1:], ("--only", "--build", "--original",
+                                          "--part"))
     verbose = "-v" in argv or "--verbose" in argv
 
     def opt(name, default=None):
@@ -117,7 +118,11 @@ def main(argv):
         cfg = tomllib.load(fh)
     try:
         build = pathlib.Path(opt("build") or project.path("layout.build"))
-        original = opt("original") or project.path("target.image")
+        # BOTH through the resolver rather than `or`: an explicit
+        # --original wins there, and putting that rule in one place
+        # keeps it beside the reasoning for it. --part names which
+        # original where the project has more than one.
+        original = project.original(opt("part"), opt("original"))
         first = project.get("target.first_para", quiet=True)
     except project.Missing as exc:
         return project.complain(exc)

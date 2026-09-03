@@ -131,7 +131,11 @@ def main(argv):
             at = int(argv[i + 1], 0)
 
     first = project.get("target.first_para")
-    orig = load_image((root / project.get("target.image")).read_bytes())
+    # Which original is a question a multi-part project answers with a
+    # part; `target.image` could not be answered there at all.
+    part = next((argv[i + 1] for i, a in enumerate(argv)
+                 if a == "--part" and i + 1 < len(argv)), None)
+    orig = load_image(project.original(part).read_bytes())
     # The map's name is `link.toml`'s `map_file`, which dgroup.py and mapcmp.py
     # both read from there. This tool held its own copy of the value, which is a
     # second copy of one answer -- and the copy named one target's map, so the

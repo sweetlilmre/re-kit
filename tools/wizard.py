@@ -417,26 +417,29 @@ def propose(root):
               "which file is the measurement target -- the original you are "
               "rebuilding -- and which three-digit part do its @asm markers "
               "carry? The answer is a [target.original] table keyed by that "
-              "part; target.image is derived from a one-row table, so a "
-              "single-original project states the path once",
+              "part. Every instrument reads this map; there is no "
+              "single-image key, so one original states its path in a "
+              "one-row table",
               '{ "000" = "ref/YOUR-ORIGINAL.bin" }')
     elif len(images) > 2 and not any(c[2] == ROLE for c in images):
         # Several candidates and nothing calling any of them the target: this is
         # very likely a project with SEVERAL originals, which wants a map.
-        p.rows = [r for r in p.rows if r[0] != "target.image"]
-        p.ask("target.image",
+        p.ask("target.original",
               "%d candidate originals and no script calls any of them the "
-              "target -- is this one image, or several? Several want a "
-              "[target.original] map keyed by part, not one value."
+              "target. The answer is a [target.original] map keyed by the "
+              "three-digit part each one's @asm markers carry -- one row per "
+              "original. This is the shape the kit's instruments read; there "
+              "is no single-image key to fall back on."
               % len(images), None)
     else:
         # ONE ORIGINAL, AND THE MAP IS STILL THE ANSWER TO WRITE. Four
         # instruments read `target.original` -- emit, routines, rtl and x87 --
         # and this program mentioned it only for a project with several
         # numbered parts, so a single-image project was told about the narrow
-        # key and never about the general one. `target.image` then DERIVES from
-        # a one-row map (see project.derive), so proposing both would be
-        # proposing one path twice.
+        # key and never about the general one. `target.image` has since been
+        # retired outright: it asked "the original", which a project with
+        # several cannot answer, so there is one key rather than two and no
+        # derivation between them.
         #
         # ASKED, not offered, because the part number is a decision even when
         # it carries no information: a marker's part field is three digits
@@ -448,9 +451,13 @@ def propose(root):
         p.ask("target.original",
               "one original (%s) -- which three-digit part do its @asm markers "
               "carry? The answer is a [target.original] table keyed by that "
-              "part, and target.image is derived from it, so the path is "
-              "stated once" % winner,
+              "part -- one row, and the path is stated once" % winner,
               '{ "000" = "%s" }' % winner)
+    # NO BRANCH WRITES `target.image`, and this is what makes that true
+    # rather than a property of three branches each remembering. The key was
+    # retired: it asked "the original", which a project with nine of them
+    # cannot answer, and every instrument reads `target.original` now.
+    p.rows = [r for r in p.rows if r[0] != "target.image"]
     return p, adopting
 
 
