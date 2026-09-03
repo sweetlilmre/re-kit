@@ -183,7 +183,7 @@ def score(a, b):
 
 
 def report(part, spec, orig, mine, raw_mine, first):
-    segs = list(spec["segments"]) + [spec["end_at"]]
+    segs = project.seg_bounds(spec)
     ours = our_segments(raw_mine)
 
     # SCORED AGAINST OUR SEGMENT STARTS, not searched for freely. An earlier

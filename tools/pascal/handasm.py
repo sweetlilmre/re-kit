@@ -439,8 +439,8 @@ def expectations(cfg, spec_of, blob_of, first, min_ops=MIN_OPS):
         seg_s, off_s = addr.split(":")
         seg, off = int(seg_s, 16), int(off_s, 16)
         spec = spec_of(part)
-        bounds = list(spec["segments"]) + [spec["end_at"]]
-        k = spec["segments"].index(seg)
+        bounds = project.seg_bounds(spec)
+        k = project.seg_addrs(spec).index(seg)
         code = prologue.segment(blob_of(part), seg, bounds[k + 1], first)
         rows = [r for r in routines(code) if r[0] == off]
         if not rows:
@@ -531,8 +531,8 @@ def main(argv):
         seg_s, off_s = at_spec.split(":")
         seg, off = int(seg_s, 16), int(off_s, 16)
         spec = spec_of(part)
-        bounds = list(spec["segments"]) + [spec["end_at"]]
-        k = spec["segments"].index(seg)
+        bounds = project.seg_bounds(spec)
+        k = project.seg_addrs(spec).index(seg)
         code = prologue.segment(blob_of(part), seg, bounds[k + 1], first)
         rows = [r for r in routines(code) if r[0] == off]
         if not rows:
@@ -559,9 +559,9 @@ def main(argv):
         if spec is None:
             print("no segments recorded for part %s" % part)
             continue
-        bounds = list(spec["segments"]) + [spec["end_at"]]
+        bounds = project.seg_bounds(spec)
         print("part %s" % part)
-        for k, seg in enumerate(spec["segments"]):
+        for k, seg in enumerate(project.seg_addrs(spec)):
             if want_seg is not None and seg != want_seg:
                 continue
             code = prologue.segment(blob_of(part), seg, bounds[k + 1], first)

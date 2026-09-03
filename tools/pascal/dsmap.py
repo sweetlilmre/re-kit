@@ -103,7 +103,7 @@ def main(argv):
     oi, _ = align.load_image((root / rel[part]).read_bytes())
     mi, _ = align.load_image((built / spec["exe"]).read_bytes())
     md = disasm.decoder()
-    segs = list(spec["segments"]) + [spec["end_at"]]
+    segs = project.seg_bounds(spec)
 
     pairs, unpaired, ambiguous = [], 0, 0
     for k in range(len(segs) - 1):

@@ -31,7 +31,7 @@ tot = collections.Counter()
 for part in sys.argv[2:] or list(cfg["part"]):
     spec = cfg["part"][part]
     orig, _ = align.load_image((root / rel[part]).read_bytes())
-    segs = list(spec["segments"])
+    segs = project.seg_addrs(spec)
     got = subprocess.run([sys.executable, str(pathlib.Path(__file__).resolve().parent / "spans.py"),
                           CFG, part, "--min=1"],
                          capture_output=True, text=True, encoding="utf-8")

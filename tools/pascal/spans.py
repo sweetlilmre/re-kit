@@ -85,10 +85,10 @@ def elsewhere(chunk, own_exe, images):
 def part_report(part, spec, blob, ours, images, min_span, same):
     hdr = int.from_bytes(blob[8:10], "little") * 16
     first = project.get("target.first_para", quiet=True)
-    bounds = list(spec["segments"]) + [spec["end_at"]]
+    bounds = project.seg_bounds(spec)
     total = matched_total = 0
     found = []
-    for k, seg in enumerate(spec["segments"]):
+    for k, seg in enumerate(project.seg_addrs(spec)):
         base = hdr + (seg - first) * 16
         size = (bounds[k + 1] - seg) * 16
         data = blob[base:base + size]

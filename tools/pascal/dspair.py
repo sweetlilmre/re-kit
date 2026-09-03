@@ -148,7 +148,7 @@ def main(argv):
 
     md = Cs(CS_ARCH_X86, CS_MODE_16)
     md.detail = True
-    segs = list(spec["segments"])
+    segs = project.seg_addrs(spec)
     pairs = collections.Counter()
     for k, s in enumerate(segs):
         if only is not None and s != only:

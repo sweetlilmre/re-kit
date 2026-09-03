@@ -287,6 +287,48 @@ def paths(key, override=None, start=None, quiet=False):
             for v in value]
 
 
+def segments(spec):
+    """[(paragraph, name)] for one part's user segments, in ascending order.
+
+    The list is the ORIGINAL's layout, and it is complete and ordered because
+    each segment's extent is the NEXT entry's base -- so a length table beside
+    it would be a second copy of one measurement.
+
+    THE PROGRAM SEGMENT IS NOT IN IT. It emits no unit, so a per-unit table has
+    nothing to say about it, and `progseg.py` measures it separately as a table
+    of every unit's entry-point offsets. Three of one target's ten parts used to
+    include it and seven did not, which made their walk totals non-comparable:
+    one part's 8,496 bytes were 6,864 of program segment that another instrument
+    was already measuring byte-for-byte.
+    """
+    return [(s["segment"], s["name"]) for s in spec["segments"]]
+
+
+def seg_addrs(spec):
+    """Just the segment paragraphs, ascending, without the closing bound.
+
+    `seg_bounds` is this plus `end_at`. Both exist because a caller either
+    walks the segments (this) or needs each one's extent (that), and asking
+    which by hand is what put the shape of the answer in twenty call sites.
+    """
+    return [s["segment"] for s in spec["segments"]]
+
+
+def seg_bounds(spec):
+    """Every segment's base, then `end_at` -- the bounds list, computed once.
+
+    Nine instruments wrote `list(spec["segments"]) + [spec["end_at"]]` by hand.
+    Nine copies of an idiom is nine places that assume the shape of the answer,
+    and this file exists so that assumption lives in one place.
+
+    `end_at` closes the list so the LAST segment's length is computable. It is
+    named for what every reader does with it -- the final bound -- and not for
+    what happens to sit at that address, which in one target is where Borland's
+    runtime begins and in another is where DGROUP starts.
+    """
+    return [s["segment"] for s in spec["segments"]] + [spec["end_at"]]
+
+
 def positionals(argv, valued=()):
     """The real positional arguments: not a flag, and not a FLAG'S VALUE.
 

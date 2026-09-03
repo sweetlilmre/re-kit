@@ -294,19 +294,19 @@ def main(argv):
     if ours is None:
         print("  %s is not built -- reporting the original only" % spec["exe"])
 
-    bounds = list(spec["segments"]) + [spec["end_at"]]
+    bounds = project.seg_bounds(spec)
     print("part %s vs %s" % (part, spec["exe"]))
 
     if len(args) > 2:
         seg_s, rng = args[2].split(":")
         seg = int(seg_s, 16)
         a_s, b_s = rng.split("..")
-        k = spec["segments"].index(seg)
+        k = project.seg_addrs(spec).index(seg)
         code = segment(blob, seg, bounds[k + 1], first)
         report_routine(part, seg, int(a_s, 16), int(b_s, 16), code)
         return 0
 
-    for k, seg in enumerate(spec["segments"]):
+    for k, seg in enumerate(project.seg_addrs(spec)):
         if want_seg is not None and seg != want_seg:
             continue
         code = segment(blob, seg, bounds[k + 1], first)
