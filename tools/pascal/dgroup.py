@@ -107,13 +107,10 @@ def main(argv=()):
     # path. That is the bug project.positionals was written for, recorded in
     # its own docstring from ratchet.py reading "76" as the register's name.
     args = project.positionals(argv, ("--part",))
-    part = next((argv[i + 1] for i, a in enumerate(argv)
-                 if a == "--part" and i + 1 < len(argv)), None)
-    if part is None:
-        part = next((a.split("=", 1)[1] for a in argv
-                     if a.startswith("--part=")), None)
+    part = project.option(argv, "part")
     if not args:
-        sys.stdout.write("usage: dgroup.py LINK.toml [-v]" + chr(10))
+        sys.stdout.write("usage: dgroup.py LINK.toml [--part NNN] [-v]"
+                         + chr(10))
         return 2
     root = pathlib.Path(args[0]).resolve().parent
     while not (root / 'kit.toml').exists() and root != root.parent:
@@ -121,14 +118,18 @@ def main(argv=()):
     with io.open(args[0], 'rb') as fh:
         link = tomllib.load(fh)
     try:
-        # One image, so one part. This tool is narrow twice over -- the
-        # map and the segment cap below still come from a one-target
-        # config -- so resolving the image is necessary and not enough.
+        # One image, one map, one boundary -- so one part, resolved once.
+        # This tool used to be narrow THREE times over: it took the image
+        # from a single-target answer and the map and the segment cap from
+        # top-level keys, so naming a part fixed one third of the question
+        # and left the other two pointing at whichever target the config
+        # happened to describe.
         image = project.original(part)
         first = project.get("target.first_para", quiet=True)
+        spec = project.layout(link, part)
     except project.Missing as exc:
         return project.complain(exc)
-    mapfile = root / link['map_file']
+    mapfile = root / spec['map']
     if not mapfile.exists():
         sys.stdout.write("  no %s -- build with the map switch first%s"
                          % (mapfile, chr(10)))
@@ -136,7 +137,7 @@ def main(argv=()):
     # DGROUP is the last segment in the image, so the boundary the other
     # instruments call `end_at` is where it starts.
     project.fresh(mapfile.with_suffix('.EXE'))
-    orig, ours = (orig_image(image, link['end_at'], first),
+    orig, ours = (orig_image(image, spec['end_at'], first),
                   our_image(mapfile, mapfile.with_suffix('.EXE')))
     print("initialised DGROUP:  ours %d bytes, original %d -- %+d" % (
         len(ours), len(orig), len(ours) - len(orig)))

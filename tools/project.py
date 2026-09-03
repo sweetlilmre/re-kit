@@ -414,9 +414,17 @@ def option(argv, name, default=None):
     different things depending on which instrument you ran, which is the defect
     this module exists to end. One reader, named for the question it answers.
     """
+    flag = "--" + name.lstrip("-")
     for i, a in enumerate(argv):
-        if a == "--" + name.lstrip("-") and i + 1 < len(argv):
+        if a == flag and i + 1 < len(argv):
             return argv[i + 1]
+        # BOTH SPELLINGS, because one tool already took `--part=003` and
+        # the others only took `--part 003`. The same argument meaning
+        # different things depending on which instrument you ran is the
+        # defect a shared reader exists to prevent, so it learns the form
+        # rather than each caller learning it separately.
+        if a.startswith(flag + "="):
+            return a.split("=", 1)[1]
     return default
 
 
