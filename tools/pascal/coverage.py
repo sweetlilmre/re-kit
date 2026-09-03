@@ -48,7 +48,22 @@ except project.Missing as exc:
     raise SystemExit(project.complain(exc) and 2)
 
 # every segment and its size, from the layout document -- authoritative on it
-txt = (ROOT / LINK['layout']).read_text(encoding='utf-8', errors='replace')
+# THE DENOMINATOR IS A DOCUMENT, and this said KeyError when a project had
+# not written one -- in one consumer the key was absent, in another it named
+# a file that did not exist. Both are "this project cannot be measured yet",
+# which is an answer, and a traceback is not a way to give it.
+named = LINK.get('layout')
+if not named:
+    raise SystemExit(
+        "  %s does not say `layout` -- the document listing every segment"
+        " and its size, which is this measurement's denominator. Without"
+        " it there is no total to be a fraction of." % args[0])
+doc = ROOT / named
+if not doc.is_file():
+    raise SystemExit(
+        "  %s names `layout` = %s, and no such file exists. The"
+        " denominator has to be read from somewhere." % (args[0], named))
+txt = doc.read_text(encoding='utf-8', errors='replace')
 seg = {int(m.group(1), 16): int(m.group(2))
        for m in re.finditer(r'^\| `([0-9a-f]{4})` \| (\d+) \|', txt, re.M)}
 
