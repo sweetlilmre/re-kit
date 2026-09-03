@@ -74,7 +74,15 @@ REQUIRED = {
 
 ROLE = "named as a role by a script"
 NAMED, CONVENTION, SHAPE = "named by a script", "conventional name", "shape only"
-STRENGTH = {ROLE: 4, NAMED: 3, CONVENTION: 2, SHAPE: 1}
+
+# WEAKER THAN SHAPE, because a derived tree has the same shape as the tree it
+# was derived from -- that is what makes it derived. A build directory holds
+# staged copies of the sources and a clean copy holds regenerated ones, so
+# "holds .PAS files" is true of all three and cannot separate them. Ranked
+# below SHAPE rather than dropped: a project whose sources really do live in a
+# directory named this way still gets an answer, just last.
+DERIVED = "shape only, and it looks like a derived copy"
+STRENGTH = {ROLE: 4, NAMED: 3, CONVENTION: 2, SHAPE: 1, DERIVED: 0}
 
 # A variable whose NAME says what the path is FOR. This is the project telling
 # you the role, which is the one thing a directory listing never does -- and it
@@ -245,6 +253,68 @@ def dirs_with(root, suffixes):
             yield d
 
 
+def selects(root, have, key, mine, theirs):
+    """True/False if both values are FILE SELECTORS that can be resolved.
+
+    A selector can be spelled as a literal list or as a glob, and the two
+    spellings can pick exactly the same file. Compared as text they never
+    match: `['VTMAIN.EXE']` against `VTMAIN*.EXE` was reported as a
+    disagreement in two consumers, in both of which the glob selects that one
+    file and nothing else.
+
+    That is not the wizard being wrong, and scoring it as a miss buries the
+    disagreements that ARE real -- which is the whole value of this check.
+    So the comparison is on what each selects. Returns None when the
+    directory to resolve against is unknown, and the caller falls back to
+    comparing text, because a selector nothing can expand is just a string.
+    """
+    if not key.endswith("_pattern") or mine is None or theirs is None:
+        return None
+    where = have.get("layout.built") or have.get("layout.build")
+    if not where or not (root / where).is_dir():
+        return None
+
+    def hits(v):
+        out = set()
+        for pat in (v if isinstance(v, list) else [v]):
+            out |= {q.name for q in (root / where).glob(str(pat))}
+        return out
+
+    a, b = hits(mine), hits(theirs)
+    return None if not (a or b) else a == b
+
+
+def derived_copy(rel, siblings):
+    """Why `rel` looks like a copy of another candidate, or "".
+
+    Three shapes, all measured in real consumers rather than imagined:
+
+      * a BUILD or staging directory, which holds the sources copied in to
+        be compiled -- one consumer has 29 .PAS in `src` and the same 29 in
+        `build`, so counting files cannot separate them either;
+      * a CLEAN copy, `x-clean` or `clean-x` beside `x` -- a regenerable
+        documentation tree that is never hand-edited, so proposing it as the
+        source root points every instrument at a file the next regeneration
+        overwrites;
+      * a PROBE directory of compiler test programs, which is Pascal that
+        was never part of the target.
+
+    Naming rather than content, deliberately. Content cannot decide it: a
+    staged copy is byte-identical to its original, which is the point of
+    staging. What separates them is what the project CALLS them.
+    """
+    name = rel.rsplit("/", 1)[-1].lower()
+    if name.startswith("build") or name in ("out", "stage", "staging"):
+        return "a build or staging directory holds the sources it compiles"
+    for other in siblings:
+        o = other.rsplit("/", 1)[-1].lower()
+        if o != name and name in (o + "-clean", "clean-" + o):
+            return "looks like a regenerated copy of %s" % other
+    if name in ("probe", "probes"):
+        return "compiler probes are Pascal the target never contained"
+    return ""
+
+
 def propose(root):
     p = Proposal()
     scripts = project_scripts(root)
@@ -253,6 +323,8 @@ def propose(root):
     adopting = bool(scripts)
 
     # --- the sources ----------------------------------------------------
+    candidates = {d.relative_to(root).as_posix() or "."
+                  for d in dirs_with(root, {".PAS"})}
     for d in dirs_with(root, {".PAS"}):
         rel = d.relative_to(root).as_posix() or "."
         who = named_by(said, rel)
@@ -264,7 +336,11 @@ def propose(root):
             p.offer("layout.src", rel, NAMED,
                     "named by " + ", ".join(who[:3]), len(who))
         else:
-            p.offer("layout.src", rel, SHAPE, "holds .PAS files")
+            why = derived_copy(rel, candidates)
+            if why:
+                p.offer("layout.src", rel, DERIVED, why)
+            else:
+                p.offer("layout.src", rel, SHAPE, "holds .PAS files")
 
     # --- conventional names the kit itself defined ----------------------
     if (root / "status.toml").is_file():
@@ -353,11 +429,25 @@ def propose(root):
 
     # --- the shared-assembler exemptions, genuinely optional -------------
     src = p.best("layout.src")
-    for cand in root.rglob("*exempt*"):
-        if cand.is_file() and not set(cand.parts) & SKIP_DIRS:
-            p.offer("layout.exempt", cand.relative_to(root).as_posix(),
-                    CONVENTION, "its name says exempt")
-            break
+    # EVERY MATCH, NOT THE FIRST. This broke on the first hit, and rglob walks
+    # alphabetically -- so in a project holding both `clean-src/shared-exempt`
+    # and `src/shared-exempt`, the regenerated copy won on sort order alone.
+    # Pointing an exempt list at a derived tree puts edits in a file the next
+    # regeneration overwrites.
+    for cand in sorted(root.rglob("*exempt*")):
+        if not (cand.is_file() and not set(cand.parts) & SKIP_DIRS):
+            continue
+        rel = cand.relative_to(root).as_posix()
+        holder = rel.rsplit("/", 1)[0] if "/" in rel else "."
+        why = derived_copy(holder, candidates)
+        if why:
+            p.offer("layout.exempt", rel, DERIVED,
+                    "its name says exempt, but %s" % why)
+        elif src and holder == src[1]:
+            p.offer("layout.exempt", rel, NAMED,
+                    "its name says exempt, and it sits in the source root")
+        else:
+            p.offer("layout.exempt", rel, CONVENTION, "its name says exempt")
 
     # THE RETIREMENT CENSUS IS GONE and its two proposals went with it. Worth
     # noting how they survived it: this file DERIVES its question list from the
@@ -554,7 +644,10 @@ def main(argv):
                 print("  %-18s %-28s asked, not guessed" % (key, str(theirs)[:28]))
                 continue
             judged += 1
-            if isinstance(mine, list) or isinstance(theirs, list):
+            picked = selects(root, have, key, mine, theirs)
+            if picked is not None:
+                ok = picked
+            elif isinstance(mine, list) or isinstance(theirs, list):
                 ok = sorted(mine or []) == sorted(theirs or [])
             else:
                 ok = str(mine) == str(theirs)
