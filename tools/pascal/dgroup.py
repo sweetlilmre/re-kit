@@ -134,10 +134,25 @@ def main(argv=()):
         sys.stdout.write("  no %s -- build with the map switch first%s"
                          % (mapfile, chr(10)))
         return 2
-    # DGROUP is the last segment in the image, so the boundary the other
-    # instruments call `end_at` is where it starts.
+    # WHERE DGROUP STARTS IS ITS OWN FACT, not the segment walk's bound.
+    # This read `end_at`, and the two coincide only when the segment list
+    # happens to include the runtime library. One target lists its RTL
+    # segments, so its bound lands AFTER them, which is where DGROUP
+    # begins; another deliberately excludes them, so the same key lands
+    # BEFORE the runtime and this measured the RTL as part of DGROUP --
+    # every part short by exactly the runtime's size, and every printed
+    # figure plausible.
     project.fresh(mapfile.with_suffix('.EXE'))
-    orig, ours = (orig_image(image, spec['end_at'], first),
+    dg = spec.get('dgroup_at')
+    if dg is None:
+        sys.stdout.write(
+            "  this part does not say `dgroup_at` -- the paragraph its"
+            " DGROUP begins at. It is not the same fact as `end_at`,"
+            " which closes the segment walk, and the two are equal only"
+            " when the segment list includes the runtime library."
+            + chr(10))
+        return 2
+    orig, ours = (orig_image(image, dg, first),
                   our_image(mapfile, mapfile.with_suffix('.EXE')))
     print("initialised DGROUP:  ours %d bytes, original %d -- %+d" % (
         len(ours), len(orig), len(ours) - len(orig)))
