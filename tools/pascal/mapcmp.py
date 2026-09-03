@@ -34,7 +34,7 @@ except ModuleNotFoundError:                       # pragma: no cover -- 3.11+
 
 
 
-def read_link(path):
+def read_link(path, part=None):
     """The original's segment list, its RTL set, and where the last one ends.
 
     All three were constants here. The segment list was ALSO a constant in the
@@ -44,8 +44,14 @@ def read_link(path):
     """
     with io.open(path, "rb") as fh:
         cfg = tomllib.load(fh)
-    segs = [(s["segment"], s["name"]) for s in cfg["segments"]]
-    return segs, set(cfg["lists"]["rtl"]), cfg["end_at"]
+    # THE LAYOUT IS PER PART. These three sat at the top level, which answers
+    # "the layout" -- a question a nine-part project cannot answer any more
+    # than it could answer "the image". The RTL unit names stay top-level:
+    # they do not change from one part to the next, and moving them would
+    # multiply one fact by the number of parts.
+    spec = project.layout(cfg, part)
+    return (project.segments(spec), set(cfg["lists"]["rtl"]),
+            spec["end_at"], spec["map"])
 
 
 def orig_lengths(segs, end_at):
@@ -74,16 +80,25 @@ def map_lengths(path):
 
 
 def main(argv=()):
-    args = [a for a in argv if not a.startswith('-')]
+    # project.positionals, not the naive filter: `--part 000` would put
+    # "000" among the positionals, which is the bug that parser exists for.
+    args = project.positionals(argv, ("--part",))
     if not args:
         sys.stdout.write("usage: mapcmp.py LINK.toml" + "\n")
         return 2
-    segs, rtl, end_at = read_link(args[0])
+    part = project.option(argv, "part")
+    try:
+        segs, rtl, end_at, mapname = read_link(args[0], part)
+    except project.Missing as exc:
+        return project.complain(exc)
     root = pathlib.Path(args[0]).resolve().parent
     while not (root / 'kit.toml').exists() and root != root.parent:
         root = root.parent
-    with io.open(args[0], 'rb') as fh:
-        mp = root / tomllib.load(fh)['map_file']
+    # ONE LOAD OF THE CONFIG. This opened it a second time for `map_file`
+    # alone, so the map and the layout came from two reads of one file -- and
+    # the second read still asked for a top-level key after the first had
+    # moved to a part table.
+    mp = root / mapname
     if not mp.exists():
         sys.stdout.write("  no %s -- build with the linker map switch first"
                          % mp + "\n")

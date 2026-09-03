@@ -102,36 +102,47 @@ def check_constraints(g, order, noseg):
     return bad
 
 
-def read_link(path):
-    """The unit-name map, the no-segment set and the original's order.
+def read_link(path, part=None):
+    """The unit-name map, the no-segment set, one part's order and its program.
 
-    All three were constants. The order was ALSO a constant in the map-length
+    All four were constants. The order was ALSO a constant in the map-length
     tool, as (segment, name) pairs, and the two had drifted -- see link.toml's
     header for what that cost. One list, read by both.
+
+    `unitname` and `noseg` are project-wide and stay at the top level: an
+    abbreviation and a unit that emits no segment do not change from one part
+    to the next. The ORDER and the MAIN UNIT are per-part, so they come from
+    `[part.*]` -- each part of a multi-part target is its own program, with its
+    own segment order and its own unit to walk from.
     """
+    # tomllib, not project.load: that one reads the KIT's answers file from a
+    # start directory and returns (answers, provenance). It is not a reader
+    # for an arbitrary config path, and its name invites exactly that.
     with io.open(path, "rb") as fh:
         cfg = tomllib.load(fh)
-    main_unit = cfg.get("main_unit")
+    spec = project.layout(cfg, part)
+    main_unit = spec.get("main_unit")
     if not main_unit:
-        raise SystemExit(
-            "%s does not answer `main_unit` -- the program unit the dependency\n"
-            "walk starts from. It was a default parameter in this tool naming one\n"
-            "target's main program, and the only caller never passed it, so the\n"
-            "default was always the answer. Add it as a top-level key."
-            % path)
+        raise project.Missing(
+            "this part does not answer `main_unit` -- the program unit "
+            "the dependency walk starts from. It was a default parameter "
+            "in this tool naming one target's main program, and the only "
+            "caller never passed it, so the default was always the "
+            "answer. Add it to the part's table, beside its map and its "
+            "segments.")
     return (cfg["unitname"],
             set(cfg["lists"]["noseg"]),
-            [s["name"] for s in cfg["segments"]],
+            [name for _, name in project.segments(spec)],
             main_unit)
 
 
 def main(argv=()):
-    args = [a for a in argv if not a.startswith('-')]
+    args = project.positionals(argv, ("--part",))
     if not args:
-        sys.stdout.write("usage: linkorder.py LINK.toml" + chr(10))
+        sys.stdout.write("usage: linkorder.py LINK.toml [--part NNN]" + chr(10))
         return 2
-    unitname, noseg, order, main_unit = read_link(args[0])
     try:
+        unitname, noseg, order, main_unit = read_link(args[0], project.option(argv, "part"))
         src = project.path("layout.src")
     except project.Missing as exc:
         return project.complain(exc)

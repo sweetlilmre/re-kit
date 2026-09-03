@@ -287,6 +287,54 @@ def paths(key, override=None, start=None, quiet=False):
             for v in value]
 
 
+def layout(cfg, part=None, quiet=False):
+    """One part's layout table: its map, its segments and its closing bound.
+
+    THE TOP LEVEL WAS THE NARROWING. A config that answers `map_file`,
+    `end_at` and `segments` beside each other answers them for ONE target, and
+    six instruments read them that way -- so none of them could run against a
+    project with nine parts, nine maps and nine segment lists. Not for want of
+    an argument: for want of a shape the facts could fit.
+
+    Resolution matches `original()`, deliberately, because a reader who has
+    learnt one should not have to learn the other:
+
+      * A NAMED PART is looked up in `[part.*]`. A missing row refuses and
+        lists the parts that exist.
+      * NO PART and exactly ONE row uses that row, so a single-target project
+        needs no argument anywhere.
+      * NO PART and SEVERAL rows REFUSES. Picking a part for an instrument is
+        how the wrong original gets measured against while the answer still
+        looks right.
+
+    There is no fallback to top-level keys, and that is the point rather than
+    an omission. A reader that accepted both shapes would leave both in the
+    configs, which is the state this change exists to end -- and it would hide
+    the difference instead of resolving it.
+    """
+    parts = cfg.get("part")
+    if not isinstance(parts, dict) or not parts:
+        raise Missing(
+            "this config has no [part.*] table -- the layout of one part is "
+            "its map, its segments and its end_at, and a project states one "
+            "table per part even when it has a single part")
+    known = ", ".join(sorted(parts))
+    if part is None:
+        if len(parts) != 1:
+            raise Missing("this config answers %d parts, so `the layout` has "
+                          "no answer -- name one of: %s" % (len(parts), known))
+        part = next(iter(parts))
+    else:
+        part = str(part)
+        if part not in parts:
+            raise Missing("this config has no layout for part %s -- it "
+                          "answers: %s" % (part, known))
+    if not quiet:
+        sys.stdout.write("  using    layout = part %s  (%d part(s) in this "
+                         "config)\n" % (part, len(parts)))
+    return parts[part]
+
+
 def segments(spec):
     """[(paragraph, name)] for one part's user segments, in ascending order.
 
@@ -352,6 +400,24 @@ def positionals(argv, valued=()):
             continue
         out.append(a)
     return out
+
+
+def option(argv, name, default=None):
+    """A flag's VALUE: `--part 003` gives "003". The other half of positionals.
+
+    `positionals` names the valued flags so it can SKIP their values, which is
+    what stops `--coverage 76` being read as a filename. But it throws the value
+    away, so a caller that wants it had to scan argv by hand -- and the scan
+    was already written twice, differently, in two tools that take `--part`.
+
+    Two tools reading one flag two ways is how the same argument comes to mean
+    different things depending on which instrument you ran, which is the defect
+    this module exists to end. One reader, named for the question it answers.
+    """
+    for i, a in enumerate(argv):
+        if a == "--" + name.lstrip("-") and i + 1 < len(argv):
+            return argv[i + 1]
+    return default
 
 
 def complain(exc):
