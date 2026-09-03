@@ -78,8 +78,24 @@ def map_segments(text):
 
 
 def map_dgroup(text):
-    """The paragraph DGROUP was linked at, read from any public data symbol."""
-    m = re.search(r'([0-9A-Fa-f]{4}):[0-9A-Fa-f]{4}\s+\w+', text)
+    """DGROUP's BYTE offset in our load image, off the map's DATA segment line.
+
+    IT USED TO TAKE THE FIRST `SEGM:OFFS symbol` MATCH IN THE FILE, which is
+    the first public symbol of whatever segment happens to come first --
+    code, in every map here. Its docstring said "any public data symbol"
+    and the pattern had no way to tell data from code, so it returned a
+    code paragraph, which the caller then multiplied by 16 and read as an
+    offset into the data group.
+
+    Nobody saw it because the caller raised first, on a config key no
+    consumer answered. One defect masking another is why a mode that has
+    never run is worth more than a glance when it starts running.
+
+    The segment table is the authority, and dgroup.py reads the same line
+    for the same purpose.
+    """
+    m = re.search(r'^\s*([0-9A-F]+)H\s+[0-9A-F]+H\s+[0-9A-F]+H\s+DATA\s+DATA\s*$',
+                  text, re.M)
     return int(m.group(1), 16) if m else None
 
 
@@ -150,8 +166,20 @@ def main(argv):
         mapfile = build / named.replace(chr(92), '/').rsplit('/', 1)[-1]
     text = (mapfile.read_text(encoding='ascii', errors='replace')
             if mapfile is not None and mapfile.exists() else None)
+    # OUR ARTEFACT SITS BESIDE THE PART'S MAP, which is how dgroup.py finds
+    # it. This globbed the build directory for *.EXE and kept the LAST
+    # match, with no break and no check -- arbitrary the moment a build
+    # emits more than one, and empty in a project whose artefacts land in a
+    # subdirectory of the staging root, which is where a nine-part build
+    # puts all thirty-four of them.
     exe = exe_path = None
-    for p in build.glob("*.EXE"):
+    cand = mapfile.with_suffix(".EXE") if mapfile is not None else None
+    if cand is not None and cand.exists():
+        exe_path = cand
+        exe = load_image(cand.read_bytes())
+        text = text or cand.with_suffix(".MAP").read_text(encoding='ascii',
+                                                          errors='replace')
+    for p in (() if exe is not None else build.glob("*.EXE")):
         exe_path = p
         exe, text = (load_image(p.read_bytes()),
                      text or p.with_suffix(".MAP").read_text(encoding='ascii',
@@ -161,11 +189,25 @@ def main(argv):
     project.fresh(exe_path)
 
     if at is not None:
-        od = (project.get("target.dgroup_para", quiet=True) or 0) * 16
+        # THE ORIGINAL'S DGROUP COMES FROM THE PART TABLE. This asked
+        # kit.toml for `target.dgroup_para`, which no consumer answers, so
+        # the mode raised on every project it shipped with -- and the `or 0`
+        # beside it would have measured from the image start had the lookup
+        # ever returned, which is a wrong answer where a refusal belongs.
+        # It is a per-part fact and the part table states it.
+        dg = spec.get("dgroup_at")
+        if dg is None:
+            raise SystemExit(
+                "  this part does not say `dgroup_at` -- the paragraph the"
+                " ORIGINAL's DGROUP begins at. Ours is read from the map;"
+                " the original's cannot be, so it is stated.")
+        od = (dg - first) * 16
         ug = map_dgroup(text)
         if ug is None:
             raise SystemExit("the map names no data symbol -- cannot locate DGROUP")
-        ud = ug * 16
+        # ug is already a byte offset -- it was a paragraph, and multiplying
+        # it here was the second half of the same defect.
+        ud = ug
         print("original DGROUP +%04x: %s" % (at, orig[od + at:od + at + 32].hex()))
         print("ours     DGROUP +%04x: %s" % (at, exe[ud + at:ud + at + 32].hex()))
         return 0
