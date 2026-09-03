@@ -118,7 +118,7 @@ def enclosing_call(buf, at):
 
 
 def report(part, spec, blob, ours, first):
-    segs = list(spec["segs"])
+    segs = list(spec["segments"])
     hi = segs[0] if segs[0] > first else segs[1]
     size = (hi - first) * 16
     a = blob[:size]
@@ -157,7 +157,7 @@ def report(part, spec, blob, ours, first):
 
 
 def localise(part, spec, blob, ours, first, seg):
-    segs = list(spec["segs"]) + [spec["rtl"]]
+    segs = list(spec["segments"]) + [spec["end_at"]]
     if seg not in segs:
         print("segment %04x is not among part %s's segments" % (seg, part))
         return 2

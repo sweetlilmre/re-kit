@@ -183,7 +183,7 @@ def score(a, b):
 
 
 def report(part, spec, orig, mine, raw_mine, first):
-    segs = list(spec["segs"]) + [spec["rtl"]]
+    segs = list(spec["segments"]) + [spec["end_at"]]
     ours = our_segments(raw_mine)
 
     # SCORED AGAINST OUR SEGMENT STARTS, not searched for freely. An earlier

@@ -58,7 +58,7 @@ def main(argv):
         (root / project.get("target.release", quiet=True)[part]).read_bytes())
     mine, _ = align.load_image(
         (root / project.get("layout.built", quiet=True) / spec["exe"]).read_bytes())
-    segs = sorted(set(list(spec["segs"]) + [spec["rtl"]]))
+    segs = sorted(set(list(spec["segments"]) + [spec["end_at"]]))
     md = disasm.decoder()
     rc = 0
 

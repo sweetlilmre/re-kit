@@ -143,7 +143,7 @@ def main(argv):
         spec = cfg["part"][part]
         orig, _ = align.load_image((root / rel[part]).read_bytes())
         mine, _ = align.load_image((built / spec["exe"]).read_bytes())
-        segs = list(spec["segs"]) + [spec["rtl"]]
+        segs = list(spec["segments"]) + [spec["end_at"]]
 
         per, user = collections.Counter(), 0
         for m in TRAP.finditer(orig):

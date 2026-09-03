@@ -31,7 +31,7 @@ tot = collections.Counter()
 for part in sys.argv[2:] or list(cfg["part"]):
     spec = cfg["part"][part]
     orig, _ = align.load_image((root / rel[part]).read_bytes())
-    segs = list(spec["segs"])
+    segs = list(spec["segments"])
     got = subprocess.run([sys.executable, str(pathlib.Path(__file__).resolve().parent / "spans.py"),
                           CFG, part, "--min=1"],
                          capture_output=True, text=True, encoding="utf-8")
@@ -42,7 +42,7 @@ for part in sys.argv[2:] or list(cfg["part"]):
             per["outside the segment list"] += n; continue
         i = segs.index(seg)
         b = (seg - first) * 16
-        size = ((segs[i+1] if i+1 < len(segs) else spec["rtl"]) - seg) * 16
+        size = ((segs[i+1] if i+1 < len(segs) else spec["end_at"]) - seg) * 16
         data = orig[b:b + size]
         # decode linearly and find the instruction containing `lo`
         # DECODE-FREE: is there a 9A close enough behind that this span falls

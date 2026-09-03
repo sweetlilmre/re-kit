@@ -148,13 +148,13 @@ def main(argv):
 
     md = Cs(CS_ARCH_X86, CS_MODE_16)
     md.detail = True
-    segs = list(spec["segs"])
+    segs = list(spec["segments"])
     pairs = collections.Counter()
     for k, s in enumerate(segs):
         if only is not None and s != only:
             continue
         lo = (s - first) * 16
-        hi = ((segs[k + 1] if k + 1 < len(segs) else spec["rtl"]) - first) * 16
+        hi = ((segs[k + 1] if k + 1 < len(segs) else spec["end_at"]) - first) * 16
         da, db = scan(md, A, lo, hi, bp), scan(md, B, lo, hi, bp)
         for at, theirs in da.items():
             ours = db.get(at)

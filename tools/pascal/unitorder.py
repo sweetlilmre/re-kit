@@ -79,7 +79,7 @@ def main(argv):
                   % (part, mp))
             unread += 1
             continue
-        segs = list(spec["segs"]) + [spec["rtl"]]
+        segs = list(spec["segments"]) + [spec["end_at"]]
         want = [(segs[i + 1] - segs[i]) * 16 for i in range(len(segs) - 1)]
 
         # THE PROGRAM'S OWN SEGMENT IS NOT A UNIT, and it has to come off BOTH
@@ -96,7 +96,7 @@ def main(argv):
         # `want` only when the config's segment list starts at the load image's
         # first paragraph.
         first = project.get("target.first_para", quiet=True) or 0x1000
-        if spec["segs"][0] == first:
+        if spec["segments"][0] == first:
             want = want[1:]
         ours = [(n, s) for n, s in lengths_from_map(mp)
                 if n != "System"
