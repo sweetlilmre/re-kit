@@ -126,6 +126,18 @@ def record(status, key, ours, original, compare):
     return None
 
 
+# What a passing row CLAIMS, which is not the same for every mode. The
+# docstring above argues this; printing it is what stops two rows that read
+# the same from meaning different things.
+CLAIMS = {
+    "file": None,                       # every byte: the claim needs no caveat
+    "load-image": "the loaded bytes match; the appended tail is not compared",
+    "image": "the program bytes match; the MZ header is not compared, so this "
+             "says nothing about the entry point, the stack, the minimum "
+             "allocation or where a relocation points",
+}
+
+
 def check(status):
     rows = status.get("artefact", {})
     if not rows:
@@ -146,6 +158,12 @@ def check(status):
             sys.stdout.write("  %-8s %-10s %s == %s  R7 holds\n"
                              % (key, row["compare"], row["ours"],
                                 row["original"]))
+            caveat = CLAIMS.get(row["compare"])
+            if caveat:
+                sys.stdout.write("  %-8s %-10s %s\n" % ("", "", caveat))
+            if row.get("note"):
+                sys.stdout.write("  %-8s %-10s note: %s\n"
+                                 % ("", "", row["note"]))
         else:
             failures += 1
             sys.stdout.write(
