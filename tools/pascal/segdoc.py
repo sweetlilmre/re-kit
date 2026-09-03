@@ -48,42 +48,53 @@ def rows(spec):
             for (para, name), nxt in zip(named, bounds[1:])]
 
 
-def data_row(spec, part):
-    """(paragraph, bytes) for the DATA segment past `end_at`, or None.
+def tail_rows(spec, part):
+    """The rows past the segment list: the runtime, then the data group.
 
-    THE LAST SEGMENT HAS NO NEXT ONE, so its size is the only one the
-    segment list cannot give: `end_at` closes the table and nothing closes
-    `end_at`. The image does -- everything after that paragraph IS the data
-    group, because it is linked last.
+    TWO REGIONS, NOT ONE, AND WHICH IS WHICH DEPENDS ON THE SEGMENT LIST.
+    `end_at` closes the list and `dgroup_at` is where the data group starts,
+    and the gap between them is the runtime library. A target that lists its
+    runtime segments has no gap -- the two are equal and there is one row.
+    A target that excludes them, because the runtime is not its to
+    transcribe, has a gap the size of the whole runtime.
 
-    Left out, the denominator silently omits it: one consumer reported the
-    segment excluded at `0 bytes` while the hand-written document it
-    replaced gave the same segment 3,184.
+    Calling the whole tail "the data group" is wrong in the second case by
+    exactly that much: 15,936 bytes attributed to data in one part of a
+    nine-part target, of which 15,184 are Borland's runtime.
     """
     try:
         image = project.original(part, quiet=True)
         first = project.get("target.first_para", quiet=True)
     except project.Missing:
-        return None
+        return []
     raw = pathlib.Path(image).read_bytes()
     hdr = int.from_bytes(raw[8:10], "little") * 16
-    tail = len(raw) - hdr - (spec["end_at"] - first) * 16
-    return (spec["end_at"], tail) if tail > 0 else None
+    size = len(raw) - hdr
+    end, dg = spec["end_at"], spec.get("dgroup_at", spec["end_at"])
+    out = []
+    if dg > end:
+        out.append((end, (dg - end) * 16,
+                    "the runtime library -- not this target's to transcribe"))
+    tail = size - (dg - first) * 16
+    if tail > 0:
+        out.append((dg, tail,
+                    "the data group -- linked last, so it is the image's tail"))
+    return out
 
 
 def table(spec, part=None, cfg='LINK.toml', out='OUT.md'):
     r = rows(spec)
-    dr = data_row(spec, part)
+    extra = tail_rows(spec, part)
     howto = HOWTO % (cfg, out, '' if part is None else ' --part ' + part)
     out = ["## Segments", "",
            "%d segments, %d bytes%s."
            % (len(r), sum(b for _, b, _ in r),
-              "" if dr is None else ", then the data group at `%04x`, "
-                                   "%d bytes" % dr),
+              "".join(", then %s at `%04x`, %d bytes"
+                      % (w.split(" --")[0], p_, b) for p_, b, w in extra)),
            "", BANNER, howto, "", "| seg | bytes | what |", "|---|---:|---|"]
     out += ["| `%04x` | %d | **%s** |" % (p, b, n.title()) for p, b, n in r]
-    if dr is not None:
-        out.append("| `%04x` | %d | **the data group** -- linked last, so it is the image's tail |" % dr)
+    out += ["| `%04x` | %d | **%s |" % (p_, b, w.replace(" --", "** --", 1))
+            for p_, b, w in extra]
     return chr(10).join(out) + chr(10)
 
 

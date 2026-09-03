@@ -75,7 +75,18 @@ def map_lengths(path):
         m = re.match(r'\s*([0-9A-F]+)H\s+([0-9A-F]+)H\s+([0-9A-F]+)H\s+(\S+)\s+CODE\s*$',
                      line)
         if m:
-            out[m.group(4)] = int(m.group(3), 16)
+            # KEYED UPPER, because the caller's names come from a config and
+            # these come from a linker map, which spells a unit the way its
+            # source declared it. Pascal identifiers are case-insensitive, so
+            # two units differing only in case cannot both exist and folding
+            # the case cannot collide -- it is the correct comparison, not a
+            # convenience.
+            #
+            # Keyed verbatim, a target whose map says `Crt` and whose config
+            # says CRT reported ABSENT -- nothing references this unit, for
+            # three units that were present in both. It went unseen because
+            # the first consumer's map and config happened to agree on case.
+            out[m.group(4).upper()] = int(m.group(3), 16)
     return out
 
 
@@ -110,7 +121,7 @@ def main(argv=()):
         if not name:
             continue
         o = orig[name]
-        n = ours.get(name)
+        n = ours.get(name.upper())
         if n is None:
             rows.append((o, name, None, o, 'ABSENT -- nothing references this unit'))
             continue
