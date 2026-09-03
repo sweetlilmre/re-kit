@@ -1,7 +1,7 @@
 """Repair a markdown document whose line breaks have been multiplied.
 
-    python tools/repairdoc.py docs/README.md            report, change nothing
-    python tools/repairdoc.py docs/README.md --write     apply the repair
+    python kit/tools/repairdoc.py docs/README.md            report, change nothing
+    python kit/tools/repairdoc.py docs/README.md --write     apply the repair
 
 WHAT THE DAMAGE IS. Some tool in this environment has, on at least two
 occasions, rewritten a markdown file with every line break multiplied -- and

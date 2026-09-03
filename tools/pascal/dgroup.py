@@ -22,8 +22,9 @@ offset is a variable in the wrong place, and the shift is how far out its unit i
 block found NOWHERE is data the original has not got -- or ours holding a different
 value, which is a transcription question rather than a layout one.
 
-    python v1.31b/dgroup.py            the summary
-    python v1.31b/dgroup.py -v         every block
+    python kit/tools/pascal/dgroup.py LINK.toml               the summary
+    python kit/tools/pascal/dgroup.py LINK.toml -v            every block
+    python kit/tools/pascal/dgroup.py SPANS.toml --part 003   one part of many
 """
 import re
 import struct

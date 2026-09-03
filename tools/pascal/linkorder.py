@@ -21,7 +21,8 @@ finding about the original's source rather than about our order. Back edges are 
 a cycle's back edge is skipped by the DFS, which is why SongUnit finishes AFTER the two
 loader units it uses.
 
-    python v1.31b/linkorder.py            check the constraints and diff the order
+    python kit/tools/pascal/linkorder.py LINK.toml             constraints, then the order
+    python kit/tools/pascal/linkorder.py SPANS.toml --part 003  one part of many
 """
 import io
 import re

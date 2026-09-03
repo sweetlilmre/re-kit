@@ -26,7 +26,7 @@ error, because the compiler reports them somewhere other than where they are.
 
 Run it before reaching for the compiler:
 
-    python tools/paslint.py
+    python kit/tools/pascal/paslint.py
 """
 import re
 import sys

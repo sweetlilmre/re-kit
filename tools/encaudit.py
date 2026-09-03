@@ -1,7 +1,7 @@
 """Find text I/O that relies on the locale encoding instead of stating one.
 
-    python tools/encaudit.py                   audit this repo's tools
-    python tools/encaudit.py <dir> [<dir>...]  audit somewhere else
+    python kit/tools/encaudit.py                   audit this repo's tools
+    python kit/tools/encaudit.py <dir> [<dir>...]  audit somewhere else
 
 Exit status is 1 when anything is found, so it can gate a build.
 

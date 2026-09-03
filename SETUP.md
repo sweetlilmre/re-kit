@@ -70,9 +70,9 @@ evidence, and let the person decide. **Do not answer a question the report asked
 `--check` on a project whose right answers are already known. Measured on 3 Sep
 2026, across three consumers:
 
-    psycho   6 of 6    0 disagreements
-    v1.31b   6 of 6    0 disagreements
-    v1.51    6 of 6    0 disagreements
+    the multi-part target       6 of 6    0 disagreements
+    the one-target consumer     6 of 6    0 disagreements
+    its later version           6 of 6    0 disagreements
 
 **What the denominator is, because it moves.** It counts only keys the wizard
 actually proposes a value for. Two categories are deliberately outside it: a key

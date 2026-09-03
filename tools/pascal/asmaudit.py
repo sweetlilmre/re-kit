@@ -14,8 +14,8 @@ so a unit passing this is not the same as a unit that has been audited.
 Reporting only: it never fails a build. Parts 001, 002 and 004-007 have not
 been swept yet and are expected to show up here.
 
-    python tools/asmaudit.py            every unit
-    python tools/asmaudit.py PART3      only names containing PART3
+    python kit/tools/pascal/asmaudit.py            every unit
+    python kit/tools/pascal/asmaudit.py PART3      only names containing PART3
 """
 import pathlib
 import re

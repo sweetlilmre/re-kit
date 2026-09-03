@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 r"""Pack an MZ executable the way LZEXE 0.91 did, and compare against the original.
 
-    python lzpack.py EXE PACKED            pack EXE, compare against PACKED
-    python lzpack.py EXE PACKED --out F    ...and keep the result
-    python lzpack.py --tokens FILE         dump any LZ91 file's token stream
-    python lzpack.py --selftest PATH ...   re-compress every LZ91 file under PATH
+    python kit/tools/substrate/lzpack.py EXE PACKED            pack EXE, compare against PACKED
+    python kit/tools/substrate/lzpack.py EXE PACKED --out F    ...and keep the result
+    python kit/tools/substrate/lzpack.py --tokens FILE         dump any LZ91 file's token stream
+    python kit/tools/substrate/lzpack.py --selftest PATH ...   re-compress every LZ91 file under PATH
                                            (files or directories), to show the
                                            encoder is not fitted to one sample
 
