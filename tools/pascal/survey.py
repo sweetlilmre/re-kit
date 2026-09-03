@@ -174,4 +174,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main() returns 2 on a usage error and on a missing answer, and those
+    # were being discarded -- the process exited 0 whatever happened, so a
+    # session reading the status of this tool could never see it fail.
+    sys.exit(main() or 0)
