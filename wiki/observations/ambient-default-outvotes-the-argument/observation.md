@@ -2,7 +2,7 @@
 type: Observation
 title: A tool that takes one fact by argument and another from the environment measures a chimera
 description: Point an instrument at another target's config and it obeys the argument for the fact you passed and the ambient environment for every fact you did not. The two halves then describe different targets, and the result is not an error but a plausible number. Measured in one toolkit -- six instruments, two different conventions for finding the project root, and one that reported 1 of 30 positions agree when the honest answer was that the question was incoherent.
-tags: [tooling, verification, measurement, blind-spot, configuration]
+tags: [tooling, verification, measurement, blind-spot, method]
 measured_on: one reverse-engineering toolkit, six instruments across three targets
 timestamp: 2026-09-03T00:00:00Z
 ---
