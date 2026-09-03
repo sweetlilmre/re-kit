@@ -82,6 +82,21 @@ class Marker(object):
                                  " +%d" % self.span if self.span else "")
 
 
+def textlines(path):
+    """A DOS source's lines, with the line ending removed.
+
+    `splitlines()` rather than a split on one character: these files are CRLF
+    by the project's own convention, and splitting on the line feed leaves a
+    carriage return at the end of every line. bodies() compared whole lines
+    against "asm" and "end;", so on a CRLF tree -- which is every tree that
+    follows the convention -- neither comparison could be true and it returned
+    nothing for a unit full of assembler. The one consumer where it worked has
+    LF sources. Both readers here use this, so they cannot disagree about what
+    a line is.
+    """
+    return io.open(path, encoding="ascii", newline="").read().splitlines()
+
+
 def read(src, pattern="*.PAS"):
     """Every marker in a tree, in source order.
 
@@ -92,7 +107,7 @@ def read(src, pattern="*.PAS"):
     """
     out, bad = [], []
     for path in sorted(pathlib.Path(src).glob(pattern)):
-        lines = io.open(path, encoding="ascii", newline="").read().split("\n")
+        lines = textlines(path)
         for i, line in enumerate(lines):
             m = MARKER.search(line)
             if not m:
@@ -131,7 +146,7 @@ def bodies(src, pattern="*.PAS"):
     """
     out = {}
     for path in sorted(pathlib.Path(src).glob(pattern)):
-        lines = io.open(path, encoding="ascii", newline="").read().split("\n")
+        lines = textlines(path)
         impl = {}
         for j, line in enumerate(lines):
             h = HEADER.match(line)

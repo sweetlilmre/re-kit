@@ -126,13 +126,18 @@ def implementations(lines):
             continue
         k = j + 1
         while k < len(lines) and not HEADER.match(lines[k]):
-            if lines[k] == "asm":
+            # rstrip, because a CRLF source leaves a carriage return on every
+            # line and "asm" + CR is not "asm". Comparing whole lines here
+            # returned {} for every unit in a CRLF tree, and the gate above
+            # reported a population of zero and passed.
+            if lines[k].rstrip() == "asm":
                 break
             k += 1
-        if k >= len(lines) or lines[k] != "asm":
+        if k >= len(lines) or lines[k].rstrip() != "asm":
             continue                      # a declaration, not a body
         try:
-            end = next(x for x in range(k, len(lines)) if lines[x] == "end;")
+            end = next(x for x in range(k, len(lines))
+                       if lines[x].rstrip() == "end;")
         except StopIteration:
             continue
         out.setdefault(h.group(1), normalise("\n".join(lines[k + 1:end])))
