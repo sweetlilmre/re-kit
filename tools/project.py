@@ -106,12 +106,46 @@ def get(key, override=None, start=None, quiet=False):
     try:
         value = data[section][name]
     except (KeyError, TypeError):
+        derived = derive(key, data)
+        if derived is not None:
+            value, why = derived
+            if not quiet:
+                sys.stdout.write("  using    %s = %r  (%s)\n"
+                                 % (key, value, why))
+            return value
         raise Missing("%s does not answer `%s` -- add it, or pass the value "
                       "on the command line" % (ANSWERS, key))
     if not quiet:
         sys.stdout.write("  using    %s = %r  (%s)\n"
                          % (key, value, where.get(key, ANSWERS)))
     return value
+
+
+def derive(key, data):
+    """(value, provenance) for an answer another answer already states.
+
+    ONE DERIVATION, and it exists because `target.image` is the narrower key
+    rather than the general one. `target.original` maps a marker's part to the
+    binary that part was read out of, and a marker carries a part whether or
+    not a project has one original -- so the map covers both shapes and an
+    image cannot be turned into a map, the part being exactly what an image
+    does not carry. A project with one original therefore states its path
+    once, in the map, and the eight instruments that ask for an image get it
+    from there.
+
+    A project with SEVERAL originals is refused rather than guessed at: an
+    instrument that wants "the image" has no answer there, which is a real
+    limitation of those eight instruments and not something a default can
+    paper over. It is why the one multi-part consumer cannot run dgroup.py,
+    and saying so is more useful than picking a part for it.
+    """
+    if key != "target.image":
+        return None
+    originals = (data.get("target") or {}).get("original")
+    if not isinstance(originals, dict) or len(originals) != 1:
+        return None
+    part, path_value = next(iter(originals.items()))
+    return path_value, "derived from target.original, its only row, part %s" % part
 
 
 def path(key, override=None, start=None, quiet=False):
