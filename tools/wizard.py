@@ -409,8 +409,17 @@ def propose(root):
                   top[1])
     images = p.candidates("target.image")
     if not images:
-        p.ask("target.image", "which file is the measurement target -- the "
-                              "original you are rebuilding?", None)
+        # NO CANDIDATE AT ALL is the FRESH project's branch: nothing here names
+        # an original yet, which is why there is nothing to rank. It asked for
+        # `target.image` and so sent every new single-image project to the
+        # narrow key -- the same shape as the register, one answer over.
+        p.ask("target.original",
+              "which file is the measurement target -- the original you are "
+              "rebuilding -- and which three-digit part do its @asm markers "
+              "carry? The answer is a [target.original] table keyed by that "
+              "part; target.image is derived from a one-row table, so a "
+              "single-original project states the path once",
+              '{ "000" = "ref/YOUR-ORIGINAL.bin" }')
     elif len(images) > 2 and not any(c[2] == ROLE for c in images):
         # Several candidates and nothing calling any of them the target: this is
         # very likely a project with SEVERAL originals, which wants a map.
@@ -420,6 +429,28 @@ def propose(root):
               "target -- is this one image, or several? Several want a "
               "[target.original] map keyed by part, not one value."
               % len(images), None)
+    else:
+        # ONE ORIGINAL, AND THE MAP IS STILL THE ANSWER TO WRITE. Four
+        # instruments read `target.original` -- emit, routines, rtl and x87 --
+        # and this program mentioned it only for a project with several
+        # numbered parts, so a single-image project was told about the narrow
+        # key and never about the general one. `target.image` then DERIVES from
+        # a one-row map (see project.derive), so proposing both would be
+        # proposing one path twice.
+        #
+        # ASKED, not offered, because the part number is a decision even when
+        # it carries no information: a marker's part field is three digits
+        # whatever the project's shape, so somebody has to say which three.
+        # `000` is the default and the only reason to choose otherwise is
+        # provenance -- a part that shipped under a number of its own.
+        winner = images[0][1]
+        p.rows = [r for r in p.rows if r[0] != "target.image"]
+        p.ask("target.original",
+              "one original (%s) -- which three-digit part do its @asm markers "
+              "carry? The answer is a [target.original] table keyed by that "
+              "part, and target.image is derived from it, so the path is "
+              "stated once" % winner,
+              '{ "000" = "%s" }' % winner)
     return p, adopting
 
 

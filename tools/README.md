@@ -14,7 +14,7 @@ The migration that filled these folders is finished, and **the originals the too
 
 <!-- generated:inventory -->
 
-**74 programs.** This table is generated from each tool's own first docstring line by `toolindex.py`; `WORKING.md` groups them by the question you have, which is the useful way in.
+**75 programs.** This table is generated from each tool's own first docstring line by `toolindex.py`; `WORKING.md` groups them by the question you have, which is the useful way in.
 
 ### `substrate/` -- 13
 
@@ -105,12 +105,13 @@ Looking after the wiki bundle: conformance, our profile, and the generators.
 | `kbprofile` | Our stricter profile on top of OKF, plus the generators that stop drift. |
 | `okfcheck` | OKF v0.1 conformance check -- and NOTHING more than conformance. |
 
-### `beside them` -- 6
+### `beside them` -- 7
 
 About the kit or the session rather than about any target.
 
 | tool | what it says it does |
 |---|---|
+| `checklist` | Run the universal check list, reading each status off the TOOL. |
 | `encaudit` | Find text I/O that relies on the locale encoding instead of stating one. |
 | `eolcheck` | Every file a DOS tool reads must be CRLF. Nothing was checking. |
 | `project` | The project's answers to the kit's questions. |
