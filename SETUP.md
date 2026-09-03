@@ -67,10 +67,30 @@ evidence, and let the person decide. **Do not answer a question the report asked
 
 ## The test that matters
 
-`--check` on a project whose right answers are already known. Both existing
-consumers pass it: one agrees on 8 of 8 proposed keys with 3 correctly asked, the
-other on 5 of 5 with one key it recommends the project add -- a key that project
-genuinely needed, because a check there was failing for want of it.
+`--check` on a project whose right answers are already known. Measured on 3 Sep
+2026, across three consumers:
+
+    psycho   6 of 6    3 asked, 7 keys it proposes nothing for, 0 disagreements
+    v1.31b   4 of 6    2 asked, 3 keys it proposes nothing for, 2 disagreements
+    v1.51    3 of 6    2 asked, 4 keys it proposes nothing for, 3 disagreements
+
+**What the denominator is, because it moves.** It counts only keys the wizard
+actually proposes a value for. Two categories are deliberately outside it: a key
+it ASKS about, because the answer is not in the tree, and a key the project sets
+that this wizard has no proposal for at all. Neither is a judgement, so scoring
+either would grade the tool on a question it never answered.
+
+That second exclusion was missing until 3 Sep 2026, and it is why this section
+used to claim **8 of 8** and **5 of 5**. Nothing regressed: the projects grew
+keys the wizard proposes nothing for -- five of which it names in its own
+`wanted by` list -- and each new one was counted as a failure. The figure read
+6 of 13 by the time anybody looked.
+
+**The disagreements above are real and they are the wizard's**, which is the
+point of running this: it proposes a probe directory and a build directory as
+the SOURCE root in the two siblings, and the derived `clean-src` copy for a file
+that lives in `src`. They were invisible while five false misses sat beside
+them.
 
 **Adopting a project you cannot check is how a wizard is confidently wrong in
 private.**

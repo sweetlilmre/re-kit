@@ -219,6 +219,8 @@ The last flag refuses if the commit this project pins is not on a remote another
 
 **Nothing in `kit/` may name a target.** If a tool needs a project's fact, the fact is passed in -- as an argument, or out of `kit.toml`. That line is a path test, which is why the kit is one folder: a fact that leaks into it travels to every other project and is wrong there. One did, and it took a second consumer's first minute to find it.
 
+**And a ticket about the kit belongs to the kit**, on its own tracker rather than the host's. Same test, one step earlier: if a different binary would not need it rewritten, it is the kit's -- its issues included. A kit ticket filed against a host repository is invisible to every other consumer, which is the submodule failure above wearing different clothes: the work has forked and nothing reports it. This has happened, and the ticket had to be moved.
+
 ## 8. What to distrust
 
 **Distrust the verifier before the thing it verifies.** Every instrument has been wrong at least once, and each time the code it accused was innocent. That is section 6's rule 3, and it is the frame for everything below.

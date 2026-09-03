@@ -542,6 +542,7 @@ def main(argv):
         asked = {k for k, _, _ in p.questions}
         judged = 0
         recommended = []
+        unproposed = []
         for key in sorted(set(have) | set(p.keys())):
             best = p.best(key)
             mine = best[1] if best else None
@@ -568,9 +569,24 @@ def main(argv):
                 note = "MISSING here; recommend %s (%s)" % (mine, best[2])
                 recommended.append(key)
                 judged -= 1        # a recommendation is not a judgement
+            elif best is None:
+                # NOT A JUDGEMENT EITHER, for the same reason as `asked`
+                # above: the wizard made no claim about this key, so
+                # counting it as a miss scores the tool on questions it
+                # never answered. It read "PROPOSED None (not proposed)",
+                # which says no proposal was made and then counts it as a
+                # wrong one.
+                #
+                # This is why the figure drifted from a documented 8 of 8
+                # to 6 of 13 without the wizard getting worse: the projects
+                # grew keys it has no proposal for -- five of which it
+                # names in its own `wanted by` list -- and each new one
+                # became a counted failure.
+                note = "present here; this wizard proposes nothing for it"
+                unproposed.append(key)
+                judged -= 1
             else:
-                note = "PROPOSED %s (%s)" % (mine, best[2] if best
-                                             else "not proposed")
+                note = "PROPOSED %s" % (mine,)
             print("  %-18s %-28s %s" % (key, str(theirs)[:28], note))
         print("\n  %d of %d proposed key(s) agree" % (agree, judged))
         if recommended:
