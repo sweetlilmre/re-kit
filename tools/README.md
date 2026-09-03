@@ -14,7 +14,7 @@ The migration that filled these folders is finished, and **the originals the too
 
 <!-- generated:inventory -->
 
-**75 programs.** This table is generated from each tool's own first docstring line by `toolindex.py`; `WORKING.md` groups them by the question you have, which is the useful way in.
+**76 programs.** This table is generated from each tool's own first docstring line by `toolindex.py`; `WORKING.md` groups them by the question you have, which is the useful way in.
 
 ### `substrate/` -- 13
 
@@ -36,7 +36,7 @@ Reading DOS and 16-bit binaries. Should work against a C or assembler target too
 | `tddump` | Dump Borland Turbo Debugger debug info appended to a DOS MZ executable. |
 | `unlzexe` | Unpack an LZEXE 0.91 ('LZ91') compressed MZ executable. |
 
-### `pascal/` -- 52
+### `pascal/` -- 53
 
 True only of Borland Pascal: `.TPU` structure, DGROUP layout, RTL byte patterns.
 
@@ -80,6 +80,7 @@ True only of Borland Pascal: `.TPU` structure, DGROUP layout, RTL byte patterns.
 | `register` | The status register's one serializer, so no tool can drop another's section. |
 | `routines` | Byte-diff every declared assembler routine against the original binary. |
 | `rtl` | The Borland runtime, and where its routines and yours actually start. |
+| `segdoc` | The segment table of a map document, computed from the layout config. |
 | `segpair` | Pair OUR segments to the ORIGINAL's by content, and report the ORDER. |
 | `shared_asm` | Assembler that appears in more than one unit should be ONE TEXT. |
 | `sitedump` | Disassemble one address in both images, side by side, on a VERIFIED anchor. |

@@ -153,6 +153,15 @@ if prog is not None:
     # tool is indistinguishable from a tool that measured nothing. It refuses
     # now.
     blocks = SPEC.get('program_blocks')
+    # AND IT HAS TO EXIST. Naming a block config a project does not have
+    # sent the failure to a child process, whose traceback then arrived
+    # here as unparseable output -- so the message said the count could not
+    # be read, which is true and points at the wrong thing.
+    if blocks and not (ROOT / blocks).is_file():
+        raise SystemExit(
+            "  %s names `program_blocks` = %s, and no such file exists."
+            " The program emits no unit, so it is measured block by block"
+            " or not at all." % (args[0], blocks))
     if not blocks:
         raise SystemExit("  %s does not say `program_blocks` -- the program's "
                          "own block config is needed to measure it" % args[0])
