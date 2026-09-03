@@ -3,7 +3,7 @@ type: Observation
 title: A locator keyed on one spelling of a prologue reads working code as absent
 description: An instrument that finds compiled code by scanning for a frame prologue must list every encoding the compiler may pick. Missing one gave two answers, both wrong and neither an error - no code at all under one release, and code silently starting at the second routine under another.
 tags: [instruments, blind-spot, encoding, turbo-pascal, disassembly, measurement, verification]
-measured_on: unrecorded
+measured_on: a 16-bit Pascal probe driver, seven probes across four compiler releases
 timestamp: 2026-08-28T00:00:00Z
 ---
 

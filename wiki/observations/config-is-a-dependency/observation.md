@@ -3,7 +3,7 @@ type: Observation
 title: A script breaks and nothing in the import graph explains it
 description: Four surviving scripts were broken by a migration's own deletions, and two depended on a config file rather than a module -- so the check everybody runs, "who imports this", could not see them.
 tags: [tooling, migration, dependencies, verification]
-measured_on: unrecorded
+measured_on: a toolkit migration across two repositories, 49 scripts archived and 10 kept
 timestamp: 2026-08-23T00:00:00Z
 ---
 

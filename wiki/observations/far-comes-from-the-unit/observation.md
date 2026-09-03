@@ -3,7 +3,7 @@ type: Observation
 title: Near or far is decided by the surrounding unit
 description: Two copies of a routine looked unshareable because one was far and the others near -- but far-ness is not in the procedure header, it comes from where the header sits, so one include can carry the same text into both.
 tags: [pascal, turbo-pascal, codegen, calling-convention, include]
-measured_on: unrecorded
+measured_on: a 16-bit Pascal demo rebuild, two routines written out twice
 timestamp: 2026-08-28T00:00:00Z
 ---
 
