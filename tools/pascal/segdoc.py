@@ -121,6 +121,18 @@ def main(argv=()):
         if not out.is_file():
             sys.stdout.write("  %s does not exist" % out + chr(10))
             return 1
+        if BANNER not in out.read_text(encoding="utf-8"):
+            # NOT THIS TOOL'S TO CHECK, and saying "out of date" about it is a
+            # false claim with an action attached: regenerating a hand-written
+            # map would destroy 1,288 lines of read binary to fix a document
+            # that was never generated. The write path already refuses this
+            # file; the check path said 77 row(s) on disk, 31 computed.
+            sys.stdout.write(
+                "  %s carries no generated banner, so it was written by hand "
+                "-- there is nothing here to be out of date. A hand-written "
+                "map may hold several tables and prose this cannot produce."
+                % out + chr(10))
+            return 2
         have = [l for l in out.read_text(encoding="utf-8").splitlines()
                 if l.startswith("| `")]
         want = [l for l in body.splitlines() if l.startswith("| `")]
