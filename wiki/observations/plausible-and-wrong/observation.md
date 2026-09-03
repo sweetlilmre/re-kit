@@ -1,7 +1,7 @@
 ---
 type: Observation
 title: A compare tool's number is plausible, and it is wrong
-description: The offset is right and the length is too short, or the length looks reasonable and the position is nowhere near the thing -- the density gate and the location strategy are both properties of the artefact, not of the tool.
+description: The offset is right and the length is too short, or the length looks reasonable and the position is nowhere near the thing -- the density gate and the location strategy are both properties of the artefact, not of the tool. And a third case where the figure is correct and the REPORT overclaims -- one form of words printed for two artefacts whose rules differ makes the weaker claim read as strongly as the stronger.
 tags: [comparison, verification, tooling, fixups, alignment]
 measured_on: the toolkit itself
 timestamp: 2026-08-23T00:00:00Z
@@ -50,6 +50,18 @@ Naming the rule also shrank the family. A fourth member of it turned out not to 
 **Two rows are the two artefacts somebody has held.** A reader whose file is neither still gets an answer here: the nearer row will look close enough, and its density gate and its location strategy were both chosen for a different artefact -- which is the situation this page describes, reached through this page.
 
 The discriminator names what each artefact IS, and that is deliberate. The question *what produced this file* has a right answer for every artefact, where *which of these two is it more like* has a plausible answer for all of them.
+
+## A third case: the number is right and the report overclaims
+
+The two above are a figure that reads as true and is not. There is a third, and it is quieter, because nothing about the measurement is wrong at all.
+
+**A compare tool that offers more than one allowed-difference rule is answering more than one question, and its report has to say which.** One artefact here is measured on every byte of the file. Another is measured with both headers stripped, because the rebuild's program bytes are identical and its header is not. Those are claims of different strength: the first says the file is the original's bytes, the second says the program bytes are, and says nothing about an entry point, a stack, a minimum allocation or where a relocation points.
+
+Measured on one toolkit: the report printed the same three words for both. A row compared on every byte and a row compared with the header skipped were indistinguishable in the output, so the weaker claim read exactly as strongly as the stronger one -- and in the target concerned, **two of the fields the weaker mode cannot see were known to differ**, for reasons recorded nowhere near the row.
+
+The tell is not in the figure, because the figure is correct. It is in the report using one form of words for two artefacts whose rules differ, which is the same substitution this page's other two cases make one level in: **a rule chosen for one artefact, applied to another, does not fail -- and a form of words chosen for one artefact, printed for another, does not fail either.**
+
+The fix has two halves and one of them is easy to miss. A passing row now prints what its own mode does not cover. And the register had carried a `note` field on every such row since it was written, preserved by its serializer and read by nothing -- so a caveat could be recorded, survive every rewrite, and never once reach a reader. **A record nothing surfaces is not a record.**
 
 ## If you are not sure which you have
 
