@@ -14,6 +14,25 @@ at file scale too):
   load-image  our whole file against the original's MZ load image -- for
               originals that carry appended debug info the loader never
               reads and a rebuild does not regenerate
+  image       BOTH sides' headers stripped, and only the bytes DOS loads
+              compared -- for a rebuild whose program bytes are identical
+              and whose MZ header is not
+
+`image` was added because two consumers had a result neither other mode
+could hold. Their rebuilds' program bytes were identical to the originals'
+-- every differing byte fell inside the MZ header, in a relocation table a
+linker is free to order differently -- so `file` refused the row and
+`load-image`, which truncates rather than skips a header, refused it too. An
+R7 claim that no mode can record is a claim that lives in prose, which is
+the exact condition this instrument was written to end.
+
+ITS BLIND SPOT IS THE HEADER, and that is the trade rather than an
+oversight. `image` cannot see a wrong entry point, a wrong initial stack, a
+wrong minimum allocation or a relocation the loader will apply to the wrong
+word -- every one of which breaks the program while leaving the compared
+bytes equal. A row recorded with `image` says the program bytes match; it
+does not say the file runs. Use `file` where a rebuild can reproduce the
+header, and expect the weaker claim when it cannot.
 
 The check re-hashes both sides every run: a claim is only as good as the
 bytes on disk today. A mismatch on a recorded row FAILS, with the escape
@@ -43,7 +62,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[0]))
 import register                                   # noqa: E402
 import project                                    # noqa: E402
 
-COMPARES = ("file", "load-image")
+COMPARES = ("file", "load-image", "image")
 
 
 def head_commit():
@@ -61,7 +80,26 @@ def load_image(path):
     return d[:(cp - 1) * 512 + (cblp or 512)]
 
 
+def program_image(path):
+    """Only the bytes DOS loads: the declared image, minus the MZ header.
+
+    load_image() above truncates a file to its declared length and keeps the
+    header; this skips it. The two are different questions and the names are
+    one word apart, so the docstrings carry the difference: that one is about
+    bytes appended AFTER the image, this one about the header BEFORE it.
+    """
+    d = io.open(path, "rb").read()
+    cblp, cp = struct.unpack_from("<HH", d, 2)
+    hdr = struct.unpack_from("<H", d, 8)[0] * 16
+    return d[hdr:(cp - 1) * 512 + (cblp or 512)]
+
+
 def sides(row):
+    if row["compare"] == "image":
+        # BOTH sides, unlike the other two modes: the header is excluded from
+        # the claim, so excluding it from one side only would compare a
+        # program against a header and call the difference a mismatch.
+        return program_image(row["ours"]), program_image(row["original"])
     ours = io.open(row["ours"], "rb").read()
     orig = (load_image(row["original"]) if row["compare"] == "load-image"
             else io.open(row["original"], "rb").read())

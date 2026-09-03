@@ -1,9 +1,15 @@
 """Install the kit into a project: propose, confirm, write.
 
-    python kit/tools/wizard.py                propose, write nothing
+    python kit/tools/wizard.py                propose, and ask what it cannot see
     python kit/tools/wizard.py --check        propose, and DIFF against the
                                               kit.toml already there
-    python kit/tools/wizard.py --write        write after confirming each value
+
+THERE IS NO --write, and a line here claimed one for as long as this docstring
+existed. Nothing wrote it: `--write` appeared once in this file, in that line,
+so the documented command proposed, exited 0, and left no file -- which reads
+exactly like a wizard that ran. kit.toml is written by hand from what this
+program prints, which is consistent with the paragraph below: a program that
+does not decide has no business writing the answers either.
 
 THIS PROGRAM PROPOSES. IT DOES NOT DECIDE. A prototype that decided got two
 answers wrong on the first real project it met -- it proposed a target's RELEASE
@@ -53,6 +59,18 @@ try:
     import tomllib
 except ModuleNotFoundError:                       # pragma: no cover -- 3.11+
     import tomli as tomllib                       # type: ignore
+
+# What a project MUST answer to hold a measurement at all. Deliberately tiny:
+# every other key the kit reads is optional for some real project, and a
+# required list that grows is a list nobody can satisfy. The test for adding
+# one is NOT "many instruments want it" -- `layout.built` is wanted by thirteen
+# and a project that links nothing still has no answer for it. It is: WITHOUT
+# THIS, NOTHING IN THE PROJECT CAN HOLD A MEASUREMENT.
+REQUIRED = {
+    "layout.register": "the ratchet, the observations and the plan live here; "
+                       "without it five instruments exit 2 and no result in "
+                       "this project is held by anything",
+}
 
 ROLE = "named as a role by a script"
 NAMED, CONVENTION, SHAPE = "named by a script", "conventional name", "shape only"
@@ -252,6 +270,18 @@ def propose(root):
     if (root / "status.toml").is_file():
         p.offer("layout.register", "status.toml", CONVENTION,
                 "the register's conventional name")
+    else:
+        # ASKED, NOT SKIPPED, and this was a real gap. The offer above used to
+        # be the only mention of the key, so a project with no register yet was
+        # never asked for one -- and a register is the one answer a fresh
+        # project is GUARANTEED not to have. Five instruments want it and all
+        # five exit 2 without it, so this silence read as consent and two
+        # consumers installed the kit with no ratchet at all.
+        p.ask("layout.register",
+              "no register here yet -- what should the status register be "
+              "called? It holds the ratchet, the observations and the plan, "
+              "and five instruments refuse to run without it",
+              "status.toml")
     if (root / "kit" / "wiki").is_dir():
         p.offer("layout.wiki", "kit/wiki", CONVENTION, "the kit brought it")
     for name in ("build", "out"):
@@ -279,7 +309,7 @@ def propose(root):
                         "named by " + ", ".join(who[:3]), len(who))
 
     # --- where a finished build is installed -----------------------------
-    for name in ("run", "bin", "dist"):
+    for name in ("run", "bin", "dist", "build"):
         d = root / name
         if not d.is_dir():
             continue
@@ -290,6 +320,17 @@ def propose(root):
         elif name == "run":
             p.offer("layout.built", name, CONVENTION,
                     "the conventional name for finished output")
+        elif name == "build" and any(f.suffix.upper() == ".EXE"
+                                     for f in d.iterdir() if f.is_file()):
+            # `build` and `built` CAN be one directory, and on a project that
+            # links in place they are. Only run/bin/dist were considered, so
+            # such a project was offered nothing, `built_pattern` was
+            # unreachable -- it is only asked once `built` is chosen -- and
+            # routines.py plus every span instrument exited 2. SHAPE evidence
+            # deliberately: it is weak, so the report turns it into a question
+            # rather than proposing a directory that also stages sources.
+            p.offer("layout.built", name, SHAPE,
+                    "holds .EXE, though it also stages sources")
 
     # --- which of the files in it are OURS -------------------------------
     built = p.best("layout.built")
@@ -433,6 +474,25 @@ def main(argv):
             print("  %-22s wanted by %s" % (key, ", ".join(sorted(wanted[key]))))
         print("  A gap here is a to-do, not a silence -- a config missing one of"
               " these fails on the command that needs it.")
+    # AGAINST THE PROJECT'S OWN ANSWERS, not against what this program asked
+    # about. Testing coverage here was a check that could not fail: the same
+    # change that makes the register always ASKED makes it always covered, so
+    # the branch was dead on the day it was written. What is worth refusing is
+    # an INSTALLED config that does not answer a required key -- the condition
+    # two consumers were actually in.
+    installed = read_existing(root)
+    if installed is not None:
+        unanswered = sorted(k for k in REQUIRED if k not in installed)
+        if unanswered:
+            # Reported apart from the to-do list above, and the difference is
+            # the whole point. That list ran to twelve keys, most genuinely
+            # optional, and the one meaning "this project has no ratchet" read
+            # exactly like the one meaning "no shared assembler".
+            print("\nREQUIRED, AND THIS PROJECT'S kit.toml DOES NOT ANSWER "
+                  "IT -- nothing here can hold a measurement:")
+            for key in unanswered:
+                print("  %-22s %s" % (key, REQUIRED[key]))
+            return 2
 
     if "--check" in argv:
         have = read_existing(root)

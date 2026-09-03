@@ -14,7 +14,13 @@ reads the source instead and reports assembler bodies that are duplicated
 between units rather than shared.
 
     python kit/tools/pascal/shared_asm.py SRCDIR
-    python kit/tools/pascal/shared_asm.py SRCDIR --exempt exempt.txt
+    python kit/tools/pascal/shared_asm.py SRCDIR --exempt=exempt.txt
+
+The `=` is not optional and the space-separated form was documented here
+for as long as this line existed: the parser reads only `--exempt=FILE`,
+so `--exempt FILE` leaves the flag unfound, falls back to the project's
+answer, and exits 2 complaining that kit.toml does not answer it -- while
+an explicit argument was sitting in argv. It reads as a config gap.
 
 It REPORTS and exits 0 unless --gate is passed, because whether a duplicate can
 become one text is a fact about the routine and not something a tool can see:
