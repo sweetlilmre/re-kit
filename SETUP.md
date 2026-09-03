@@ -70,9 +70,9 @@ evidence, and let the person decide. **Do not answer a question the report asked
 `--check` on a project whose right answers are already known. Measured on 3 Sep
 2026, across three consumers:
 
-    psycho   6 of 6    3 asked, 7 keys it proposes nothing for, 0 disagreements
-    v1.31b   4 of 6    2 asked, 3 keys it proposes nothing for, 2 disagreements
-    v1.51    3 of 6    2 asked, 4 keys it proposes nothing for, 3 disagreements
+    psycho   6 of 6    0 disagreements
+    v1.31b   6 of 6    0 disagreements
+    v1.51    6 of 6    0 disagreements
 
 **What the denominator is, because it moves.** It counts only keys the wizard
 actually proposes a value for. Two categories are deliberately outside it: a key
@@ -86,11 +86,13 @@ keys the wizard proposes nothing for -- five of which it names in its own
 `wanted by` list -- and each new one was counted as a failure. The figure read
 6 of 13 by the time anybody looked.
 
-**The disagreements above are real and they are the wizard's**, which is the
-point of running this: it proposes a probe directory and a build directory as
-the SOURCE root in the two siblings, and the derived `clean-src` copy for a file
-that lives in `src`. They were invisible while five false misses sat beside
-them.
+**Those figures were 6/6, 4/6 and 3/6 an hour earlier**, and the five
+disagreements were real: the wizard proposed a probe directory and a build
+directory as the SOURCE root, and a derived `clean-src` copy for a file that
+lives in `src`. It could not tell a source tree from a staged copy of one --
+and it cannot be told by counting, since one consumer has the same 29 `.PAS`
+in both. They are fixed; what matters here is that they were invisible until
+the false misses stopped sitting beside them.
 
 **Adopting a project you cannot check is how a wizard is confidently wrong in
 private.**
