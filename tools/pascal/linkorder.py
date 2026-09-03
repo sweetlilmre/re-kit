@@ -162,6 +162,21 @@ def main(argv=()):
     print()
     print("=== PREDICTED order vs the ORIGINAL'S ===")
     ours = [u for u in predict(g, main_unit) if u not in noseg]
+
+    # COMPARE LIKE WITH LIKE. The prediction walks every unit the program
+    # reaches, which includes the program itself and the runtime. A segment
+    # list need not contain either: one target lists both, and another
+    # excludes the program (it emits no unit, and another instrument measures
+    # it) and the runtime (not its to transcribe).
+    #
+    # Compared position by position against a list with different membership,
+    # a PERFECT prediction reads as total disagreement -- one target scored
+    # 0 of 10 while its predicted order WAS the original with the program in
+    # front, on a build byte-identical to the original. What the config leaves
+    # out is reported below rather than scored.
+    listed = set(order)
+    absent = [u for u in ours if u not in listed]
+    ours = [u for u in ours if u in listed]
     print("%-4s %-16s %-16s" % ("", "predicted", "original"))
     for i in range(max(len(ours), len(order))):
         a = ours[i] if i < len(ours) else ''
@@ -169,6 +184,9 @@ def main(argv=()):
         print("%-4d %-16s %-16s %s" % (i, a, b, '' if a == b else '  <-- differs'))
     same = sum(1 for a, b in zip(ours, order) if a == b)
     print("\n%d of %d positions agree" % (same, len(order)))
+    if absent:
+        print("  not in the segment list, so not compared: %s"
+              % ", ".join(absent))
 
 
 if __name__ == '__main__':
