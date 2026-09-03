@@ -57,6 +57,21 @@ except ModuleNotFoundError:                       # pragma: no cover -- 3.11+
 # read as `symbol + n` rather than as a value in its own right.
 ADDEND_MAX = 0x100
 
+# BUT AN ADDEND CAN BE A SIZE, and a size is not small. `MOV SP,OFFSET
+# DevStack + StackSize` reaches the top of a buffer by adding its LENGTH to
+# its base, so the addend is however big that buffer is -- 1000 bytes in the
+# one measured here, four times ADDEND_MAX.
+#
+# Read as a value in its own right it matched nothing, and BOTH consumers have
+# been reporting the same field at the same offset as UNEXPLAINED, on a
+# construct their own assembler source states in a comment. The enumeration
+# was incomplete rather than wrong -- it said `neither ours+base nor a zero`,
+# and both halves were true.
+#
+# These are still REPORTED, on their own line, because a large addend is a
+# weaker reading than a small one and a reader should see which is which.
+ADDEND_SIZED = 0x1000
+
 
 def segment_bytes(original, seg, length, first_para):
     blob = pathlib.Path(original).read_bytes()
@@ -99,6 +114,7 @@ def check(name, spec, products, original, first_para, out=sys.stdout):
 
     self_refs = pending = 0
     implied = {}
+    sized = {}
     unexplained = []
     for off in sorted(fields):
         a = base + off
@@ -110,6 +126,8 @@ def check(name, spec, products, original, first_para, out=sys.stdout):
             pending += 1
         elif u < ADDEND_MAX:
             implied.setdefault((o - u) & 0xFFFF, []).append(a)
+        elif u <= ADDEND_SIZED and o > u:
+            sized.setdefault((o - u) & 0xFFFF, []).append((a, u))
         else:
             unexplained.append((a, o, u))
 
@@ -128,6 +146,11 @@ def check(name, spec, products, original, first_para, out=sys.stdout):
         out.write("      implies a DGROUP symbol at %04x, used by %d field(s): "
                   "%s\n" % (sym, len(implied[sym]),
                             " ".join("%04x" % a for a in implied[sym])))
+    for sym in sorted(sized):
+        where = ' '.join('%04x+%d' % (a, u) for a, u in sized[sym])
+        out.write("      implies a DGROUP symbol at %04x with a SIZED addend, "
+                  "used by %d field(s): %s\n"
+                  % (sym, len(sized[sym]), where))
     for a, o, u in unexplained:
         out.write("      %04x  UNEXPLAINED: orig %04x, ours %04x -- neither "
                   "ours+base (%04x) nor a zero our side left pending\n"
