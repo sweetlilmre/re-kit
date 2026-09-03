@@ -148,6 +148,60 @@ def derive(key, data):
     return path_value, "derived from target.original, its only row, part %s" % part
 
 
+def original(part=None, override=None, start=None, quiet=False):
+    """The binary an instrument should read, from `target.original`.
+
+    THE GENERAL FORM, and `target.image` was the narrowing. A map from part to
+    path covers a project with one original and a project with nine; an image
+    cannot be turned into a map, because the part is exactly what an image does
+    not carry. So the eight instruments that used to ask for an image ask here.
+
+    Resolution order, and every step is deliberate:
+
+      * AN EXPLICIT OVERRIDE WINS, untouched and unannounced. Four of the eight
+        already accept `--original` and that must keep working.
+      * A NAMED PART is looked up in the map. If the map has no such row, this
+        refuses and lists the parts it does have -- a part number that is right
+        for the source tree and absent from the answers file is a real gap, and
+        naming the alternatives is what makes it fixable.
+      * NO PART, and a map with exactly ONE row, uses that row. A project with
+        one original states its path once and its instruments need no argument.
+      * NO PART, and a map with SEVERAL rows, REFUSES. Choosing a part on an
+        instrument's behalf is how the wrong original gets measured against
+        silently, and the result still looks correct -- which is the failure
+        `target.release` exists to prevent one level up. An instrument that
+        wants "the image" has no answer in a nine-part project, and saying so
+        is more useful than picking one.
+    """
+    if override is not None:
+        return pathlib.Path(override)
+    originals = get("target.original", start=start, quiet=True)
+    if not isinstance(originals, dict) or not originals:
+        raise Missing("%s answers `target.original` with no rows -- it maps a "
+                      "part to the binary that part was read out of" % ANSWERS)
+    known = ", ".join(sorted(originals))
+    if part is None:
+        if len(originals) != 1:
+            raise Missing(
+                "this project has %d originals, so `the image` has no answer "
+                "-- name a part. %s answers: %s"
+                % (len(originals), ANSWERS, known))
+        part, value = next(iter(originals.items()))
+        why = "target.original, its only row, part %s" % part
+    else:
+        part = str(part)
+        if part not in originals:
+            raise Missing(
+                "%s has no original for part %s -- it answers: %s"
+                % (ANSWERS, part, known))
+        value = originals[part]
+        why = "target.original, part %s" % part
+    if not quiet:
+        sys.stdout.write("  using    original = %r  (%s)\n" % (value, why))
+    root = find(start)
+    return (pathlib.Path(root) / value) if root else pathlib.Path(value)
+
+
 def path(key, override=None, start=None, quiet=False):
     """An answer that is a path, resolved against the HOST ROOT rather than the
     working directory -- so a program run from a subdirectory still finds it."""

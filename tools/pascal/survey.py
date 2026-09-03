@@ -126,17 +126,33 @@ def virtuals(d):
 
 
 def main():
-    if len(sys.argv) < 3:
-        print("usage: survey.py CONFIG.toml SEG [SIZE]")
+    # POSITIONALS THROUGH project.positionals, never by index into sys.argv.
+    # This read sys.argv[1..3] directly, so the moment it grew a flag the flag
+    # landed in a positional slot -- `survey.py CONFIG SEG --part=001` raised
+    # on int("--part=001"). The shared parser knows which flags carry a value
+    # and skips those values, which is the bug its own docstring records from
+    # ratchet.py reading "76" as the name of the status register.
+    argv = sys.argv[1:]
+    args = project.positionals(argv, valued=("part",))
+    part = None
+    for i, a in enumerate(argv):
+        if a.startswith("--part="):
+            part = a.split("=", 1)[1]
+        elif a == "--part" and i + 1 < len(argv):
+            part = argv[i + 1]
+    if len(args) < 2:
+        print("usage: survey.py CONFIG.toml SEG [SIZE] [--part N]")
         return 2
-    config, seg = sys.argv[1], int(sys.argv[2], 16)
+    config, seg = args[0], int(args[1], 16)
     try:
-        image = project.path("target.image")
+        # One segment of ONE image, so it needs one binary -- and which binary
+        # is a question a multi-part project answers with a part.
+        image = project.original(part)
         first = project.get("target.first_para", quiet=True)
     except project.Missing as exc:
         return project.complain(exc)
-    if len(sys.argv) > 3:
-        size = int(sys.argv[3])
+    if len(args) > 2:
+        size = int(args[2])
     else:
         lengths = segment_lengths(config)
         if seg not in lengths:

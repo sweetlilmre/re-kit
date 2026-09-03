@@ -196,7 +196,7 @@ def find(config, first_para):
     return 0
 
 
-def entries(config, want, first_para):
+def entries(config, want, first_para, part=None):
     """Likely procedure entry points, by prologue shape.
 
     Two prologues, and a framed routine has one of them:
@@ -210,7 +210,10 @@ def entries(config, want, first_para):
     with io.open(config, "rb") as fh:
         cfg = tomllib.load(fh)
     try:
-        image = project.path("target.image")
+        # `target.original` rather than `target.image`: this scans ONE image's
+        # segments, so it needs one binary -- and which binary is a question a
+        # multi-part project answers with a part, not with a path.
+        image = project.original(part)
     except project.Missing as exc:
         return project.complain(exc)
 
@@ -276,6 +279,8 @@ def main(argv):
     e = sub.add_parser("entries", help="likely procedure starts, by prologue")
     e.add_argument("config")
     e.add_argument("segs", nargs="*")
+    e.add_argument("--part", help="which original to scan, when the project "
+                                  "has more than one. Omit where it has one.")
 
     args = ap.parse_args(argv)
     if not args.cmd:
@@ -288,7 +293,7 @@ def main(argv):
     if args.cmd == "find":
         return find(args.config, first)
     if args.cmd == "entries":
-        return entries(args.config, args.segs, first)
+        return entries(args.config, args.segs, first, args.part)
     return 2
 
 
