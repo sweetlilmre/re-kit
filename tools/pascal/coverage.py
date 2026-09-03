@@ -22,9 +22,11 @@ try:
 except ModuleNotFoundError:                       # pragma: no cover -- 3.11+
     import tomli as tomllib                       # type: ignore
 
-args = [a for a in sys.argv[1:] if not a.startswith('-')]
+args = project.positionals(sys.argv[1:], ("--part",))
+PART = project.option(sys.argv[1:], "part")
 if len(args) < 2:
-    sys.stdout.write("usage: coverage.py LINK.toml UNITS.toml" + chr(10))
+    sys.stdout.write("usage: coverage.py LINK.toml UNITS.toml [--part NNN]"
+                     + chr(10))
     raise SystemExit(2)
 
 ROOT = pathlib.Path(args[0]).resolve().parent
@@ -33,6 +35,17 @@ while not (ROOT / 'kit.toml').exists() and ROOT != ROOT.parent:
 
 with io.open(args[0], 'rb') as fh:
     LINK = tomllib.load(fh)
+
+# ONE PART'S LAYOUT, not `the` layout. Everything segment-keyed below --
+# the order, the program's own segment, the data-only segments, the block
+# config -- describes ONE part, and a target with nine parts has nine
+# answers for each. `layout`, `lists` and `unitname` stay top-level: a
+# document path, the runtime's unit names and an abbreviation do not
+# change from one part to the next.
+try:
+    SPEC = project.layout(LINK, PART)
+except project.Missing as exc:
+    raise SystemExit(project.complain(exc) and 2)
 
 # every segment and its size, from the layout document -- authoritative on it
 txt = (ROOT / LINK['layout']).read_text(encoding='utf-8', errors='replace')
@@ -43,9 +56,9 @@ seg = {int(m.group(1), 16): int(m.group(2))
 # as a second copy keyed the other way round. A second copy of this very
 # measurement is what had drifted between two other instruments; see link.toml.
 _rtl = {n.upper() for n in LINK['lists']['rtl']}
-RTL = {s['segment']: s['name'].title() for s in LINK['segments']
-       if s['name'].upper() in _rtl}
-DATA = {d['segment']: d['why'] for d in LINK['data']}
+RTL = {seg: name.title() for seg, name in project.segments(SPEC)
+       if name.upper() in _rtl}
+DATA = {d['segment']: d['why'] for d in SPEC.get('data', ())}
 
 # what verify.py reports, parsed from its own output
 # The per-unit table comes from the kit's instrument now. This still
@@ -96,7 +109,22 @@ untouched = {k: v for k, v in in_scope.items() if k not in done and k not in par
 # verify.py -- which compares a .TPU's code against a segment -- has nothing to
 # list it as. It is measured by `progcmp.py` instead, and that number is asked
 # for here rather than assumed, so this total is the whole program.
-PROGRAM_SEG = LINK['segments'][0]['segment']
+# THE PROGRAM SEGMENT IS NAMED, not taken as segments[0]. Position meant
+# `the program` only because one target happens to link its program
+# first, and the segment list does not have to contain it at all -- in a
+# nine-part target it is deliberately absent, because it emits no unit and
+# another instrument measures it. Read positionally there, this named a
+# real unit segment as the program, popped it out of NOT STARTED and
+# measured it with the wrong tool, and every printed total stayed
+# plausible.
+PROGRAM_SEG = SPEC.get('program_seg')
+if PROGRAM_SEG is None:
+    raise SystemExit(
+        "  this part does not say `program_seg` -- the segment its program"
+        " compiles into. It used to be read as the FIRST entry of the"
+        " segment list, which is only the program by coincidence of link"
+        " order, and is not in that list at all when another instrument"
+        " measures it.")
 prog = untouched.pop(PROGRAM_SEG, None)
 if prog is not None:
     # THE PROGRAM IS MEASURED BLOCK BY BLOCK, not by prefix: it is the one
@@ -109,7 +137,7 @@ if prog is not None:
     # out of the total with nothing said. A regex that returns None on a missing
     # tool is indistinguishable from a tool that measured nothing. It refuses
     # now.
-    blocks = LINK.get('program_blocks')
+    blocks = SPEC.get('program_blocks')
     if not blocks:
         raise SystemExit("  %s does not say `program_blocks` -- the program's "
                          "own block config is needed to measure it" % args[0])

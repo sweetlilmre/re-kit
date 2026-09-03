@@ -133,14 +133,18 @@ def main(argv):
     first = project.get("target.first_para")
     # Which original is a question a multi-part project answers with a
     # part; `target.image` could not be answered there at all.
-    part = next((argv[i + 1] for i, a in enumerate(argv)
-                 if a == "--part" and i + 1 < len(argv)), None)
+    part = project.option(argv, "part")
     orig = load_image(project.original(part).read_bytes())
-    # The map's name is `link.toml`'s `map_file`, which dgroup.py and mapcmp.py
-    # both read from there. This tool held its own copy of the value, which is a
-    # second copy of one answer -- and the copy named one target's map, so the
-    # tool was silently mapless in any other project.
-    named = cfg.get("map_file")
+
+    # ONE PART'S LAYOUT: its map, its segments, its closing bound. All three
+    # were top-level keys, which is a shape only a one-target project fits.
+    spec = project.layout(cfg, part)
+
+    # The map's name comes from the part table, which dgroup.py and mapcmp.py
+    # read too. This tool held its own copy of the value, which is a second
+    # copy of one answer -- and the copy named one target's map, so the tool
+    # was silently mapless in any other project.
+    named = spec.get("map")
     mapfile = (root / named) if named else None
     if mapfile is not None and not mapfile.exists():
         mapfile = build / named.replace(chr(92), '/').rsplit('/', 1)[-1]
@@ -169,7 +173,7 @@ def main(argv):
     ours = map_segments(text)
     skip = {s.upper() for s in cfg.get("skip", ["DOS", "OBJECTS", "SYSTEM"])}
     total = 0
-    for name, base, length in extents(cfg["segments"], cfg["end_at"], first):
+    for name, base, length in extents(spec["segments"], spec["end_at"], first):
         if name in skip or name not in ours or (only and name != only):
             continue
         a = orig[base:base + length]

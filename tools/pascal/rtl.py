@@ -224,8 +224,11 @@ def entries(config, want, first_para, part=None):
     # Each segment's extent comes from the ONE segment list, with the next
     # segment's address bounding each -- rather than a second table of lengths,
     # which is what had drifted between two other instruments.
-    segs = [(s["segment"], s["name"]) for s in cfg["segments"]]
-    bounds = segs + [(cfg["end_at"], None)]
+    # ONE PART'S segment list. Same reason as the image above: which
+    # segments is a question a multi-part project answers with a part.
+    spec = project.layout(cfg, part)
+    segs = project.segments(spec)
+    bounds = segs + [(spec["end_at"], None)]
     extents = [(a, (b - a) * 16) for (a, _), (b, _) in zip(bounds, bounds[1:])]
 
     total = 0
