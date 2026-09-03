@@ -198,9 +198,18 @@ def locate(orig, image, allow=holes, stop=None):
     """
     best = (-1, 0)
     tried = set()
-    for d in range(0, max(1, min(len(orig) - ANCHOR, 0x60))):
-        probe = orig[d:d + ANCHOR]
-        if len(probe) < ANCHOR:
+    # A ROUTINE SHORTER THAN THE ANCHOR IS ANCHORED ON ALL OF ITSELF. With a
+    # fixed 10-byte anchor the probe for a 6-byte routine is short, the loop
+    # breaks before scoring anything, and locate reports NOT FOUND for bytes
+    # that are present and identical -- which reads as a transcription defect.
+    # MINIMUM's own comment says six-byte routines exist. A short probe is less
+    # unique, and that is handled where it always was: every alignment any
+    # anchor suggests is scored by how far the comparison gets, and MINIMUM
+    # still floors what may be believed.
+    anchor = ANCHOR if len(orig) >= ANCHOR else len(orig)
+    for d in range(0, max(1, min(len(orig) - anchor, 0x60))):
+        probe = orig[d:d + anchor]
+        if len(probe) < anchor:
             break
         at = image.find(probe)
         while at >= 0:

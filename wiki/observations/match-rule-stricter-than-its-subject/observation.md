@@ -44,6 +44,12 @@ Then, where the answer is *nothing*: one pair of images, diffed at the byte leve
 
 Seven linked images from one Borland Pascal corpus. The search for the runtime head had returned `RTL prologue NOT FOUND` for its whole existence and the message had been read, reasonably, as a fact about the images. Two divergences at +0x07 and +0x0c explained all of it, and both are differences a linker is entitled to produce. Using the tolerant engine, the runtime is located in **all seven**.
 
+**A second instance, 3 Sep 2026, and the rule was a length rather than a tolerance.** `locate` suggests an alignment from a fixed 10-byte anchor run. For a pattern shorter than that the probe is short, the loop breaks before scoring anything, and it returns not-found -- so **no routine under ten bytes could ever be located**, and three of them were reported as `NOT FOUND in any built image` while sitting in the rebuild byte for byte at exactly the expected offset. Two were six-byte far-JMP vector stubs and one a seven-byte DMA reset.
+
+The tell was four lines above the gate, in the constant that floors what may be believed: `MINIMUM = 4`, commented *"A believed alignment has to be at least this long. Six-byte routines exist."* The case was anticipated and the anchor made it unreachable, which is why nobody looked: the tool's own source said short routines were handled. Anchoring a short pattern on all of itself locates all three, and the one consumer with 85 locked routines reports the same 85 lengths afterwards -- so nothing that was already right moved.
+
+**Ask what the tool has ever found, and ask it of the SIZES too.** A corpus whose routines are all comfortably longer than the anchor cannot show this defect, and the consumer that found it was the one declaring six-byte stubs for the first time.
+
 ## Citations
 
 - `kit/tools/pascal/rtl.py`, the `match` subcommand, and `kit/tools/substrate/align.py`'s `locate`, which is the engine it now uses.
