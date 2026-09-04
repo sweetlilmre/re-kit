@@ -164,6 +164,38 @@ def tool_missing(dos_path):
     return dos_path if not (hdd / rel).exists() else None
 
 
+def bin_dir(cfg, compiler):
+    """The DOS directory holding this compiler, off the answer that INVOKES it.
+
+    `binpath` in a build config was a MACHINE PATH IN A COMMITTED FILE, which
+    is the one thing machine() below exists to prevent -- and it went stale
+    exactly as that rule predicts. Three installs were renamed; the
+    `toolchain.*` answers were corrected in kit.local.toml and the committed
+    `binpath` copies were not, because nothing compiles through them: every
+    invocation BUILD.BAT writes is fully qualified, so the PATH line they feed
+    is read by nobody during a build. It is read at the interactive prompt,
+    where a renamed directory answers "Bad command or file name" -- which is
+    the incident recorded in write_overlay.
+
+    Measured 4 Sep 2026 across every build config in both consumers: 15 typed
+    values stale in one, 4 correct in the other, and this derivation reproduces
+    all 4 while replacing all 15 with a directory that exists. Nothing is
+    underivable -- the compiler cannot be invoked without `toolchain.<section>`
+    in the first place, so deriving from it adds no requirement.
+
+    The same shape was already half-present: write_overlay derived TASM's
+    directory from `toolchain.tasm` while taking the compiler's from the
+    config, so in one list the derived entry was right and the typed one wrong.
+    """
+    comp = cfg["compiler"][compiler]
+    exe = machine("toolchain." + compiler, comp.get("exe"))
+    if exe and SEP in exe:
+        return exe.rsplit(SEP, 1)[0]
+    # No answer and no exe: the build cannot run at all, and main() says so
+    # with a better message than a PATH line could.
+    return comp.get("binpath", "C:" + SEP + "TP" + SEP + "BIN")
+
+
 def machine(key, fallback=None):
     """A machine path, from kit.local.toml. Never from a committed file."""
     try:
@@ -641,7 +673,7 @@ def write_conf(cfg, build, conf, compiler, root=None):
         build=str(build),
         drive=cfg.get("drive", "D"),
         title=cfg.get("title", "build"),
-        binpath=comp.get("binpath", "C:\\TP\\BIN"),
+        binpath=bin_dir(cfg, compiler),
         mounts="".join(l + "\n" for l in lines),
         mountdoc="".join(l + "\n" for l in doc),
     ), encoding="ascii")
@@ -694,7 +726,7 @@ def write_overlay(cfg, root, build, compiler, out):
     # compiler is installed. That disagreement is not theoretical: the committed
     # config put a TP bin directory on the PATH that had since been renamed, so
     # TPC at the prompt answered "Bad command or file name".
-    path = [comp.get("binpath")]
+    path = [bin_dir(cfg, compiler)]
     try:
         tasm = machine("toolchain.tasm", cfg.get("assembler", {}).get("exe"))
         if tasm and ":" in tasm:
