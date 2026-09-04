@@ -98,6 +98,39 @@ def table(spec, part=None, cfg='LINK.toml', out='OUT.md'):
     return chr(10).join(out) + chr(10)
 
 
+def rows_after_banner(text):
+    """The generated table's rows: those after the banner, up to the first
+    line that is not one. A row anywhere else in the document is somebody's
+    annotation and is not this tool's to count."""
+    lines = text.splitlines()
+    try:
+        at = next(i for i, l in enumerate(lines) if BANNER in l)
+    except StopIteration:
+        return []
+    out, seen = [], False
+    for l in lines[at + 1:]:
+        if l.startswith("| `"):
+            out.append(l)
+            seen = True
+        elif seen:
+            break
+    return out
+
+
+def extra_content(on_disk, body):
+    """True when the file holds a line this tool would not have written.
+
+    Prose in the third column is expected and does not count -- only whole
+    lines. The comparison is on the set of lines outside the generated table,
+    so an annotated document is recognised without diffing prose.
+    """
+    generated = set(body.splitlines())
+    for l in on_disk.splitlines():
+        if l.strip() and l not in generated and not l.startswith("| `"):
+            return True
+    return False
+
+
 def main(argv=()):
     args = project.positionals(argv, ("--part",))
     if len(args) < 2:
@@ -133,8 +166,16 @@ def main(argv=()):
                 "map may hold several tables and prose this cannot produce."
                 % out + chr(10))
             return 2
-        have = [l for l in out.read_text(encoding="utf-8").splitlines()
-                if l.startswith("| `")]
+        # ROWS ARE READ FROM THE GENERATED TABLE ONLY, not from the whole
+        # file. This collected every line beginning with a pipe and a backtick
+        # wherever it sat, so a SECOND table anywhere in the document counted
+        # as segment rows -- and this file's own docstring invites a person to
+        # annotate the document, which is how a second table gets there. One
+        # consumer added a per-routine table and this reported 14 rows on disk
+        # against 6 computed. The generated table starts at the banner and
+        # ends at the first line that is not a row, which is the same shape
+        # table() writes.
+        have = rows_after_banner(out.read_text(encoding="utf-8"))
         want = [l for l in body.splitlines() if l.startswith("| `")]
         key = lambda ls: [tuple(l.split("|")[1:3]) for l in ls]
         if key(have) != key(want):
@@ -144,6 +185,22 @@ def main(argv=()):
         sys.stdout.write("  %s: %d row(s) agree with the layout config"
                          % (out, len(want)) + chr(10))
         return 0
+
+    # AND REFUSE TO CLOBBER AN ANNOTATED GENERATED FILE. write_text below
+    # replaces the WHOLE file with the table, and the banner guard beneath
+    # catches only a document that was never generated. A document that WAS
+    # generated and has since been annotated carries the banner, so the guard
+    # did not fire and the annotation was destroyed -- by the very command the
+    # file prints in its own header and that --check tells a reader to run.
+    if out.is_file():
+        on_disk = out.read_text(encoding="utf-8")
+        if BANNER in on_disk and extra_content(on_disk, body):
+            sys.stdout.write(
+                "  %s holds prose this tool did not write -- refusing to "
+                "replace it, because writing here replaces the WHOLE file. "
+                "Edit the table in place, or point this at a new file and "
+                "merge." % out + chr(10))
+            return 2
 
     if out.is_file() and BANNER not in out.read_text(encoding="utf-8"):
         # REFUSING TO OVERWRITE A HAND-WRITTEN DOCUMENT. One consumer's map is

@@ -283,7 +283,17 @@ def main(argv):
                         unconfirmed, bad))
 
     if "--emit" in argv:
-        out = pathlib.Path(argv[argv.index("--emit") + 1])
+        # THE PATH IS REQUIRED AND WAS NOT CHECKED. `--emit` with nothing after
+        # it indexed one past the end of argv and raised IndexError, which is a
+        # traceback where every other argument error in this kit prints a
+        # sentence. A tool that crashes on a missing argument teaches a reader
+        # that the tool is broken rather than that the command was.
+        at = argv.index("--emit") + 1
+        if at >= len(argv) or argv[at].startswith("-"):
+            sys.stdout.write("  --emit needs a path to write to, "
+                             "e.g. --emit build/routines.toml" + chr(10))
+            return 2
+        out = pathlib.Path(argv[at])
         out.parent.mkdir(parents=True, exist_ok=True)
         text = ["# Measured by routines.py. Not hand-written, not committed."]
         for key in sorted(measured):
