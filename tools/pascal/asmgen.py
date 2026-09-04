@@ -80,6 +80,18 @@ target's.** Reconstructing a 35,716-byte hand-written module against TASM 2.01:
     blaming the binary -- on this module they produce identical framing, so the
     build is not the variable it looks like.
 
+    **AND FOR AN OBJECT MODULE, FRAMING IS THE WRONG TARGET ANYWAY.** Record
+    boundaries are LINKER-INVISIBLE: the linker reads the records, lays the
+    bytes at their offsets and throws the framing away. Proven rather than
+    argued -- two objects differing in 5,533 bytes of record framing, with
+    identical segments and identical relocations, link to the SAME executable
+    byte for byte. So the reconstruction target for a `.OBJ` is its LINKED
+    IMAGE, and `--against` compares the segment for exactly that reason. Chase
+    the file's own bytes only if the file itself is the artefact somebody
+    ships; otherwise a matching segment plus matching relocations is the
+    complete result, and the framing is noise from the assembler's output
+    buffer.
+
 Assemblers come from `toolchain.<name>` in the local config, the same answers
 `build.py` invokes, so this cannot disagree with the build about what is
 installed. Flags come from `[assembler].flags` unless `--flags` overrides.
