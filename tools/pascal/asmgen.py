@@ -73,10 +73,22 @@ target's.** Reconstructing a 35,716-byte hand-written module against TASM 2.01:
     at the end moved the code chunks from 984,973,982,985 to 992,990,993,996
     against the original's 992,994,993,994, and halved the differing bytes.
 
+    BRACKET THE KNOB BEFORE SEARCHING IT. Declaration order is a range, and
+    both ends are cheap to build: declare every symbol late for the maximum
+    (a forward reference is free, so every record is as full as it can get)
+    and inline for the minimum. Then check whether the target's record sizes
+    fall INSIDE that span before spending anything on a search. On one module
+    they did not -- the target wanted 994 bytes in a record whose maximum was
+    990 -- which settles reachability in two builds instead of a long hunt
+    through a space the answer is not in.
+
     What it does NOT give you is the original's exact assignment: an original
     with SOME symbols declared early and some late cannot be reproduced without
     knowing which, and solving that from record sizes is fitting to the
-    artefact rather than recovering the source. Test 2.00 against 2.01 before
+    artefact rather than recovering the source. With hundreds of controllable
+    reference sites against a few dozen record sizes the system is wildly
+    underdetermined, so a fit that worked would almost certainly not be the
+    original's order. Test 2.00 against 2.01 before
     blaming the binary -- on this module they produce identical framing, so the
     build is not the variable it looks like.
 
@@ -96,11 +108,18 @@ Assemblers come from `toolchain.<name>` in the local config, the same answers
 `build.py` invokes, so this cannot disagree with the build about what is
 installed. Flags come from `[assembler].flags` unless `--flags` overrides.
 
-IT USES ITS OWN WORK DIRECTORY, not the build's staging, so it does not
+IT USES ITS OWN SCRATCH FOLDER, not the build's staging, so it does not
 collide with `build.py` or `codegen.py` the way those two collide with each
-other. A module is assembled from INSIDE that directory, because an include is
+other. A module is assembled from INSIDE that folder, because an include is
 resolved relative to the current directory and passing a path instead of a
 name changes what resolves.
+
+`[assembler].workdir` names it, relative to the config, and it defaults to
+`asmwork`. **Gitignore whatever you name.** The first version hardcoded the
+name and created it beside the config, which is a host repository's root, so
+it left an untracked directory there after every run -- and the glossary is
+explicit that a scratch folder is named in config precisely so this does not
+happen.
 """
 import pathlib
 import shutil
@@ -113,7 +132,7 @@ import project                                    # noqa: E402
 import build                                      # noqa: E402
 from substrate import omf                         # noqa: E402
 
-WORKDIR = "asmwork"
+DEFAULT_WORKDIR = "asmwork"        # see [assembler].workdir
 
 
 def assemble(cfg, root, asm, module, includes=(), flags=None, timeout=300):
@@ -129,7 +148,8 @@ def assemble(cfg, root, asm, module, includes=(), flags=None, timeout=300):
     sep = "\\" if "\\" in exe else "/"
     bindir = exe.rsplit(sep, 1)[0]
 
-    work = pathlib.Path(root) / WORKDIR
+    work = pathlib.Path(root) / cfg.get("assembler", {}).get(
+        "workdir", DEFAULT_WORKDIR)
     if work.exists():
         shutil.rmtree(work)
     work.mkdir(parents=True)
@@ -225,7 +245,8 @@ def main(argv):
             sys.stdout.write("FAILED: %s\n" % (err or "no object returned"))
             worst = 1
             continue
-        seg = segment_of(root / WORKDIR / (stem + ".OBJ"))
+        seg = segment_of(root / cfg.get("assembler", {}).get(
+            "workdir", DEFAULT_WORKDIR) / (stem + ".OBJ"))
         sys.stdout.write("OBJ %d byte(s), segment %d byte(s)\n" % (len(obj), len(seg)))
         if ref is None:
             continue
