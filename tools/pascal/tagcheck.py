@@ -54,6 +54,8 @@ import pathlib
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import clean                                                      # noqa: E402
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+import project                                                    # noqa: E402
 
 # The tells. Mechanical, every one -- a thing no explanation of behaviour needs.
 TELLS = (
@@ -279,7 +281,7 @@ def check(path):
     # apparatus. clean.is_asm reads the first non-blank line.
     asm = clean.is_asm(path, text)
     hits = inert(text, asm) + dangling(text, asm)
-    text, _, _, _ = clean.clean_text(text.replace('\r\n', '\n'), asm=asm)
+    text, _, _, _, _ = clean.clean_text(text.replace('\r\n', '\n'), asm=asm)
     for n, para in paragraphs(text, asm):
         if (not para.strip() or EXEMPT.match(para) or BANNER.search(para)
                 or COMMAND.search(para)):
@@ -292,10 +294,46 @@ def check(path):
     return hits
 
 
+def sources_of(root):
+    """Every source under `layout.src`, in the three grammars clean.py knows."""
+    return [str(f) for f in sorted(pathlib.Path(root).rglob('*'))
+            if f.suffix.upper() in clean.SOURCE]
+
+
 def main(argv):
     files = [a for a in argv if not a.startswith('--')]
     if not files:
-        raise SystemExit(__doc__)
+        # NO ARGUMENTS MEANS THE PROJECT'S OWN SOURCES. This used to print the
+        # docstring and stop, which kept it off the session check list -- that
+        # list carries no paths, deliberately, because it is the same list in
+        # every project. A tool that cannot answer `where` for itself cannot
+        # be on it, and this one can: the answers file says.
+        # OPT-IN, AND THE OPT-OUT IS STATED. A target that has not adopted
+        # tagging is not failing -- it has not started. One consumer here has
+        # 655 untagged comments for exactly that reason, and gating it would
+        # mean a check that can never pass until somebody decides to do work
+        # nobody has agreed to. So the answer is asked for, and its absence
+        # SAYS SO rather than passing quietly.
+        try:
+            root = project.find()
+            on = project.get('layout.tagged', quiet=True)
+        except project.Missing:
+            on = False
+        if not on:
+            sys.stdout.write(
+                '  layout.tagged is not set, so this project has not adopted'
+                ' [re] tagging -- not checked. Set it to true once it does,'
+                ' and tag as you write rather than in a pass at the end.'
+                + chr(10))
+            return 0
+        try:
+            root = root / project.get('layout.src', quiet=True)
+        except project.Missing as exc:
+            return project.complain(exc)
+        files = sources_of(root)
+        if not files:
+            sys.stdout.write('  no .PAS, .ASM or .INC under %s' % root + chr(10))
+            return 0
     quiet, count = '--quiet' in argv, '--count' in argv
     total = 0
     for f in files:
@@ -308,7 +346,9 @@ def main(argv):
                 print("  %-5d %-18s %-12s %s"
                       % (n, what, tok[:12], body))
     print()
-    print("%d problem(s) in the stripped copy across %d file(s)"
+    # "would leak INTO the stripped copy" -- this reads the SOURCE. Said the
+    # other way round it describes a file this tool never opens.
+    print("%d untagged apparatus comment(s) across %d source file(s)"
           % (total, len(files)))
     if total:
         print("Tag each `[re]` if it is evidence, rewrite it if it is"

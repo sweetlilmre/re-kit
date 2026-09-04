@@ -199,6 +199,7 @@ anything, which is why a harness is not one of them.
     $V kit/tools/pascal/probecheck.py build.toml   # SLOW: one DOSBox run per probe per compiler
     $V kit/tools/encaudit.py
     $V kit/tools/eolcheck.py
+    $V kit/tools/pascal/tagcheck.py               # only where layout.tagged
     $V kit/tools/toolindex.py --check
 
     git ls-files -i -c --exclude-standard              # in the host AND in kit/
@@ -212,7 +213,11 @@ committing rather than in the loop it runs while editing. Skipping it is safe on
 touched a probe; a probe is cited by resolved investigations and by source comments the way a
 binary is, and nothing else in a tree ever recompiles one.
 
-**Some tools gate and are deliberately NOT on that list.** `braces`, `tagcheck`, `dsverify`, `unitorder`, `cleanconf` and `clean` all exit non-zero, and each belongs to a job rather than to a session: they check a source tree mid-transform, or a stripped copy against its original, and running them where that job is not underway reports on something nobody is doing. `cleanconf.py`'s docstring asks to be in "the gate" -- that means the gate of the transform it serves, and a host repository that runs one adds it to its own list. **The list above is what is true of every target; a tool that answers a question only one effort is asking belongs to that effort.**
+**Some tools gate and are deliberately NOT on that list.** `braces`, `dsverify`, `unitorder`, `cleanconf` and `clean` all exit non-zero, and each belongs to a job rather than to a session: they check a source tree mid-transform, or a stripped copy against its original, and running them where that job is not underway reports on something nobody is doing. `cleanconf.py`'s docstring asks to be in "the gate" -- that means the gate of the transform it serves, and a host repository that runs one adds it to its own list. **The list above is what is true of every target; a tool that answers a question only one effort is asking belongs to that effort.**
+
+**`tagcheck` moved ONTO that list on 4 Sep 2026, and the premise that kept it off expired rather than being overruled.** It was grouped with the transform tools because tagging was a pass run at the end, and a tool that checks a tree mid-transform says nothing in a session where no transform is underway. Once the tag is written in the same keystroke as the comment -- see section 2a -- an untagged comment is a defect the moment it is typed, which is a session's business and nothing else's.
+
+It is **opt-in**, on `layout.tagged`. A target that has not adopted tagging is not failing, it has not started: one consumer has 655 untagged comments for exactly that reason, and gating it there would be a check that cannot pass until somebody agrees to work nobody has agreed to. Unset, it says so and returns 0 -- a stated skip, not a silent one. It also needed no path to join a list that carries none: with no arguments it reads `layout.src` and walks it.
 
 **No paths and no numbers, and both absences are the point** -- this is the same list in every project. A host repository may have checks of its own on top; those live in its agent file.
 
