@@ -46,6 +46,14 @@ Sections 2, 4, 5 and 7 each describe a piece of a session. This is how they join
     run it, and WATCH it                 <- only a person can do this
     observe.py                           record what they saw
 
+**Tag the apparatus in the same keystroke that writes it.** A reconstruction's source carries two kinds of prose that read alike and serve opposite readers: the EVIDENCE for how something was learned, and the EXPLANATION of what it does. A readable copy has to lose the first and keep the second, and no pattern can tell them apart -- so the split is a judgement, written down as a `[re]` tag.
+
+At the moment you write the comment that judgement is **free**: you have just made it, because you know why you wrote the line. Left until a stripping pass, it has to be re-derived from the prose alone, one paragraph at a time, by somebody who no longer remembers -- and that is the whole cost of the transform, not the tooling, which is already in the kit.
+
+**And the instrument cannot cover for you.** `tagcheck.py` finds an untagged apparatus comment only by a MECHANICAL tell -- a `segment:offset`, a `DS:$` address, a measuring tool's name, a `~~withdrawn~~` marker -- and deliberately never by prose style, because a tool that guessed at tone would cry wolf until nobody ran it. Measured on one 34-unit target: of 908 tagged lines, **433 carry such a tell and 475 do not.** More than half of the apparatus is invisible to the check that guards it.
+
+Tagging is keep-by-default, so an untagged apparatus comment does not fail: it **leaks**, quietly, into the copy meant for the other reader. Write the tag now and the leak cannot happen; write it later and you are the only instrument that can catch it, across every line you have written since.
+
 **Two instruments, two different questions, and you want both.** `routines.py` answers *did I break something that was already right* -- it is the regression check, and it is driven by declarations. `spans.py` answers *did the transcription land* -- it walks every byte, so it is the only one that can see a routine nobody declared. A green `routines.py` with an unchanged span means the edit compiled and achieved nothing.
 
 **Rebuild one target, not everything.** `build.py CONFIG.toml TPART5` stages that target and whatever it depends on, read out of the staged sources' own `uses` clauses. A whole-project rebuild is cheap enough to be worth doing before you believe a final number -- seconds, on this corpus -- but it is not the inner loop.
