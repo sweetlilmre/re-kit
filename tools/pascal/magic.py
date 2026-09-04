@@ -67,6 +67,9 @@ import sys
 import pathlib
 import collections
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from source import strip                                          # noqa: E402
+
 # `Name = 123;` and `Name : Type = $ff;` -- both are names for a value.
 CONST = re.compile(
     r'^\s{0,8}([A-Za-z_]\w*)\s*(?::\s*\w+\s*)?=\s*(\$[0-9A-Fa-f]+|-?\d+)\s*;',
@@ -75,47 +78,6 @@ NUMBER = re.compile(r'(?<![\w$.])(\$[0-9A-Fa-f]+|\d+)(?![\w.])')
 EQU = re.compile(r'^\s*([A-Za-z_]\w*)\s+EQU\s+(\$?[0-9A-Fa-f]+|-?\d+)\s*$',
                  re.M | re.I)
 DECLARED = re.compile(r'[A-Za-z_]\w*\s*(?::\s*\w+\s*)?=\s*(?:\$[0-9A-Fa-f]+|-?\d+)\s*;')
-
-
-def strip(text, asm=False):
-    """Blank comments, strings and char codes, keeping every column in place.
-
-    `asm` adds the assembler's `;` to end-of-line form. It is NOT the default:
-    in Pascal `;` separates statements, so stripping from it would blank most of
-    every file. Scanning a .ASM without it reported two numbers that were both
-    inside comments -- the only two matches the file produced.
-    """
-    out = list(text)
-    if asm:
-        for m in re.finditer(';[^' + chr(10) + ']*', text):
-            for k in range(m.start(), m.end()):
-                out[k] = ' '
-        text = ''.join(out)
-    i, n = 0, len(text)
-    while i < n:
-        if text[i] == '{':
-            j = text.find('}', i)
-            j = n if j < 0 else j + 1
-        elif text.startswith('(*', i):
-            j = text.find('*)', i)
-            j = n if j < 0 else j + 2
-        elif text[i] == "'":
-            j = i + 1
-            while j < n and text[j] != "'":
-                j += 1
-            j = min(j + 1, n)
-        elif text[i] == '#':                      # #13, #10 -- a character code
-            j = i + 1
-            while j < n and text[j].isdigit():
-                j += 1
-        else:
-            i += 1
-            continue
-        for k in range(i, j):
-            if out[k] != '\n':
-                out[k] = ' '
-        i = j
-    return ''.join(out)
 
 
 def value(tok):

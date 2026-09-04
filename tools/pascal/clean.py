@@ -177,7 +177,7 @@ import fnmatch
 import pathlib
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-import magic                                                      # noqa: E402
+from source import strip                                          # noqa: E402
 
 # An address, in every form this method writes one.
 TOKEN = (r'(?:[0-9a-fA-F]{4}:[0-9a-fA-F]{4}'      # segment:offset
@@ -695,7 +695,7 @@ def survivors(text):
 def code_only(text, asm):
     """The file with every comment blanked -- what must not change."""
     return [ln.strip() for ln in
-            magic.strip(text, asm=asm).split('\n') if ln.strip()]
+            strip(text, asm=asm).split('\n') if ln.strip()]
 
 
 def main(argv):

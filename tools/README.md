@@ -14,7 +14,7 @@ The migration that filled these folders is finished, and **the originals the too
 
 <!-- generated:inventory -->
 
-**76 programs.** This table is generated from each tool's own first docstring line by `toolindex.py`; `WORKING.md` groups them by the question you have, which is the useful way in.
+**77 programs.** This table is generated from each tool's own first docstring line by `toolindex.py`; `WORKING.md` groups them by the question you have, which is the useful way in.
 
 ### `substrate/` -- 13
 
@@ -36,7 +36,7 @@ Reading DOS and 16-bit binaries. Should work against a C or assembler target too
 | `tddump` | Dump Borland Turbo Debugger debug info appended to a DOS MZ executable. |
 | `unlzexe` | Unpack an LZEXE 0.91 ('LZ91') compressed MZ executable. |
 
-### `pascal/` -- 53
+### `pascal/` -- 54
 
 True only of Borland Pascal: `.TPU` structure, DGROUP layout, RTL byte patterns.
 
@@ -84,6 +84,7 @@ True only of Borland Pascal: `.TPU` structure, DGROUP layout, RTL byte patterns.
 | `segpair` | Pair OUR segments to the ORIGINAL's by content, and report the ORDER. |
 | `shared_asm` | Assembler that appears in more than one unit should be ONE TEXT. |
 | `sitedump` | Disassemble one address in both images, side by side, on a VERIFIED anchor. |
+| `source` | Source text, reduced to the code -- the one thing three tools need in common. |
 | `spanclass` | Classify every remaining span WITHOUT needing to align our image. |
 | `spans` | Which bytes of an original do NOT line up against our build, and where. |
 | `spanwhy` | Which unaligned spans can editing close, and which are addresses that moved. |

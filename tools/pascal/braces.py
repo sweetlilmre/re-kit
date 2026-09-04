@@ -84,6 +84,7 @@ import pathlib
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import clean                                                      # noqa: E402
+import source                                                     # noqa: E402
 
 
 def scan(text):
@@ -174,7 +175,9 @@ def check(path):
     if clean.is_asm(path, text):
         # Comments away first, then any brace at all is suspicious: nothing in
         # an assembler source has a reason to carry one.
-        bare = clean.magic.strip(text, asm=True)
+        # `source.strip`, not `clean.magic.strip`. That reached a THIRD
+        # module's helper by importing a second tool to get at it.
+        bare = source.strip(text, asm=True)
         hits = [(bare[:k].count('\n') + 1, ch, context(bare, k))
                 for k, ch in enumerate(bare) if ch in '{}']
         return hits, None, []
