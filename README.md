@@ -30,7 +30,9 @@ if that happens.
 
 ## Reading order
 
-**[`WORKING.md`](WORKING.md) first, and it is the only one of these you read at the start of a session.** It is the method: where things are, what to work on, the loop, the checks, the standing rules, and the environment traps. Sections 1, 2, 2a and 4 are about a page.
+**Installing this into a NEW target? [`SETUP.md`](SETUP.md) first** -- the wizard, then the order the other config files are needed in, which is not obvious and is where a fresh project stalls. Come back here afterwards.
+
+**Otherwise [`WORKING.md`](WORKING.md) first, and it is the only one of these you read at the start of a session.** It is the method: where things are, what to work on, the loop, the checks, the standing rules, and the environment traps. Sections 1, 2, 2a and 4 are about a page.
 
 The rest are reached when you have a question:
 
