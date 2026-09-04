@@ -57,11 +57,28 @@ target's.** Reconstructing a 35,716-byte hand-written module against TASM 2.01:
     0 fixups gives 996, one per 8 bytes gives 976, one per 2 bytes gives 968,
     at which point the FIXUPP record has reached 1016 of its own 1024 ceiling.
 
-    The consequence for a reconstruction: if the segment, the fixup addresses,
-    their location types and their encoding all match the target and the
-    framing still does not, no source-side variable remains to try. The
-    difference is in the assembler binary, and a version string is not a
-    build.
+    AND ONE SOURCE-SIDE VARIABLE DOES MOVE IT, which an earlier version of
+    this note wrongly denied. **A FORWARD reference is free; a BACKWARD one is
+    not.** TASM defers a fixup whose target is not yet defined, so it does not
+    count against the record's budget, while a reference to an
+    already-defined symbol is recorded inline and costs about four bytes of
+    it. Measured with the same bytes and the same fixup positions either way:
+    with the target declared AFTER its references a module flushes at 996,
+    996; with it declared BEFORE, at 977, 976.
+
+    So the declaration ORDER of a module's symbols is visible in its record
+    framing, and a reconstruction that emits data before the code it serves
+    will flush earlier than an original that declared the same data late. On
+    one 35,716-byte module, deferring every data-region label to an ORG block
+    at the end moved the code chunks from 984,973,982,985 to 992,990,993,996
+    against the original's 992,994,993,994, and halved the differing bytes.
+
+    What it does NOT give you is the original's exact assignment: an original
+    with SOME symbols declared early and some late cannot be reproduced without
+    knowing which, and solving that from record sizes is fitting to the
+    artefact rather than recovering the source. Test 2.00 against 2.01 before
+    blaming the binary -- on this module they produce identical framing, so the
+    build is not the variable it looks like.
 
 Assemblers come from `toolchain.<name>` in the local config, the same answers
 `build.py` invokes, so this cannot disagree with the build about what is
