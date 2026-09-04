@@ -14,7 +14,7 @@ The migration that filled these folders is finished, and **the originals the too
 
 <!-- generated:inventory -->
 
-**77 programs.** This table is generated from each tool's own first docstring line by `toolindex.py`; `WORKING.md` groups them by the question you have, which is the useful way in.
+**78 programs.** This table is generated from each tool's own first docstring line by `toolindex.py`; `WORKING.md` groups them by the question you have, which is the useful way in.
 
 ### `substrate/` -- 13
 
@@ -36,7 +36,7 @@ Reading DOS and 16-bit binaries. Should work against a C or assembler target too
 | `tddump` | Dump Borland Turbo Debugger debug info appended to a DOS MZ executable. |
 | `unlzexe` | Unpack an LZEXE 0.91 ('LZ91') compressed MZ executable. |
 
-### `pascal/` -- 54
+### `pascal/` -- 55
 
 True only of Borland Pascal: `.TPU` structure, DGROUP layout, RTL byte patterns.
 
@@ -44,6 +44,7 @@ True only of Borland Pascal: `.TPU` structure, DGROUP layout, RTL byte patterns.
 |---|---|
 | `artefact` | The artefact-tier instrument: is our whole build the original's bytes? |
 | `asmaudit` | Report where the assembler-transcription rule is not yet met. |
+| `asmgen` | Assemble one module with every installed assembler and report its segment. |
 | `blockcmp` | Verify a segment BLOCK BY BLOCK, which is the only honest measure of a |
 | `braces` | Comment nesting and the directive set: the two things a comment edit breaks. |
 | `build` | Stage Pascal sources under 8.3 names, drive a real Turbo Pascal under |
