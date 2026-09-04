@@ -2,7 +2,7 @@
 type: Observation
 title: A reader that skips a record type it does not decode returns the right length with holes in it, and shifts everything positioned after it
 description: An unknown record can be stepped over safely -- that is what a length-prefixed format is for -- but only when it carries no content. A record that carries content and is skipped costs twice. Its bytes come back as zero, and any later record positioned RELATIVE to the last one decoded is placed against a stale base. Measured on an Intel OMF reader that skipped LIDATA, where two records covered 1,784 bytes of a 35,716-byte segment and every fixup after them was misplaced.
-tags: [tooling, verification, measurement, blind-spot, object-format, silent-failure]
+tags: [tooling, verification, measurement, blind-spot, object-file, omf]
 measured_on: a 16-bit object module, one segment, 38 data records and 989 fixups
 timestamp: 2026-09-04T00:00:00Z
 ---
