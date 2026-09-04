@@ -166,3 +166,120 @@ program separately leaves it out of the list entirely.
 Fill it from the linker map once you can build: the map's segment table gives
 every address and name, its first CODE segment is `main_unit`, and its `DATA`
 line gives `dgroup_at`.
+
+### The units config
+
+One row per compiled unit and the segment it must rebuild. Read by `units.py`,
+and by `coverage.py`, which shells out to it.
+
+    sources  = "src"              # so a STALE build is refused rather than measured
+    rewrites = ["tp6_far"]       # source rewrites applied before the staleness test
+
+    [unit.GFX]
+    segment = 0x106E
+    length  = 380                 # the ORIGINAL's code length -- the segment's
+                                  # extent LESS the linker's zero padding, so a
+                                  # unit may compile shorter and only the
+                                  # overlap is compared
+
+    [unit.SOUNDDEV]
+    segment = 0x1BFF
+    length  = 4291
+    object  = "SOUNDDEV.OBJ"     # links a {$L} module -- see below
+    # file  = "SOUNDDEV.TPU"     # optional; defaults to <NAME>.TPU
+
+**`object` is not optional decoration.** A unit that links an assembled module
+cannot be measured by the zero rule at all -- TASM leaves an ADDEND where the
+compiler leaves a zero, so the assembler half reads as a wall of differences.
+Undeclared, two such units reported 89% and 49% in a target whose whole load
+image was byte-identical. Declaring it builds the forgiveness mask from the
+object file's real relocation table, and hands the strict check to `objcheck`.
+
+**An absent row is not a pass.** A unit with no row here is not measured and
+nothing says so.
+
+### The objmodules config
+
+Where each `{$L}` module lands inside its unit's segment. Read by `objcheck.py`,
+which is the STRICTER half of the pair above -- it reads the relocations out of
+the object file rather than forgiving a class of byte.
+
+    sources  = "src"
+    rewrites = ["tp6_far"]
+
+    [module.SOUNDDEV]
+    segment = 0x1BFF
+    length  = 4304                # the segment's EXTENT here, NOT the trimmed
+                                  # code length units.toml carries
+    from    = 0x0746              # where the module starts inside the segment
+    to      = 0x10C4              # first byte past it; the tail beyond is linker
+                                  # padding and is checked to be zero
+    # unit   = "SOUNDDEV.TPU"    # optional; defaults to <NAME>.TPU
+    # object = "SOUNDDEV.OBJ"    # optional; defaults to <NAME>.OBJ
+
+**`length` is the extent, not the trimmed length.** `objcheck` reads `to` to the
+end as padding, so a trimmed length puts `to` past the end and it indexes off the
+segment.
+
+**`from` and `to` are derivable, not guesswork.** Locate the module by its opening
+24 bytes -- which are code, not a fixup -- inside your own `.TPU`, then subtract
+where that unit's code starts in the same file. Searching the ORIGINAL image
+instead may fail: the image has its relocations applied while the `.TPU` still
+carries the addends.
+
+### A blocks config
+
+For a segment no `.TPU` describes -- typically the PROGRAM, which compiles into
+the .EXE and so emits no unit. Read by `blockcmp.py`, and named from the layout
+config's `program_blocks`.
+
+    segment = 0x1000              # the segment being measured
+    length  = 1745                # its whole extent
+    unit    = "VTMAIN.EXE"        # the LINKED image, not a .TPU
+    strip_header = true           # so the segment starts at the load image's start
+    at      = 0x0000              # its position, known rather than searched
+    window  = 200                 # how far to search when `at` is absent
+
+    rule    = "linked"            # `linked` or `pending`
+    varbase = 0x0C70              # DGROUP offsets at or above this may differ
+    # segment_delta = -7          # forgive a segment word this many paragraphs
+                                  # off; OMIT to forgive none
+
+    [[block]]
+    name = "the leading constants"
+    from = 0x0000
+    to   = 0x00F8
+
+**Blocks can be derived from your own linker map** -- the leading constants, then
+one per public symbol in the segment, the last running to the end. Every boundary
+is then a symbol your build emitted rather than an address read by eye.
+
+**Set the rule to forgive nothing until something needs forgiving.** `varbase` at
+the top of the segment and no `segment_delta` means no byte is excused. Copying
+another target's numbers puts values in your config that nothing in your target
+measured; if a difference appears you want it REPORTED, and you can set a real
+boundary then.
+
+### The RTL config
+
+Names the runtime's routines in every binary from one reference. Read by
+`rtl.py find`; the other two subcommands take arguments instead of a config.
+
+    reference     = "003"         # the part whose bodies become the patterns
+    out           = "work/sites/rtlnames.json"
+    anchor_prefix = 10            # bytes of an anchor's prefix to check
+
+    [base]                        # where the runtime starts in EACH part -- the
+    "000" = 0x1213                # same paragraph the layout config calls
+    "001" = 0x1543                # `end_at` when the RTL is excluded
+
+    [known]                       # offset -> name, CONFIRMED, in the reference
+    "0000" = "RTL_SystemInit"
+    "0116" = "RTL_Halt"
+
+    [anchor]                      # optional: offsets whose body is matched by
+    "0000" = "RTL_SystemInit"      # PREFIX rather than in full, for a routine
+                                  # whose tail differs between parts
+
+**`[known]` is evidence, not a guess**: a pattern matching more than once is not
+reported, so a name here means one body matched in one place.
