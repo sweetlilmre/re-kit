@@ -196,7 +196,18 @@ def locate(orig, image, allow=holes, stop=None):
 
     Returns (offset, bytes that lined up), or (-1, 0).
     """
-    best = (-1, 0)
+    # (offset, bytes lined up, -holes). THE THIRD FIELD IS THE TIE-BREAK and it
+    # is not decoration: two alignments can both reach the full length, one
+    # exactly and one only because `allow` forgave a run of bytes, and scoring
+    # on length alone keeps whichever `find` reached first -- which is the
+    # LOWER address, not the better match. Measured on a pair of 424-byte
+    # palette rotators that are 92% identical and share their first ten bytes:
+    # the second one's marker located the FIRST one's body, walked all 424
+    # bytes with 32 holes -- walk returns them as a LIST, so the tie-break
+    # counts it -- and reported a routine that is byte-identical as
+    # imperfect. The same shape hides a real defect, because the routine being
+    # reported on is not the routine being measured.
+    best = (-1, 0, 1)
     tried = set()
     # A ROUTINE SHORTER THAN THE ANCHOR IS ANCHORED ON ALL OF ITSELF. With a
     # fixed 10-byte anchor the probe for a 6-byte routine is short, the loop
@@ -216,20 +227,20 @@ def locate(orig, image, allow=holes, stop=None):
             start = at - d
             if start >= 0 and start not in tried:
                 tried.add(start)
-                got, _, ended = walk(orig, image[start:start + len(orig)],
-                                     allow, stop)
+                got, hole, ended = walk(orig, image[start:start + len(orig)],
+                                        allow, stop)
                 # Score by how far the comparison gets, and -- when there is a
                 # terminator -- only believe an alignment that reached one. An
                 # alignment that dribbles out mid-routine scores zero, because
                 # a run from the middle of one routine can occur inside an
                 # unrelated one and the length it reports there means nothing.
                 got = got if (ended or stop is None) else 0
-                if got > best[1]:
-                    best = (start, got)
+                if (got, -len(hole)) > (best[1], best[2]):
+                    best = (start, got, -len(hole))
             at = image.find(probe, at + 1)
         if len(tried) > 64:
             break
-    return best if best[1] >= MINIMUM else (-1, 0)
+    return (best[0], best[1]) if best[1] >= MINIMUM else (-1, 0)
 
 
 # ---------------------------------------------------------------------------
