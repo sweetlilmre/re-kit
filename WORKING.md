@@ -267,7 +267,18 @@ The kit is a submodule. A change to it and a project's acceptance of that change
     git add kit                   &&  git commit -m "kit/ to <sha>: ..."
     git push --recurse-submodules=check
 
-The last flag refuses if the commit this project pins is not on a remote another consumer can fetch -- which is the classic submodule failure. To take a newer kit: `git -C kit pull`, run the checks, then commit the new gitlink.
+The last flag refuses if the commit this project pins is not on a remote another consumer can fetch -- which is the classic submodule failure.
+
+**Taking a newer kit, and the first line is the one people skip:**
+
+    git -C kit switch main          # a submodule checkout is DETACHED by default
+    git -C kit pull --ff-only
+    ... run the checks ...
+    git add kit && git commit -m "kit/ to <sha>: ..."
+
+`git submodule update` leaves the submodule on a commit rather than on a branch, and that is normal git rather than a mistake -- but `git -C kit pull` then fails, because there is no upstream to pull from. **Checking out a fetched commit directly gets the right bytes and leaves the same problem**: one consumer here sat detached through a dozen kit changes. Every measurement was correct, because the pinned commit was correct; what was lost was the ability to take the next change or make one from that repository at all.
+
+**Fetch from `origin`, never from the other consumer's checkout on disk.** A local-path fetch gets the commit and leaves the remote-tracking refs stale, so `--recurse-submodules=check` then refuses a push whose submodule commit IS on the remote -- it is reading refs that never heard about it. Both halves of that failure have happened here.
 
 **EVERY consumer has to accept the change, not just the one you were working in.** A kit improvement that only one project pins is a kit that has forked in practice: the other keeps measuring with the old one, and nothing reports it. Bumping the second consumer is also the only test some changes get -- a project fact that leaked into the kit is invisible until a second project reads it, which is how one leaked table was found in its first minute. Where the other checkouts live is a machine fact, so it belongs in `kit.local.toml`, not here.
 
