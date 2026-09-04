@@ -59,6 +59,22 @@ A single failed spelling means nothing -- it is the ordinary state of a reconstr
 
 So the discipline is the same as for any probe: make the variants differ along the axis you suspect, and include the one you believe. Here the believed spelling -- `repeat Dec(x) until x = 0` -- was variant one, and its failing is what makes the other six worth reading.
 
+## Caveat: the invert-and-jump-over shape is not by itself a hand tell
+
+The reading of `JE @@1 / JMP Done` above -- a person inverting a test to jump over an unconditional jump, because the real target is out of a short branch's reach -- is sound in that routine, where the `DEC`/`JNE` had already settled that the block was written by hand.
+
+**On its own it convicts nothing.** Another target has that exact shape in code that is demonstrably compiled: a `cmp / jne +2 / jmp +3 / jmp near` guard sitting in front of a 156-byte body whose every remaining byte comes out of an ordinary Pascal `for` loop, in a routine carrying the compiler's own frame and `{$S+}` stack-check call. What produced it there was a `goto` in the source, not a hand -- see [The branch says how big the statement was](../branch-tells-you-the-statement-size/observation.md), which also gives the arithmetic that identifies it.
+
+So the shape says "something other than the compiler's `if` handling emitted this branch". That is two possibilities, not one, and the other tells in this observation are what choose between them.
+
+## Withdrawn conclusion: what a spread of spellings does and does not measure
+
+The section above earns its negative result from **the spread** -- type, loop form, statement form and compiler all varied. A later use of the same technique got that wrong and is worth recording here rather than in an appendix, because the technique is what invites the error.
+
+Sixteen spellings of one `if` statement, across three compilers, all failed to reproduce a guard. That was read as "no source construct emits this", and from it, a difference in the code generator. But sixteen ways of wording one construct vary the *wording* and not the *kind*; they are one experiment repeated, and they cannot reach an answer that lies in a different kind of statement. It did: the source had a `goto`.
+
+The warning sign was there and was read as strength. All sixteen failed **in the same direction**, producing byte-for-byte identical output. A spread that genuinely covers its axis fails in different ways; a spread that fails identically has measured one thing, once.
+
 ## Blind spot
 
 **It proves the compiler cannot, not that a person did.** A third possibility is always open: a compiler you have not tried, a switch you have not set, a runtime helper that inlines. The probe should carry the switches of the real build (`{$G+}`, `{$S-}`, `{$R-}` and the rest), because a frame or a range check appearing in the probe and not the original is a difference in the PROBE, not a finding.
