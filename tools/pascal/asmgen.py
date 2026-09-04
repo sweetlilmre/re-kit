@@ -42,6 +42,27 @@ target's.** Reconstructing a 35,716-byte hand-written module against TASM 2.01:
     case-sensitive lookup that joins emitted labels to assembled addresses
     silently drops every label containing a-f.
 
+  * LEDATA RECORD FRAMING IS NOT SOURCE-CONTROLLABLE, and it is worth knowing
+    before anybody spends a day trying. Read out of TASM 2.01 itself, whose
+    OMF writer decides the flush at
+
+        mov si,[base] / sub si,cx / add si,03feh / cmp di,si / ja flush
+
+    so the threshold is `base - cx + 1022`, with 1011 and 1014 in the sibling
+    emitters for their own header overheads. It is deterministic in the bytes
+    appended and the fixups pending, and in NOTHING ELSE: a pure-data module
+    emitted as `db` rows of 2, 4, 8, 16, 32 or 64 bytes flushes at 996 every
+    time, because the append is byte by byte, and zero-byte statements -- an
+    EQU, a comment -- are inert. Fixup density does move it, and predictably:
+    0 fixups gives 996, one per 8 bytes gives 976, one per 2 bytes gives 968,
+    at which point the FIXUPP record has reached 1016 of its own 1024 ceiling.
+
+    The consequence for a reconstruction: if the segment, the fixup addresses,
+    their location types and their encoding all match the target and the
+    framing still does not, no source-side variable remains to try. The
+    difference is in the assembler binary, and a version string is not a
+    build.
+
 Assemblers come from `toolchain.<name>` in the local config, the same answers
 `build.py` invokes, so this cannot disagree with the build about what is
 installed. Flags come from `[assembler].flags` unless `--flags` overrides.
