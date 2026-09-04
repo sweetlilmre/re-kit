@@ -55,9 +55,26 @@ ARTEFACT_FIELDS = ("ours", "original", "compare", "sha256", "achieved",
 KNOWN_SECTIONS = ("coverage", "routine", "observation", "plan", "artefact")
 
 
-def load(path):
+def load(path, missing_ok=False, what="register"):
+    """The named file, or a refusal. `missing_ok` only for a caller that CREATES it.
+
+    IT USED TO RETURN {} FOR A FILE THAT IS NOT THERE, and three tools then
+    reported "no observations recorded", "no artefact rows" and "0
+    investigation(s)" -- each adding "stated rather than implied", which is a
+    claim that the emptiness was measured. On a target whose register has not
+    been created yet, every one of those checks passes and nothing says why.
+    That is the first hour of every new target.
+
+    A reader reporting ON the register is asserting it exists, so absence is a
+    refusal. A writer creating one passes missing_ok and says so at the call.
+    """
     if not os.path.exists(path):
-        return {}
+        if missing_ok:
+            return {}
+        raise SystemExit(
+            "  no %s at %s -- an empty answer here is indistinguishable from"
+            " one that was measured, and this file is not there at all."
+            % (what, path))
     with io.open(path, "rb") as fh:
         return tomllib.load(fh)
 

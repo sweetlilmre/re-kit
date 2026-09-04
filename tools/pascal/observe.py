@@ -109,11 +109,6 @@ OUTCOMES = {
 }
 
 
-def load(path):
-    if not os.path.exists(path):
-        return {}
-    with io.open(path, "rb") as fh:
-        return tomllib.load(fh)
 
 
 def toml_str(s):
@@ -338,7 +333,7 @@ def main(argv):
                          "YYYY-MM-DD\n")
         return 2
     path = args[0]
-    status = load(path)
+    status = register.load(path)
 
     def opt(name, default=None):
         flag = "--" + name

@@ -78,11 +78,6 @@ def rung_index(name):
         return -1
 
 
-def load(path):
-    if not os.path.exists(path):
-        return {}
-    with io.open(path, "rb") as fh:
-        return tomllib.load(fh)
 
 
 def dump(status):
@@ -203,11 +198,18 @@ def main(argv):
     if "--coverage" in argv:
         new["coverage"]["targets"] = int(argv[argv.index("--coverage") + 1])
     if "--measured" in argv:
-        measured = load(argv[argv.index("--measured") + 1])
+        # NOT missing_ok: a measurement file that is not there would make
+        # this report 0 failure(s), 0 rise(s) -- a pass invented from an
+        # absent file, in the one tool whose whole purpose is refusing
+        # exactly that.
+        measured = register.load(argv[argv.index("--measured") + 1],
+                                 what="measurement file")
         new["coverage"].update(measured.get("coverage", {}))
         new["routine"] = measured.get("routine", {})
 
-    old = load(path)
+    # missing_ok: --write CREATES the register, so a target that has none
+    # yet is the normal first run rather than an error.
+    old = register.load(path, missing_ok=True)
     failures, rises, notes = check(old, new)
 
     for line in rises:
