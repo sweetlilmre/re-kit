@@ -12,7 +12,7 @@ on the strength of a successor that is an unrelated program of the same name.
 WHY THIS EXISTS. Four scans settled almost everything structural in `17cf` and `116e`,
 and all four are greps rather than disassembly:
 
-  FAR RETURNS      a routine census, and the stack-cleanup count is a SIGNATURE. `RETF 4`
+  FAR RETURNS      the FRAMED ones, and the stack-cleanup count is a SIGNATURE. `RETF 4`
                    is Self alone, `RETF 8` is Self plus one pointer-sized parameter,
                    `RETF 12` is Self plus two. Reading them is far cheaper than finding
                    the entry points and much harder to get wrong.
@@ -69,7 +69,25 @@ def load(image, first_para, seg, size):
 
 
 def returns(d):
-    """Far returns, in address order. `c9`/`5d` is LEAVE or POP BP first."""
+    """Far returns that FOLLOW A FRAME, in address order.
+
+    `c9`/`5d` is LEAVE or POP BP first, and that anchor is what makes this
+    certain -- a CA or CB byte after one is a return, not data.
+
+    IT IS ALSO WHAT THIS CANNOT SEE, and the consequence matters more than
+    the requirement. A routine that reads its parameters off `ss:[bx+n]`
+    after `mov bx,sp` builds no frame and ends in a bare RETF -- the shape
+    hand-written assembler and the runtime's own units use. This scan is
+    blind to every one of them.
+
+    Measured on one 16-bit Pascal rebuild: 2 framed returns in a 1,568-byte
+    runtime segment holding roughly thirty assembler routines. The count was
+    printed as a census and read as "a unit of very few routines whose bodies
+    call nothing", which is a false inference drawn straight off it.
+
+    So `frameless()` reports the rest as a BOUND, and neither number is
+    called a census any more.
+    """
     out = []
     for m in re.finditer(rb"[\xc9\x5d](\xca|\xcb)", d):
         i = m.start()
@@ -78,6 +96,41 @@ def returns(d):
         else:
             out.append((i, None))
     return out
+
+
+def frameless(d):
+    """Candidate frameless returns -- an UPPER BOUND, never a count.
+
+    A bare RETF cannot be told from a CA or CB byte sitting in DATA without
+    a decoder, so widening the anchored scan would trade a silent undercount
+    for a silent overcount. This bounds it instead, and says so.
+
+    TWO CLASSES, REPORTED SEPARATELY, because their strength differs:
+
+      * `RETF nn` whose operand is EVEN and no greater than 32. A stack
+        cleanup pops whole words and a routine taking more than sixteen of
+        them is rare, so this is a real filter -- on one runtime segment it
+        kept operands 2, 4 and 8 and rejected 180, 2539, 4075, 5634, 5770
+        and 8056, every one of which is plainly data.
+      * a BARE RETF, which has no operand to filter on and is therefore the
+        weakest signal here. One 272-byte segment holds nine such bytes and
+        cannot hold nine routines.
+
+    Returns (framed_excluded_offsets, sized, bare).
+    """
+    anchored = {i + 1 for i in range(len(d) - 1)
+                if d[i] in (0xC9, 0x5D) and d[i + 1] in (0xCA, 0xCB)}
+    sized, bare = [], []
+    for i, b in enumerate(d):
+        if i in anchored:
+            continue
+        if b == 0xCA and i + 2 < len(d):
+            n = struct.unpack_from("<H", d, i + 1)[0]
+            if n % 2 == 0 and n <= 32:
+                sized.append((i, n))
+        elif b == 0xCB:
+            bare.append(i)
+    return anchored, sized, bare
 
 
 def strings(d, minlen=4):
@@ -164,11 +217,25 @@ def main():
     print("== %04x  %d bytes" % (seg, size))
 
     r = returns(d)
-    print("\n-- FAR RETURNS (%d)  -- the routine census; the count is a signature" % len(r))
+    print("\n-- FAR RETURNS, FRAMED (%d)  -- certain, and NOT a census" % len(r))
     for i, n in r:
         print("     %04x  RETF %s" % (i, "" if n is None else n))
     from collections import Counter
     print("     counts: %s" % dict(Counter(n for _, n in r)))
+
+    # THE BOUND, PRINTED BESIDE THE COUNT. The scan above is anchored on a
+    # frame, so it cannot see a routine that builds none -- and printing only
+    # its number named a partial population as though it were the whole one.
+    _, sized, bare = frameless(d)
+    print("\n-- FRAMELESS CANDIDATES  -- an UPPER BOUND, not a count")
+    print("     %d x RETF nn, operand even and <= 32" % len(sized))
+    print("     %d x bare RETF, which has no operand to filter on" % len(bare))
+    if sized:
+        print("     %s" % "  ".join("%04x/%d" % (i, n) for i, n in sized[:12]))
+    print("     A frameless routine reads its parameters off ss:[bx+n] and ends")
+    print("     in a bare RETF, so the framed scan cannot see it. A CA or CB byte")
+    print("     inside DATA cannot be told from a return without a decoder, so")
+    print("     this over-counts. Read it as direction and magnitude.")
 
     s = strings(d)
     print("\n-- PRINTABLE STRINGS (%d)  -- an absence is evidence" % len(s))
