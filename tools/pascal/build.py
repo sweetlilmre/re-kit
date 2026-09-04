@@ -992,6 +992,22 @@ def main(argv):
     else:
         print(out)
     install(cfg, root, build, targets)
+    # AND WHAT A SELFTEST COST, said after the success line rather than before
+    # it. stage() wipes the build directory, so a selftest leaves it holding
+    # HELLO.* and nothing else: `artefact --check` then answers "cannot read a
+    # side" and `routines` answers "nothing built", both correctly and neither
+    # naming the cause. That is a check list going red for a reason nothing on
+    # it can explain -- measured 4 Sep 2026 on two host roots, where the only
+    # surviving evidence was HELLO.PAS sitting in build/.
+    #
+    # It goes HERE because a run that ends on "all 1 target(s) compiled" reads
+    # as unqualified success, which is the shape the BUILD FAILED branch above
+    # is careful to avoid.
+    if selftest and not keep:
+        print("the toolchain works. NOTE the build directory now holds only "
+              "the self-test:\n"
+              "  artefact --check, routines and linkbytes will fail until a "
+              "real build is run.")
     return 0
 
 
