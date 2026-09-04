@@ -5,16 +5,25 @@ Two things happen here, and only one of them is mechanical.
     kit/tools/wizard.py       proposes, and says what its evidence is
     you                       decide, because the evidence runs out
 
-`wizard.py` never writes without confirmation and never decides. It surfaces
+`wizard.py` never writes anything and never decides. It surfaces
 candidates ranked by the KIND of evidence behind them, asks about what no
 directory listing can imply, and reports the keys it cannot answer at all rather
 than leaving them silent.
 
 ## Do this
 
-    python kit/tools/wizard.py           propose; writes nothing
-    python kit/tools/wizard.py --check   propose, and diff against the kit.toml already here
-    python kit/tools/wizard.py --write   write, confirming each value
+    python kit/tools/wizard.py           propose, and ask what it cannot see
+    python kit/tools/wizard.py --check   propose, and DIFF against the kit.toml already here
+
+**There is no `--write`, and this file claimed one for as long as it existed.**
+`kit.toml` is written BY HAND from what the program prints. The documented
+command proposed, exited 0 and left no file -- which reads exactly like a wizard
+that ran, so nothing about running it said otherwise. `wizard.py`'s own
+docstring had already retracted the claim; this copy of it had not.
+
+That is also the consistent arrangement rather than a missing feature: a
+program whose whole stance is that it does not decide has no business writing
+the answers.
 
 Then paste the stanza into the project's agent file -- `CLAUDE.md` or
 `AGENTS.md` -- **appending, never rewriting**. An agent file is usually a router
@@ -25,7 +34,7 @@ is not a trade worth making.
 
 | evidence | what it is |
 |---|---|
-| **named as a role by a script** | a variable in this project's own code says what the path is FOR: `SRC = ROOT / 'v1.31b' / 'src'`. Nothing beats this, because the variable's NAME is the project stating the role -- the one thing a listing never tells you. |
+| **named as a role by a script** | a variable in this project's own code says what the path is FOR: `SRC = ROOT / 'src'`. Nothing beats this, because the variable's NAME is the project stating the role -- the one thing a listing never tells you. |
 | **named by a script** | some program here mentions this path. Good, but a mention is not a role: two directories were each named by three scripts and only one of them was the sources. |
 | **conventional name** | `status.toml`, `build/`, `kit/wiki` -- names the kit itself defined, so finding one is not a guess. |
 | **shape only** | a directory that merely holds the right sort of file. Reported as weak, and **turned into a question** rather than proposed. |
@@ -56,9 +65,9 @@ do. That is the single sharpest thing this program knows.
 
 The mechanical half is above. Your half is reading this project's own programs
 and understanding what they mean -- which is why this is not a shell script.
-`wizard.py` can find that `refpath.py` mentions `ref/vt1.31b.bin`; only reading it
-tells you that this is the measurement target and that `MAKESTR.EXE` beside it is
-a build artefact.
+`wizard.py` can find that one of this project's scripts mentions a file under
+`ref/`; only reading it tells you that the file is the measurement target, and
+that an `.EXE` sitting beside it is a build artefact rather than a second one.
 
 So: run `--check` first if there is a `kit.toml` already, read the project's
 scripts for anything the report calls weak or tied, propose your reading with the
