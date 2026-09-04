@@ -358,6 +358,20 @@ def propose(root):
               "called? It holds the ratchet, the observations and the plan, "
               "and five instruments refuse to run without it",
               "status.toml")
+
+        # ASKED, NOT LISTED, AND ONLY FOR A NEW PROJECT. Tagging the apparatus
+        # as you write it costs one marker. Deciding it afterwards means
+        # re-deriving one judgement per paragraph from prose alone, and more
+        # than half of that apparatus carries no mechanical tell -- so no
+        # instrument can find what nobody marked. A day-one decision belongs
+        # in the questions, not in the list of keys this program cannot answer.
+        p.ask("layout.tagged",
+              "will this project keep a stripped copy of its sources, for a "
+              "reader who wants the PROGRAM rather than the evidence? Say true "
+              "and tag the apparatus as you write it -- WORKING.md section 2a. "
+              "Left until later, the same judgement has to be made again from "
+              "the prose, and mostly without an instrument to check it",
+              "true")
     if (root / "kit" / "wiki").is_dir():
         p.offer("layout.wiki", "kit/wiki", CONVENTION, "the kit brought it")
     for name in ("build", "out"):
