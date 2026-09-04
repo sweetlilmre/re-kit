@@ -455,7 +455,14 @@ def drop_tagged_asm(text):
     line being a bare `;` and a drop having just ended. Two separators somebody
     wrote deliberately are left alone.
     """
+    # THE CONTINUATIONS ARE THE ONLY UNVERIFIED DELETIONS. A tagged line said
+    # what it was; a line swallowed for sitting next to one did not. This pass
+    # has eaten real documentation three times, and the self-check cannot see
+    # it because only comments changed -- so they are collected and reported
+    # rather than merely counted, which is the difference between a silent
+    # removal and a worklist.
     out, n, dropping, just_dropped = [], 0, False, False
+    swallowed = []
     for line in text.split('\n'):
         s = line.strip()
         if s.startswith(';'):
@@ -465,6 +472,7 @@ def drop_tagged_asm(text):
                 continue
             if dropping and after and not after.startswith('['):
                 n += 1                      # continuation of the tagged note
+                swallowed.append(s)
                 continue
         if (just_dropped and s == ';' and out and out[-1].strip() == ';'):
             # THE RUN ENDS HERE, and saying so is not optional: an earlier
@@ -477,7 +485,7 @@ def drop_tagged_asm(text):
             continue
         dropping, just_dropped = False, False
         out.append(line)
-    return '\n'.join(out), n
+    return '\n'.join(out), n, swallowed
 
 
 def asm_comment_at(line):
@@ -572,8 +580,10 @@ def clean_text(text, asm=False):
     # The address dropper below survives as a complement -- it clears
     # the pure citations for free, three quarters of them, and leaves
     # the tangled prose to the tags.
-    text, tagged = (drop_tagged_asm(text) if asm
-                    else drop_tagged_pascal(text))
+    if asm:
+        text, tagged, swallowed = drop_tagged_asm(text)
+    else:
+        (text, tagged), swallowed = drop_tagged_pascal(text), []
 
     # THE SAME ADDRESS RULES, ON THE OTHER COMMENT SYNTAX. The brace passes
     # below cannot see a `;` comment, so an assembler file's per-instruction
@@ -666,7 +676,7 @@ def clean_text(text, asm=False):
     # Dropping a trailing comment leaves behind the whitespace that
     # separated it from the code. Nothing in Pascal reads it, and a file
     # meant to be read should not carry it.
-    return '\n'.join(q.rstrip() for q in out), dropped, trimmed, tagged
+    return '\n'.join(q.rstrip() for q in out), dropped, trimmed, tagged, swallowed
 
 
 def survivors(text):
@@ -750,7 +760,7 @@ def main(argv):
         # legitimately hold both, and a tool that normalises rewrites the lot.
         crlf = '\r\n' in raw
         asm = is_asm(f, text)
-        new, d, t, g = clean_text(text, asm=asm)
+        new, d, t, g, swallowed = clean_text(text, asm=asm)
         rest = survivors(new)
         files += 1
         drop += d
@@ -759,6 +769,14 @@ def main(argv):
         left += len(rest)
         print("%-24s tagged %4d  dropped %4d  trimmed %3d  addressed %3d"
               % (rel.as_posix(), g, d, t, len(rest)))
+        if swallowed:
+            # ALWAYS, not only under --report. A tagged line announced
+            # itself; these were removed for sitting next to one, and that
+            # is the deletion nothing else here can check.
+            print("      %d line(s) removed as continuation of a tagged"
+                  " note -- confirm none is documentation:" % len(swallowed))
+            for body in swallowed[:8]:
+                print("        %s" % body)
         if report:
             for n, body in rest[:8]:
                 print("      %5d  %s" % (n, body))

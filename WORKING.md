@@ -54,6 +54,53 @@ At the moment you write the comment that judgement is **free**: you have just ma
 
 Tagging is keep-by-default, so an untagged apparatus comment does not fail: it **leaks**, quietly, into the copy meant for the other reader. Write the tag now and the leak cannot happen; write it later and you are the only instrument that can catch it, across every line you have written since.
 
+#### How to write one, so the stripping stays a script run
+
+The grammar is small, and `clean.py` is the authority on it. Every rule below was
+confirmed by running that tool over a sample and reading what came out.
+
+**Do not tag an address.** Addresses are removed by NOTATION, automatically: a
+comment whose whole content is an address goes, and an address prefix is trimmed
+off the front of a sentence that keeps the rest.
+
+    { 1642:0004 }                        -> removed entirely
+    { 0a4d..0a57 -- Tempo is scaled }    -> { Tempo is scaled }
+    { DS:$02d2  the FilterOff key }      -> { the FilterOff key }
+    { +$002 }   { E 2x }                 -> untouched, they are not addresses
+
+**Tag PROSE, and in Pascal the grain is the blank line.** A paragraph opening
+`[re]` is apparatus and goes; the paragraphs around it stay. So a comment that is
+half evidence and half explanation does not have to be split into two comments
+first -- put a blank line between them and tag the one that is evidence.
+
+    { What the routine does. This survives.
+
+      [re] How we know -- the map, the rejected reading, the instrument that
+      settled it. This goes, including its continuation lines.
+
+      [reading] An inference from reading the instructions. KEPT deliberately,
+      so a reader can tell a fact from an inference, and so inferences can be
+      counted. }
+
+**In assembler there are no paragraphs, so a run of whole comment lines goes
+together** -- the tag sits on the first, and the continuation lines carry none.
+A trailing comment on a line of code is never dropped.
+
+    ; [re] The evidence, first line.
+    ; ...and its continuation, which needs no tag of its own.
+                                      <- FENCE the run: a blank line or a bare `;`
+    ; Program documentation, which survives because it is not adjacent.
+
+**That fence is not a style point.** The run is greedy: any comment line touching
+a tagged one is swallowed, tag or no tag. Leave a plain comment line against a
+`[re]` line and it is deleted with it -- and `clean.py`'s self-check cannot see
+the loss, because it verifies that no line of CODE differs. This has eaten real
+documentation three times.
+
+`clean.py` now prints every line it removed as a continuation, so those deletions
+are a worklist rather than a silence. On a 34-unit corpus that is three files.
+Read them; they are the only removals nothing else checks.
+
 **Two instruments, two different questions, and you want both.** `routines.py` answers *did I break something that was already right* -- it is the regression check, and it is driven by declarations. `spans.py` answers *did the transcription land* -- it walks every byte, so it is the only one that can see a routine nobody declared. A green `routines.py` with an unchanged span means the edit compiled and achieved nothing.
 
 **Rebuild one target, not everything.** `build.py CONFIG.toml TPART5` stages that target and whatever it depends on, read out of the staged sources' own `uses` clauses. A whole-project rebuild is cheap enough to be worth doing before you believe a final number -- seconds, on this corpus -- but it is not the inner loop.
