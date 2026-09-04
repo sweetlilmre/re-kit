@@ -137,8 +137,25 @@ def main(argv):
         except project.Missing as exc:
             return project.complain(exc)
     files, findings = 0, 0
+    # RECURSE, AND DEDUPE. A flat glob over `kit/tools` found 7 files and
+    # never entered pascal/, substrate/ or wikitools/ -- 70 more -- so it
+    # printed `0 site(s) in 7 file(s)` over a tree it had not examined. Two
+    # consumers then carried a config listing every subdirectory by hand to
+    # work around it, which is a workaround that has to be extended every
+    # time a folder is added, silently wrong until somebody notices.
+    #
+    # Deduping matters because of exactly those configs: an answer naming
+    # both `kit/tools` and `kit/tools/pascal` would otherwise audit pascal
+    # twice and report a file count nothing in the tree matches.
+    seen = set()
     for d in dirs:
-        for p in sorted((root / d).glob('*.py')):
+        for p in sorted((root / d).rglob('*.py')):
+            if '__pycache__' in p.parts:
+                continue
+            key = p.resolve()
+            if key in seen:
+                continue
+            seen.add(key)
             files += 1
             hits = audit(p)
             if hits:
@@ -146,6 +163,18 @@ def main(argv):
                 for ln, what in hits:
                     print('    %4d  %s' % (ln, what))
                 findings += len(hits)
+    # NO FILES IS NOT A PASS. `0 site(s) in 0 file(s)` is what this printed in a
+    # consumer whose answer named a directory holding no Python at all, and it
+    # returned 0 -- the same shape as the check whose source directory was a
+    # constant, which reported `0 problems in 0 files` in the second
+    # repository and passed. An audit that examined nothing has measured
+    # nothing, and must not be indistinguishable from one that found nothing.
+    if not files:
+        print('  no .py under %s -- so nothing was audited, which is not the'
+              ' same as nothing being wrong. Point encaudit.dirs at the'
+              " directories that hold this project's own Python."
+              % ', '.join(dirs))
+        return 1
     print('\n%d site(s) in %d file(s) leave the encoding to the locale'
           % (findings, files))
     if findings:
