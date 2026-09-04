@@ -1,7 +1,7 @@
 ---
 type: Observation
 title: The data segment is laid out in reverse of the uses clause
-description: Borland Pascal emits each unit's typed constants into DGROUP in the REVERSE of the order the units are named, while code segments follow that order forwards. So a reconstruction whose data segment is back to front has its uses clause back to front -- and until it is fixed, every absolute data reference in the program carries a wrong displacement and correct code measures as wrong.
+description: Borland Pascal emits each unit's typed constants into DGROUP in the REVERSE of the order the units are named -- and, correcting what this page first said, the CODE segments reverse with them, measured on TP6.00 and TP7.01 with three independent units. So a reconstruction whose segments are back to front has its uses clause back to front, and until it is fixed every absolute data reference carries a wrong displacement and correct code measures as wrong.
 tags: [pascal, turbo-pascal, dgroup, linking, source-shape, units, reconstruction]
 measured_on: the demo reconstruction and the toolkit itself, parts 001, 003, 005
 timestamp: 2026-08-25T00:00:00Z
@@ -13,7 +13,7 @@ You have rebuilt a unit. Its routines are right -- the calls are in order, the c
 
 **Look at where a known table landed in the data segment. If the units come out backwards, your uses clause is backwards.**
 
-Borland Pascal emits typed constants into DGROUP one unit at a time, in the reverse of the order the units are named in the `uses` clause. The last unit named gets the lowest offsets. Code segments are emitted in that order *forwards*, so the two run in opposite directions and a single clause sets both.
+Borland Pascal emits typed constants into DGROUP one unit at a time, in the reverse of the order the units are named in the `uses` clause. The last unit named gets the lowest offsets. **The code segments run the same way** — see the section below, which corrects an earlier claim that they run forwards — so one clause sets both and reversing it moves both.
 
 ## Why it costs so much more than it looks
 
@@ -61,6 +61,31 @@ And the *step* between two adjacent runs is quantitative. If a run at low offset
 ## Why it works
 
 DGROUP is built by allocating each unit's data as the linker walks its list of units, and that walk runs opposite to the initialisation order the code segments are emitted in. Nothing about it is discretionary, which is what makes it readable in both directions: a data segment in the original's order is evidence the clause is right, exactly as a reversed one is evidence it is wrong.
+
+## The code segments reverse too, and this page used to say otherwise
+
+**This page previously said code segments are emitted in the clause's order *forwards*, opposite to DGROUP. A probe says they are reversed as well.** Three empty units, nothing else in the program, no dependency between them, driven through the real compiler:
+
+```pascal
+program Order;
+uses UnitA, UnitB, UnitC;
+```
+
+The linker map, under Turbo Pascal 6.00 and again under 7.01:
+
+```
+ 00000H 00025H ORDER   CODE
+ 00030H 0003BH UNITC   CODE
+ 00040H 0004BH UNITB   CODE
+ 00050H 0005BH UNITA   CODE
+ 00060H 00572H SYSTEM  CODE
+```
+
+`UnitC` is named last and placed first. Both compilers agree, so this is not a patch-level difference.
+
+A second target measured it the other way round, from the outside in. Its `uses ModeX, Palette, Crt` produced `SILKY, CRT, PALETTE, MODEX` where the shipped binary has `SILKY, MODEX, PALETTE, Crt`; writing the clause backwards as `uses Crt, Palette, ModeX` put every segment start on the original's to the byte. That is the same reversal the probe shows, on a real binary.
+
+**What is still open is why this page's own first example did not see it.** That example reports the code segments landing in the original's order while DGROUP was backwards, which cannot both be true of one clause if the two run the same way. The difference may be that its units depend on one another, where these three do not, or that its code segments were located by content rather than by position. Nobody has measured a dependent chain, and until somebody does the safe reading is narrow: **for units that do not use each other, one clause sets both orders and both are the reverse of it.**
 
 ## Blind spot
 
