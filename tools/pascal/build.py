@@ -174,7 +174,7 @@ def bin_dir(cfg, compiler):
     `binpath` copies were not, because nothing compiles through them: every
     invocation BUILD.BAT writes is fully qualified, so the PATH line they feed
     is read by nobody during a build. It is read at the interactive prompt,
-    where a renamed directory answers "Bad command or file name" -- which is
+    where a renamed directory answers "Bad command or filename" -- which is
     the incident recorded in write_overlay.
 
     Measured 4 Sep 2026 across every build config in both consumers: 15 typed
@@ -725,7 +725,7 @@ def write_overlay(cfg, root, build, compiler, out):
     # with, so the interactive prompt cannot disagree with the build about which
     # compiler is installed. That disagreement is not theoretical: the committed
     # config put a TP bin directory on the PATH that had since been renamed, so
-    # TPC at the prompt answered "Bad command or file name".
+    # TPC at the prompt answered "Bad command or filename".
     path = [bin_dir(cfg, compiler)]
     try:
         tasm = machine("toolchain.tasm", cfg.get("assembler", {}).get("exe"))
@@ -955,14 +955,22 @@ def main(argv):
     # be reported as a successful build.
     # The DOS message, as a backstop for anything tool_missing cannot reach --
     # a tool on a drive that is not the mounted image, or a PATH lookup.
-    if "Bad command or filename" in out:
+    # BOTH SPELLINGS. DOSBox-X prints "Bad command or filename" -- measured 4
+    # Sep 2026 by pointing toolchain.tasm at a directory that does not exist,
+    # which failed the build exit 1 and proved this backstop carries the
+    # assembler, since tool_missing above covers only the compiler. MS-DOS
+    # writes "Bad command or file name", and a build run under anything but
+    # DOSBox-X would say that instead. Checking one spelling and quoting the
+    # other in two comments is how a working guard gets "corrected" into one
+    # that cannot fire.
+    dos_lost = [l for l in out.rstrip().splitlines()
+                if "Bad command or filename" in l
+                or "Bad command or file name" in l]
+    if dos_lost:
         print("")
         print("BUILD FAILED -- DOS could not run a command. The log says so and")
         print("errorlevel does not, which is why this is checked by text:")
-        for line in out.rstrip().splitlines():
-            if "Bad command or filename" in line:
-                print("  " + line.strip())
-                break
+        print("  " + dos_lost[0].strip())
         return 1
 
     stamped = out.count("** FAILED")
