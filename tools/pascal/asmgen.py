@@ -154,10 +154,17 @@ def assemble(cfg, root, asm, module, includes=(), flags=None, timeout=300):
         shutil.rmtree(work)
     work.mkdir(parents=True)
 
-    name = pathlib.Path(module).name.upper()
-    shutil.copyfile(module, work / name)
+    # NAME AND MTIME ARE BOTH LOAD-BEARING, so the staged copy keeps them.
+    # TASM writes the module name into THEADR and each include's name AND
+    # timestamp into a class-E9 COMENT, taking the name AS TYPED -- which is
+    # why a shipped object can read `goldplay.ASM` with a lowercase g beside
+    # `SetText.Inc` and `TRKEFF.INC`. An earlier version uppercased the copy
+    # and used copyfile, which drops the mtime, so every dependency record came
+    # out unmatchable while the code bytes stayed perfect.
+    name = pathlib.Path(module).name
+    shutil.copy2(module, work / name)
     for inc in includes:
-        shutil.copyfile(inc, work / pathlib.Path(inc).name.upper())
+        shutil.copy2(inc, work / pathlib.Path(inc).name)
 
     stem = name.rsplit(".", 1)[0]
     if flags is None:
@@ -197,6 +204,10 @@ def assemble(cfg, root, asm, module, includes=(), flags=None, timeout=300):
         return None, text, "the assembler did not finish"
     obj = work / (stem + ".OBJ")
     if not obj.exists():
+        cand = [q for q in work.iterdir() if q.suffix.upper() == ".OBJ"]
+        if cand:
+            obj = cand[0]
+    if not obj.exists():
         return None, text, "no OBJ produced"
     return obj.read_bytes(), text, None
 
@@ -235,7 +246,7 @@ def main(argv):
         ref = segment_of(against)
         sys.stdout.write("reference %s: segment %d byte(s)\n" % (against, len(ref)))
 
-    stem = pathlib.Path(module).name.upper().rsplit(".", 1)[0]
+    stem = pathlib.Path(module).name.rsplit(".", 1)[0]
     worst = 0
     for asm in asms:
         obj, log, err = assemble(cfg, root, asm, module, includes, flags)
@@ -245,8 +256,9 @@ def main(argv):
             sys.stdout.write("FAILED: %s\n" % (err or "no object returned"))
             worst = 1
             continue
-        seg = segment_of(root / cfg.get("assembler", {}).get(
-            "workdir", DEFAULT_WORKDIR) / (stem + ".OBJ"))
+        wd = root / cfg.get("assembler", {}).get("workdir", DEFAULT_WORKDIR)
+        cand = [q for q in wd.iterdir() if q.suffix.upper() == ".OBJ"]
+        seg = segment_of(cand[0] if cand else wd / (stem + ".OBJ"))
         sys.stdout.write("OBJ %d byte(s), segment %d byte(s)\n" % (len(obj), len(seg)))
         if ref is None:
             continue
